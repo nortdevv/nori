@@ -1,73 +1,24 @@
-# React + TypeScript + Vite
+# Nori
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Nori** es una herramienta web con asistente de IA especializado en el levantamiento estructurado de requerimientos de software para **Grupo Financiero Banorte**. Resuelve el **Reto 1 de Banorte**: generar documentación de análisis, diseño y arquitectura mediante IA conversacional, produciendo documentos .docx en la plantilla corporativa oficial.
 
-Currently, two official plugins are available:
+>*"Un espacio de trabajo inteligente que conecta requerimientos, arquitectura y equipos, diseñado con IA para llevar la productividad de los ingenieros de Banorte al siguiente nivel."*
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Problema que resuelve
+- Documentos de requerimientos dispersos, ambiguos y tardados semanas/meses
+- Intercambio interminable entre negocio, TI y arquitectura
+- Falta de estandarización y trazabilidad en iniciativas tecnológicas
 
-## React Compiler
+### Solución
+- Captura guiada mediante chat IA con RAG organizacional
+- Generación automática de documentos completos y validados
+- Persistencia de contexto, dashboard de proyectos y exportación .docx
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Miembros desarrolladores
+| Nombre | Matrícula |
+|--------|-----------|
+| Rogelio Jesús Villarreal De Ochoa | A00838563 | 
+| Bryan Alberto Lemus Meza | A00838730 | 
+| Vania Michelle Sánchez Murillo | A00838552 | 
+| Cristian Jordy Granados Castañeda | A00998753 |
+| Luis Antonio Bolaña Domínguez | A01737959 | 
