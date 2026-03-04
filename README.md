@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://dummyimage.com/1200x240/EB0029/ffffff&text=Nori" alt="Nori banner" width="100%" />
+<img width="900" alt="Nori_Github" src="https://github.com/user-attachments/assets/3e8f9179-4179-4a34-89e4-622aef43383c" />
 
 <h1>📄 Nori — AI Requirements Assistant 📄</h1>
 <h3><i>"Estandarizando requerimientos... una conversación a la vez"</i></h3>
