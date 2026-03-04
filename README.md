@@ -9,7 +9,6 @@
 <a href="#"><img alt="Web" src="https://img.shields.io/badge/App-Web%20App-EB0029"></a>
 <a href="#"><img alt="Stack" src="https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20PostgreSQL-5B6670"></a>
 <a href="#"><img alt="AI" src="https://img.shields.io/badge/AI-LLM%20%7C%20RAG-FFB300"></a>
-<a href="#"><img alt="Banorte" src="https://img.shields.io/badge/Reto-Banorte%20-%20Ingenier%C3%ADa%20de%20Software-red"></a>
 
 <br/><br/>
 </div>
@@ -19,18 +18,16 @@
 ---
 
 ## 🔎 Tabla de Contenidos
-- [✨ Descripción del Proyecto](#-descripción-del-proyecto)
-- [🎯 Problema y Solución](#-problema-y-solución)
-- [🧠 Características Principales](#-características-principales)
-- [🛠️ Tecnologías Utilizadas](#️-tecnologías-utilizadas)
-- [🚀 Instalación y Configuración](#-instalación-y-configuración)
-- [🏗️ Arquitectura en Alto Nivel](#️-arquitectura-en-alto-nivel)
-- [📅 Roadmap](#-roadmap)
-- [👥 Equipo NortDev](#-equipo-nortdev)
+- [📄 Descripción del Proyecto](#descripción-del-proyecto)
+- [🎯 Problema y Solución](#problema-y-solución)
+- [🧠 Características Principales](#características-principales)
+- [🛠️ Tecnologías Utilizadas](#tecnologías-utilizadas)
+- [🚀 Instalación y Configuración](#instalación-y-configuración)
+- [👥 Equipo NortDev](#equipo-nortdev)
 
 ---
 
-## ✨ Descripción del Proyecto
+## 📄 Descripción del Proyecto
 
 ### Contexto
 
@@ -69,7 +66,7 @@ Una **aplicación web interna** para Banorte que:
 - 🧭 **Clasificador de dominio** para asegurar que la iniciativa pertenece al ámbito de TI / requerimientos.  
 - 🏢 Integración con **base de conocimiento RAG**: departamentos, tecnologías actuales y planeadas, estándares internos.  
 - 📝 **Editor de documento** con sugerencias de mejora generadas por IA y edición sección por sección.  
-- 📦 Exportación a **.docx** siguiendo el formato `NombreCortoIniciativaYYYY-MM-DD.docx` sin pop‑ups.  
+- 📦 Exportación a **.docx** siguiendo el formato `NombreCortoIniciativaYYYY-MM-DD.docx` sin pop-ups.  
 - 🔐 Sesiones seguras sobre **HTTPS/TLS**, expiración a los 30 minutos con guardado automático del progreso.  
 
 ---
@@ -94,7 +91,7 @@ Una **aplicación web interna** para Banorte que:
 
 ## 🚀 Instalación y Configuración
 
-> Nota: Este proyecto está pensado como **prototipo interno** para Banorte. Los pasos de instalación pueden ajustarse a la infraestructura objetivo (on‑premise / nube).
+> Nota: Este proyecto está pensado como **prototipo interno** para Banorte. Los pasos de instalación pueden ajustarse a la infraestructura objetivo (on-premise / nube).
 
 ### Requisitos Previos
 
@@ -103,6 +100,8 @@ Una **aplicación web interna** para Banorte que:
 - Python 3.11+ (para servicio de documentos y tareas de IA opcionales)  
 - PostgreSQL 14+  
 - Cuenta / API Key del proveedor de LLM (p. ej. Gemini / OpenAI)  
+
+---
 
 ## 🧑‍💻 Equipo NortDev
 
@@ -115,7 +114,7 @@ Una **aplicación web interna** para Banorte que:
         <img src="https://github.com/rogervdo.png?size=100" width="90px;" alt="Rogelio Villarreal"/><br />
         <b>Rogelio Jesús Villarreal De Ochoa</b>
       </a><br />
-      <sub>⚙️ Tech Lead / Frontend</sub><br />
+      <sub>⚙️ Tech Lead / Full-Stack</sub><br />
       <sub><code>A00838563</code></sub>
     </td>
     <td align="center">
@@ -123,7 +122,7 @@ Una **aplicación web interna** para Banorte que:
         <img src="https://github.com/Bryan-Meza.png?size=100" width="90px;" alt="Bryan Lemus"/><br />
         <b>Bryan Alberto Lemus Meza</b>
       </a><br />
-      <sub>🤖 Backend / IA</sub><br />
+      <sub>🤖 Backend / Full-Stack</sub><br />
       <sub><code>A00838730</code></sub>
     </td>
     <td align="center">
