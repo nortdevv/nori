@@ -1,73 +1,155 @@
-# React + TypeScript + Vite
+<div align="center">
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<img width="900" alt="Nori_Github" src="https://github.com/user-attachments/assets/3e8f9179-4179-4a34-89e4-622aef43383c" />
 
-Currently, two official plugins are available:
+<h1>📄 Nori — AI Requirements Assistant 📄</h1>
+<h3><i>"Estandarizando requerimientos... una conversación a la vez"</i></h3>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+<!-- Badges -->
+<a href="#"><img alt="Web" src="https://img.shields.io/badge/App-Web%20App-EB0029"></a>
+<a href="#"><img alt="Stack" src="https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20PostgreSQL-5B6670"></a>
+<a href="#"><img alt="AI" src="https://img.shields.io/badge/AI-LLM%20%7C%20RAG-FFB300"></a>
 
-## React Compiler
+<br/><br/>
+</div>
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+> **Nori** es una aplicación web que utiliza **inteligencia artificial** para apoyar a Grupo Financiero **Banorte** en el **levantamiento estructurado de requerimientos de software**, generando documentación formal lista para usarse en análisis, diseño y arquitectura.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🔎 Tabla de Contenidos
+- [📄 Descripción del Proyecto](#descripción-del-proyecto)
+- [🎯 Problema y Solución](#problema-y-solución)
+- [🧠 Características Principales](#características-principales)
+- [🛠️ Tecnologías Utilizadas](#tecnologías-utilizadas)
+- [🚀 Instalación y Configuración](#instalación-y-configuración)
+- [👥 Equipo NortDev](#equipo-nortdev)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📄 Descripción del Proyecto
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Contexto
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+En Banorte, la documentación de requerimientos de software suele implicar semanas de iteraciones entre áreas de negocio, TI y arquitectura, generando información dispersa, ambigua y poco estandarizada. Nori se propone como un **asistente virtual especializado** que guía a los usuarios a través de una conversación estructurada, integra conocimiento organizacional y produce automáticamente documentos en la plantilla oficial del banco.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Nori forma parte del **Reto 1 — Ingeniería de Software con IA** de Banorte, enfocado en agilizar la generación de documentos de análisis, diseño y arquitectura de solución.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+## 🎯 Problema y Solución
+
+### 🔴 Problema Identificado
+
+- Documentos de requerimientos **incompletos, ambiguos y desestructurados**.  
+- Dependencia fuerte del conocimiento tácito de expertos, difícil de escalar.  
+- Alto tiempo de ciclo para consolidar un documento formal entre múltiples áreas.  
+- Falta de **estandarización**, trazabilidad y gobernanza de iniciativas tecnológicas.  
+
+### ✅ Nuestra Solución
+
+Una **aplicación web interna** para Banorte que:
+
+- Ofrece un **asistente conversacional** que guía el levantamiento de requisitos.  
+- **Clasifica** automáticamente la solicitud y valida que esté dentro del dominio permitido.  
+- Usa **RAG** para consultar información organizacional (departamentos, stack tecnológico, roadmap, lineamientos).  
+- Genera automáticamente un **documento de levantamiento de requerimientos** en formato **.docx** con plantilla corporativa.  
+- Permite **editar**, versionar y **reanudar** conversaciones y documentos previamente guardados.  
+- Incluye historial de proyectos, indicadores de avance y validación de secciones obligatorias antes de exportar.
+
+---
+
+## 🧠 Características Principales
+
+- 💬 Chat IA con **gestión de contexto** y auto-guardado de la conversación.  
+- 🗂️ **Dashboard de proyectos** con búsqueda, filtros y estados (En progreso, Completado, Borrador).  
+- 🧭 **Clasificador de dominio** para asegurar que la iniciativa pertenece al ámbito de TI / requerimientos.  
+- 🏢 Integración con **base de conocimiento RAG**: departamentos, tecnologías actuales y planeadas, estándares internos.  
+- 📝 **Editor de documento** con sugerencias de mejora generadas por IA y edición sección por sección.  
+- 📦 Exportación a **.docx** siguiendo el formato `NombreCortoIniciativaYYYY-MM-DD.docx` sin pop-ups.  
+- 🔐 Sesiones seguras sobre **HTTPS/TLS**, expiración a los 30 minutos con guardado automático del progreso.  
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+| Categoría        | Tecnología           | Propósito                                      |
+|------------------|----------------------|------------------------------------------------|
+| **Frontend**     | React / Next.js      | Interfaz web responsiva                        |
+| **Estilos**      | TailwindCSS          | UI alineada a la Guía de Estilos Banorte       |
+| **Backend**      | Node.js / Express    | API REST y orquestación de servicios           |
+| **Base de Datos**| PostgreSQL           | Proyectos, usuarios, conversaciones, documentos|
+| **IA/LLM**       | Gemini / OpenAI API  | Generación y análisis de texto                 |
+| **RAG**          | Vector Store (pgvector / similar) | Búsqueda semántica sobre conocimiento Banorte |
+| **Docs**         | python-docx / similar| Generación de archivos .docx                   |
+| **Auth**         | OAuth 2.0 / SSO      | Autenticación corporativa                      |
+| **Control de versiones** | Git & GitHub | Colaboración del equipo NortDev                |
+
+*(Tecnologías concretas pueden variar según implementación final.)*
+
+---
+
+## 🚀 Instalación y Configuración
+
+> Nota: Este proyecto está pensado como **prototipo interno** para Banorte. Los pasos de instalación pueden ajustarse a la infraestructura objetivo (on-premise / nube).
+
+### Requisitos Previos
+
+- Node.js 20+  
+- npm o pnpm  
+- Python 3.11+ (para servicio de documentos y tareas de IA opcionales)  
+- PostgreSQL 14+  
+- Cuenta / API Key del proveedor de LLM (p. ej. Gemini / OpenAI)  
+
+---
+
+## 🧑‍💻 Equipo NortDev
+
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/rogervdo">
+        <img src="https://github.com/rogervdo.png?size=100" width="90px;" alt="Rogelio Villarreal"/><br />
+        <b>Rogelio Jesús Villarreal De Ochoa</b>
+      </a><br />
+      <sub>⚙️ Tech Lead / Full-Stack</sub><br />
+      <sub><code>A00838563</code></sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Bryan-Meza">
+        <img src="https://github.com/Bryan-Meza.png?size=100" width="90px;" alt="Bryan Lemus"/><br />
+        <b>Bryan Alberto Lemus Meza</b>
+      </a><br />
+      <sub>🤖 Backend / Full-Stack</sub><br />
+      <sub><code>A00838730</code></sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/mm1tch">
+        <img src="https://github.com/mm1tch.png?size=100" width="90px;" alt="Vania Sánchez"/><br />
+        <b>Vania Michelle Sánchez Murillo</b>
+      </a><br />
+      <sub>🎨 UX / QA</sub><br />
+      <sub><code>A00838552</code></sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/jordygranados">
+        <img src="https://github.com/jordygranados.png?size=100" width="90px;" alt="Jordy Granados"/><br />
+        <b>Cristian Jordy Granados Castañeda</b>
+      </a><br />
+      <sub>🐳 DevOps / Integraciones</sub><br />
+      <sub><code>A00998753</code></sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/bashlui">
+        <img src="https://github.com/bashlui.png?size=100" width="90px;" alt="Luis Bolaña"/><br />
+        <b>Luis Antonio Bolaina Domínguez</b>
+      </a><br />
+      <sub>📋 Product Owner / Full-Stack</sub><br />
+      <sub><code>A01737959</code></sub>
+    </td>
+  </tr>
+</table>
+
+</div>
