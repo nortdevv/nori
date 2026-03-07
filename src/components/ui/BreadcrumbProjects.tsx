@@ -33,10 +33,10 @@ function BreadcrumbProjects() {
         <BreadcrumbList className="text-base">
           <BreadcrumbItem>
             {pathSegments.length === 0 ? (
-              <BreadcrumbPage>Home</BreadcrumbPage>
+              <BreadcrumbPage>Proyectos</BreadcrumbPage>
             ) : (
               <BreadcrumbLink asChild>
-                <Link to="/">Home</Link>
+                <Link to="/">Proyectos</Link>
               </BreadcrumbLink>
             )}
           </BreadcrumbItem>
