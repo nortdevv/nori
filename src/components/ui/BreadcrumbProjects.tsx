@@ -9,9 +9,16 @@ import {
 } from "./breadcrumb";
 import React from "react";
 
+// En este vector se lleva el mapeo de la ruta dentro de la URL y como se verá
+// escrito dentro del Breadcrumb
+
+// Ejemplo: localhost/detalle
+// Breadcrumb: Proyectos > Detalle osea /detalle == Detalle
+
 const routeNames: Record<string, string> = {
   proyectos: "Proyectos",
   crear: "Crear Proyecto",
+  detalle: "Detalle",
 };
 
 function BreadcrumbProjects() {
