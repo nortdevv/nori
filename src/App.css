@@ -1,1 +1,283 @@
-/* App-specific styles - Tailwind classes are used inline */
+.dashboard-page {
+	background-color: #f3f4f6;
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+}
+
+.dashboard-content {
+	flex: 1;
+	overflow-y: auto;
+	margin: 0 auto;
+	padding: 28px 128px 32px;
+	width: 100%;
+}
+
+.dashboard-hero {
+	align-items: flex-start;
+	display: flex;
+	gap: 24px;
+	justify-content: space-between;
+	margin-bottom: 28px;
+}
+
+.dashboard-title {
+	color: #0f172a;
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1.2;
+	margin: 0 0 6px;
+}
+
+.dashboard-subtitle {
+	color: #64748b;
+	font-size: 0.9rem;
+	margin: 0;
+}
+
+.dashboard-create-button {
+	align-items: center;
+	background: #ec0029;
+	border-radius: 8px;
+	color: #ffffff;
+	display: inline-flex;
+	font-size: 0.9rem;
+	font-weight: 600;
+	gap: 8px;
+	padding: 10px 16px;
+	text-decoration: none;
+	transition: background-color 0.15s ease;
+	white-space: nowrap;
+}
+
+.dashboard-create-button:hover {
+	background: #c8001f;
+}
+
+.dashboard-toolbar {
+	align-items: center;
+	background-color: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+	display: flex;
+	gap: 18px;
+	justify-content: space-between;
+	margin-bottom: 18px;
+	padding: 12px;
+}
+
+.dashboard-search {
+	align-items: center;
+	border: 1px solid #d6dce5;
+	border-radius: 12px;
+	color: #94a3b8;
+	display: flex;
+	gap: 10px;
+	min-width: min(100%, 360px);
+	padding: 10px 14px;
+}
+
+.dashboard-search input {
+	background: transparent;
+	border: 0;
+	color: #0f172a;
+	font-size: 0.95rem;
+	outline: none;
+	width: 100%;
+}
+
+.dashboard-toolbar__controls {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px;
+	justify-content: flex-end;
+}
+
+.dashboard-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.dashboard-filter-pill {
+	background: #eef2f6;
+	border: 0;
+	border-radius: 999px;
+	color: #475569;
+	cursor: pointer;
+	font-size: 0.92rem;
+	font-weight: 600;
+	padding: 10px 14px;
+	transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.dashboard-filter-pill.is-active {
+	background: #ec0029;
+	color: #ffffff;
+}
+
+.dashboard-select-wrapper {
+	align-items: center;
+	border: 1px solid #d6dce5;
+	border-radius: 12px;
+	color: #475569;
+	display: flex;
+	gap: 8px;
+	padding: 0 12px;
+}
+
+.dashboard-select {
+	appearance: none;
+	background: transparent;
+	border: 0;
+	color: #334155;
+	cursor: pointer;
+	font-size: 0.92rem;
+	font-weight: 600;
+	outline: none;
+	padding: 10px 0;
+}
+
+.dashboard-grid {
+	display: grid;
+	gap: 20px;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.project-card {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+	display: flex;
+	flex-direction: column;
+	min-height: 188px;
+	overflow: hidden;
+}
+
+.project-card__body {
+	border-bottom: 1px solid #edf2f7;
+	flex: 1;
+	padding: 18px 18px 16px;
+}
+
+.project-card__title {
+	color: #0f172a;
+	font-size: 1.05rem;
+	font-weight: 700;
+	line-height: 1.3;
+	margin: 0 0 8px;
+}
+
+.project-card__description {
+	color: #64748b;
+	font-size: 0.99rem;
+	line-height: 1.7;
+	margin: 0;
+}
+
+.project-card__footer {
+	align-items: center;
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+	padding: 14px 18px 16px;
+}
+
+.project-status-badge {
+	border-radius: 999px;
+	font-size: 0.8rem;
+	font-weight: 700;
+	padding: 4px 10px;
+}
+
+.project-status-badge--progress {
+	background: #fff3e7;
+	color: #d97706;
+}
+
+.project-status-badge--completed {
+	background: #ecfdf3;
+	color: #16a34a;
+}
+
+.project-status-badge--draft {
+	background: #eff3f8;
+	color: #64748b;
+}
+
+.project-card__timestamp {
+	align-items: center;
+	color: #94a3b8;
+	display: inline-flex;
+	font-size: 0.84rem;
+	font-weight: 500;
+	gap: 6px;
+}
+
+.dashboard-empty-state {
+	background: #ffffff;
+	border: 1px dashed #cbd5e1;
+	border-radius: 14px;
+	margin-top: 18px;
+	padding: 28px;
+	text-align: center;
+}
+
+.dashboard-empty-state h2 {
+	color: #0f172a;
+	font-size: 1.05rem;
+	margin: 0 0 6px;
+}
+
+.dashboard-empty-state p {
+	color: #64748b;
+	margin: 0;
+}
+
+@media (max-width: 960px) {
+	.dashboard-content {
+		padding: 20px 96px 24px;
+	}
+
+	.dashboard-hero,
+	.dashboard-toolbar {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.dashboard-create-button {
+		justify-content: center;
+		width: 100%;
+	}
+
+	.dashboard-search {
+		min-width: 0;
+		width: 100%;
+	}
+
+	.dashboard-toolbar__controls {
+		justify-content: flex-start;
+	}
+}
+
+@media (max-width: 640px) {
+	.dashboard-content {
+		padding: 16px 56px 20px;
+	}
+
+	.dashboard-title {
+		font-size: 1.35rem;
+	}
+
+	.project-card__title {
+		font-size: 1rem;
+	}
+
+	.project-card__footer {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+}

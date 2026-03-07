@@ -6,7 +6,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "./breadcrumb";
+} from "./Breadcrumb";
 import React from "react";
 
 // En este vector se lleva el mapeo de la ruta dentro de la URL y como se verá
