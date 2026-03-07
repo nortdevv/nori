@@ -9,8 +9,7 @@
 	flex: 1;
 	overflow-y: auto;
 	margin: 0 auto;
-	max-width: 1520px;
-	padding: 28px 56px 32px;
+	padding: 28px 128px 32px;
 	width: 100%;
 }
 
@@ -240,7 +239,7 @@
 
 @media (max-width: 960px) {
 	.dashboard-content {
-		padding: 20px 32px 24px;
+		padding: 20px 96px 24px;
 	}
 
 	.dashboard-hero,
@@ -266,7 +265,7 @@
 
 @media (max-width: 640px) {
 	.dashboard-content {
-		padding: 16px 18px 20px;
+		padding: 16px 56px 20px;
 	}
 
 	.dashboard-title {
