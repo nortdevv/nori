@@ -6,7 +6,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "./breadcrumb";
+} from "./Breadcrumb";
 import React from "react";
 
 const routeNames: Record<string, string> = {
