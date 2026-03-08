@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import HomeHeader from "../components/ui/HomeHeader";
@@ -9,10 +9,14 @@ import type { ProjectStatus, SortOption } from "../types/project";
 
 type FilterValue = "Todos" | ProjectStatus;
 
-function Home() {
+function Proyectos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterValue>("Todos");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
+
+  useEffect(() => {
+    document.title = "Proyectos — Nori";
+  }, []);
 
   const visibleProjects = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -49,7 +53,7 @@ function Home() {
             </p>
           </div>
 
-          <Link to="/proyectos/crear" className="dashboard-create-button">
+          <Link to="/crear" className="dashboard-create-button">
             <Plus size={18} strokeWidth={2.5} />
             <span>Crear Nuevo Proyecto</span>
           </Link>
@@ -73,7 +77,10 @@ function Home() {
         {visibleProjects.length === 0 && (
           <section className="dashboard-empty-state">
             <h2>No encontramos proyectos</h2>
-            <p>Ajusta los filtros o prueba con otra búsqueda para ver más resultados.</p>
+            <p>
+              Ajusta los filtros o prueba con otra búsqueda para ver más
+              resultados.
+            </p>
           </section>
         )}
       </main>
@@ -81,4 +88,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default Proyectos;

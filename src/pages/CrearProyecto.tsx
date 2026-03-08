@@ -1,8 +1,13 @@
+import { useEffect } from "react";
 import Navbar from "../components/ui/Navbar";
 import SubNavbar from "../components/ui/SubNavbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 
 function CrearProyecto() {
+  useEffect(() => {
+    document.title = "Crear Proyecto — Nori";
+  }, []);
+
   return (
     <div
       style={{
