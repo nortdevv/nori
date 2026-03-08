@@ -18,4 +18,5 @@ export type Project = {
   deadline: string;
   lastUpdatedLabel: string;
   lastUpdatedDays: number;
+  progress: number;
 };
