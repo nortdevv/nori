@@ -1,4 +1,5 @@
 import { Clock3 } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { Project, ProjectStatus } from "../../types/project";
 
 type Props = {
@@ -7,23 +8,37 @@ type Props = {
 
 function ProjectCard({ project }: Props) {
   return (
-    <article className="project-card">
-      <div className="project-card__body">
-        <h2 className="project-card__title">{project.title}</h2>
-        <p className="project-card__description">{project.description}</p>
-      </div>
+    <Link
+      to={`/${project.id}`}
+      style={{
+        textDecoration: "none",
+        color: "inherit",
+        display: "flex",
+        height: "100%",
+      }}
+    >
+      <article className="project-card">
+        <div className="project-card__body">
+          <h2 className="project-card__title">{project.title}</h2>
+          <p className="project-card__description">{project.description}</p>
+        </div>
 
-      <div className="project-card__footer">
-        <span className={`project-status-badge ${getStatusClassName(project.status)}`}>
-          {project.status}
-        </span>
+        <div className="project-card__footer">
+          <span
+            className={`project-status-badge ${getStatusClassName(
+              project.status
+            )}`}
+          >
+            {project.status}
+          </span>
 
-        <span className="project-card__timestamp">
-          <Clock3 size={14} strokeWidth={2.2} />
-          {project.lastUpdatedLabel}
-        </span>
-      </div>
-    </article>
+          <span className="project-card__timestamp">
+            <Clock3 size={14} strokeWidth={2.2} />
+            {project.lastUpdatedLabel}
+          </span>
+        </div>
+      </article>
+    </Link>
   );
 }
 

@@ -8,6 +8,7 @@ import {
   BreadcrumbSeparator,
 } from "./Breadcrumb";
 import React from "react";
+import { projects } from "../../data/projects";
 
 // En este vector se lleva el mapeo de la ruta dentro de la URL y como se verá
 // escrito dentro del Breadcrumb
@@ -24,6 +25,15 @@ const routeNames: Record<string, string> = {
 function BreadcrumbProjects() {
   const location = useLocation();
   const pathSegments = location.pathname.split("/").filter(Boolean);
+
+  function getSegmentName(segment: string) {
+    if (routeNames[segment]) return routeNames[segment];
+
+    const project = projects.find((p) => p.id === Number(segment));
+    if (project) return project.title;
+
+    return segment;
+  }
 
   return (
     <Breadcrumb>
@@ -52,7 +62,7 @@ function BreadcrumbProjects() {
           {pathSegments.map((segment, index) => {
             const path = "/" + pathSegments.slice(0, index + 1).join("/");
             const isLast = index === pathSegments.length - 1;
-            const name = routeNames[segment] || segment;
+            const name = getSegmentName(segment);
 
             return (
               <React.Fragment key={path}>
