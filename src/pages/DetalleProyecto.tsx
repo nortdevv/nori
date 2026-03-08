@@ -4,8 +4,21 @@ import Navbar from "../components/ui/Navbar";
 import SubNavbar from "../components/ui/SubNavbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { projects } from "../data/projects";
-import { ChevronLeft, Pencil, Copy, Trash2, CalendarDays } from "lucide-react";
+import {
+  ChevronLeft,
+  Pencil,
+  Copy,
+  Trash2,
+  CalendarDays,
+  Plus,
+  FileText,
+  Eye,
+  Download,
+  Check,
+  RefreshCw,
+} from "lucide-react";
 import type { ProjectStatus, ProjectPriority } from "../types/project";
+import "./DetalleProyecto.css";
 
 function getStatusStyle(status: ProjectStatus) {
   if (status === "Completado")
@@ -35,6 +48,24 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
+function getPriorityLabel(priority: ProjectPriority) {
+  return priority.replace(" prioridad", "");
+}
+
+function getPriorityBadgeStyle(priority: ProjectPriority) {
+  if (priority === "Alta prioridad")
+    return { background: "#dc2626", color: "#ffffff" };
+  if (priority === "Baja prioridad")
+    return { background: "#0284c7", color: "#ffffff" };
+  return { background: "#d97706", color: "#ffffff" };
+}
+
+function getProgressColor(progress: number) {
+  if (progress === 100) return "#16a34a";
+  if (progress >= 50) return "#ec0029";
+  return "#ec0029";
+}
+
 function DetalleProyecto() {
   const { id } = useParams<{ id: string }>();
   const project = projects.find((p) => p.id === Number(id));
@@ -53,95 +84,25 @@ function DetalleProyecto() {
         <BreadcrumbProjects />
       </div>
       <main className="dashboard-content">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "24px",
-          }}
-        >
-          <Link
-            to="/"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              textDecoration: "none",
-              color: "#334155",
-              fontSize: "0.95rem",
-              fontWeight: 500,
-              backgroundColor: "#ffffff",
-              border: "1.5px solid #323e48",
-              borderRadius: "10px",
-              padding: "10px 18px",
-              transition: "background-color 0.15s ease",
-            }}
-          >
+        <div className="detalle-toolbar">
+          <Link to="/" className="detalle-back-link">
             <ChevronLeft size={18} strokeWidth={2.2} />
             Volver a proyectos
           </Link>
 
-          <div style={{ display: "flex", gap: "12px" }}>
-            <button
-              type="button"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                fontSize: "0.95rem",
-                fontWeight: 600,
-                color: "#ec0029",
-                backgroundColor: "#ffffff",
-                border: "1.5px solid #ec0029",
-                borderRadius: "10px",
-                padding: "10px 18px",
-                cursor: "pointer",
-                transition: "background-color 0.15s ease",
-              }}
-            >
+          <div className="detalle-actions">
+            <button type="button" className="detalle-btn detalle-btn--edit">
               <Pencil size={16} strokeWidth={2.2} />
               Editar
             </button>
-
             <button
               type="button"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                fontSize: "0.95rem",
-                fontWeight: 600,
-                color: "#334155",
-                backgroundColor: "#ffffff",
-                border: "1.5px solid #d6dce5",
-                borderRadius: "10px",
-                padding: "10px 18px",
-                cursor: "pointer",
-                transition: "background-color 0.15s ease",
-              }}
+              className="detalle-btn detalle-btn--duplicate"
             >
               <Copy size={16} strokeWidth={2.2} />
               Duplicar
             </button>
-
-            <button
-              type="button"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                fontSize: "0.95rem",
-                fontWeight: 600,
-                color: "#ec0029",
-                backgroundColor: "#ffffff",
-                border: "1.5px solid #d6dce5",
-                borderRadius: "10px",
-                padding: "10px 18px",
-                cursor: "pointer",
-                transition: "background-color 0.15s ease",
-              }}
-            >
+            <button type="button" className="detalle-btn detalle-btn--delete">
               <Trash2 size={16} strokeWidth={2.2} />
               Eliminar
             </button>
@@ -149,203 +110,193 @@ function DetalleProyecto() {
         </div>
 
         {project ? (
-          <div
-            style={{
-              backgroundColor: "#ffffff",
-              borderRadius: "16px",
-              border: "1px solid #e2e8f0",
-              padding: "36px 40px",
-            }}
-          >
-            {/* Título y fecha */}
-            <h1
-              style={{
-                fontSize: "1.75rem",
-                fontWeight: 700,
-                color: "#0f172a",
-                margin: "0 0 4px",
-              }}
-            >
-              {project.title}
-            </h1>
-            <p
-              style={{
-                fontSize: "0.9rem",
-                color: "#94a3b8",
-                margin: "0 0 20px",
-              }}
-            >
-              Proyecto · Creado el {project.createdDate}
-            </p>
-
-            {/* Badges */}
-            <div style={{ display: "flex", gap: "10px", marginBottom: "24px" }}>
-              <span
-                style={{
-                  borderRadius: "999px",
-                  fontSize: "0.85rem",
-                  fontWeight: 600,
-                  padding: "5px 14px",
-                  ...getStatusStyle(project.status),
-                }}
-              >
-                {project.status}
-              </span>
-              <span
-                style={{
-                  borderRadius: "999px",
-                  fontSize: "0.85rem",
-                  fontWeight: 600,
-                  padding: "5px 14px",
-                  ...getPriorityStyle(project.priority),
-                }}
-              >
-                {project.priority}
-              </span>
-              <span
-                style={{
-                  borderRadius: "999px",
-                  fontSize: "0.85rem",
-                  fontWeight: 600,
-                  padding: "5px 14px",
-                  backgroundColor: "#f1f5f9",
-                  color: "#334155",
-                }}
-              >
-                {project.category}
-              </span>
-            </div>
-
-            {/* Separador */}
-            <hr
-              style={{
-                border: "none",
-                borderTop: "1px solid #e2e8f0",
-                margin: "0 0 24px",
-              }}
-            />
-
-            {/* Objetivo */}
-            <p
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 700,
-                color: "#94a3b8",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                margin: "0 0 8px",
-              }}
-            >
-              Objetivo
-            </p>
-            <p
-              style={{
-                fontSize: "0.95rem",
-                color: "#334155",
-                lineHeight: 1.7,
-                margin: "0 0 28px",
-              }}
-            >
-              {project.objective}
-            </p>
-
-            {/* Responsable y Departamento */}
-            <div style={{ display: "flex", gap: "80px", marginBottom: "28px" }}>
-              <div>
-                <p
-                  style={{
-                    fontSize: "0.78rem",
-                    fontWeight: 700,
-                    color: "#94a3b8",
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    margin: "0 0 10px",
-                  }}
-                >
-                  Responsable
+          <>
+            <div className="detalle-cards">
+              <div className="detalle-main-card">
+                <h1 className="detalle-main-card__title">{project.title}</h1>
+                <p className="detalle-main-card__subtitle">
+                  Proyecto · Creado el {project.createdDate}
                 </p>
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
-                >
-                  <div
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                      borderRadius: "50%",
-                      backgroundColor: "#ec0029",
-                      color: "#ffffff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "0.8rem",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {getInitials(project.responsible)}
-                  </div>
+
+                <div className="detalle-badges">
                   <span
-                    style={{
-                      fontSize: "0.95rem",
-                      fontWeight: 600,
-                      color: "#0f172a",
-                    }}
+                    className="detalle-badge"
+                    style={getStatusStyle(project.status)}
                   >
-                    {project.responsible}
+                    {project.status}
+                  </span>
+                  <span
+                    className="detalle-badge"
+                    style={getPriorityStyle(project.priority)}
+                  >
+                    {project.priority}
+                  </span>
+                  <span className="detalle-badge detalle-badge--category">
+                    {project.category}
+                  </span>
+                </div>
+
+                <hr className="detalle-separator" />
+
+                <p className="detalle-section-label">Objetivo</p>
+                <p className="detalle-objective-text">{project.objective}</p>
+
+                <div className="detalle-info-row">
+                  <div>
+                    <p className="detalle-section-label detalle-section-label--info">
+                      Responsable
+                    </p>
+                    <div className="detalle-responsible">
+                      <div className="detalle-avatar">
+                        {getInitials(project.responsible)}
+                      </div>
+                      <span className="detalle-responsible__name">
+                        {project.responsible}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="detalle-section-label detalle-section-label--info">
+                      Departamento
+                    </p>
+                    <span className="detalle-department-value">
+                      {project.department}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="detalle-section-label">Fecha límite</p>
+                <div className="detalle-deadline">
+                  <CalendarDays size={18} color="#64748b" strokeWidth={2} />
+                  <span className="detalle-deadline__date">
+                    {project.deadline}
                   </span>
                 </div>
               </div>
 
-              <div>
-                <p
-                  style={{
-                    fontSize: "0.78rem",
-                    fontWeight: 700,
-                    color: "#94a3b8",
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    margin: "0 0 10px",
-                  }}
+              <div className="detalle-side-card">
+                <p className="detalle-side-label">Estado del proyecto</p>
+                <span
+                  className="detalle-side-status-badge"
+                  style={getStatusStyle(project.status)}
                 >
-                  Departamento
+                  {project.status}
+                </span>
+
+                <hr className="detalle-side-separator" />
+
+                <p className="detalle-side-label detalle-side-label--activity">
+                  Ultima actividad
+                </p>
+                <p className="detalle-side-value">
+                  {project.lastUpdatedLabel === "hace 1 día"
+                    ? "Ayer"
+                    : project.lastUpdatedDays === 0
+                    ? "Hoy 14:30"
+                    : project.lastUpdatedLabel}
+                </p>
+
+                <p className="detalle-side-label detalle-side-label--activity">
+                  Fecha de creacion
+                </p>
+                <p className="detalle-side-value">{project.createdDate}</p>
+
+                <p className="detalle-side-label detalle-side-label--priority">
+                  Prioridad
                 </p>
                 <span
-                  style={{
-                    fontSize: "0.95rem",
-                    fontWeight: 500,
-                    color: "#0f172a",
-                  }}
+                  className="detalle-side-priority-badge"
+                  style={getPriorityBadgeStyle(project.priority)}
                 >
-                  {project.department}
+                  {getPriorityLabel(project.priority)}
                 </span>
+
+                <hr className="detalle-side-separator detalle-side-separator--progress" />
+
+                <div className="detalle-progress-header">
+                  <p className="detalle-progress-label">Progreso</p>
+                  <span
+                    className="detalle-progress-percent"
+                    style={{ color: getProgressColor(project.progress) }}
+                  >
+                    {project.progress}%
+                  </span>
+                </div>
+                <div className="detalle-progress-track">
+                  <div
+                    className="detalle-progress-bar"
+                    style={{
+                      width: `${project.progress}%`,
+                      backgroundColor: getProgressColor(project.progress),
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Fecha límite */}
-            <p
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 700,
-                color: "#94a3b8",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                margin: "0 0 8px",
-              }}
-            >
-              Fecha límite
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <CalendarDays size={18} color="#64748b" strokeWidth={2} />
-              <span
-                style={{
-                  fontSize: "0.95rem",
-                  fontWeight: 500,
-                  color: "#0f172a",
-                }}
-              >
-                {project.deadline}
-              </span>
+            <div className="detalle-docs-card">
+              <div className="detalle-docs-header">
+                <h2 className="detalle-docs-title">Documentos generados</h2>
+                <button type="button" className="detalle-docs-generate-btn">
+                  <Plus size={16} strokeWidth={2.5} />
+                  Generar nuevo documento
+                </button>
+              </div>
+
+              <div className="detalle-doc-item">
+                <div className="detalle-doc-item__left-border" />
+                <div className="detalle-doc-item__content">
+                  <div className="detalle-doc-item__header">
+                    <div className="detalle-doc-item__info">
+                      <FileText size={20} color="#ec0029" strokeWidth={2} />
+                      <div>
+                        <p className="detalle-doc-item__name">
+                          Documento de requerimientos v2
+                        </p>
+                        <p className="detalle-doc-item__meta">
+                          Generado: 14:30 hoy · {project.priority}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="detalle-doc-item__version-badge">
+                      Ultima version
+                    </span>
+                  </div>
+                  <div className="detalle-doc-item__actions">
+                    <button
+                      type="button"
+                      className="detalle-doc-btn detalle-doc-btn--view"
+                    >
+                      <Eye size={15} strokeWidth={2.2} />
+                      Ver documento
+                    </button>
+                    <button
+                      type="button"
+                      className="detalle-doc-btn detalle-doc-btn--download"
+                    >
+                      <Download size={15} strokeWidth={2.2} />
+                      Descargar .docx
+                    </button>
+                    <button
+                      type="button"
+                      className="detalle-doc-btn detalle-doc-btn--approve"
+                    >
+                      <Check size={15} strokeWidth={2.5} />
+                      Aprobar
+                    </button>
+                    <button
+                      type="button"
+                      className="detalle-doc-btn detalle-doc-btn--regenerate"
+                    >
+                      <RefreshCw size={15} strokeWidth={2.2} />
+                      Generar nueva version
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          </>
         ) : (
           <h1>Proyecto no encontrado</h1>
         )}

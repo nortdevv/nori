@@ -17,6 +17,7 @@ export const projects: Project[] = [
     deadline: "15/04/2026",
     lastUpdatedLabel: "hace 2 días",
     lastUpdatedDays: 2,
+    progress: 60,
   },
   {
     id: 2,
@@ -34,6 +35,7 @@ export const projects: Project[] = [
     deadline: "28/02/2026",
     lastUpdatedLabel: "hace 5 días",
     lastUpdatedDays: 5,
+    progress: 100,
   },
   {
     id: 3,
@@ -51,6 +53,7 @@ export const projects: Project[] = [
     deadline: "30/05/2026",
     lastUpdatedLabel: "hace 1 día",
     lastUpdatedDays: 1,
+    progress: 45,
   },
   {
     id: 4,
@@ -68,6 +71,7 @@ export const projects: Project[] = [
     deadline: "01/07/2026",
     lastUpdatedLabel: "hace 1 semana",
     lastUpdatedDays: 7,
+    progress: 10,
   },
   {
     id: 5,
@@ -85,6 +89,7 @@ export const projects: Project[] = [
     deadline: "20/02/2026",
     lastUpdatedLabel: "hace 3 semanas",
     lastUpdatedDays: 21,
+    progress: 100,
   },
   {
     id: 6,
@@ -102,5 +107,6 @@ export const projects: Project[] = [
     deadline: "15/06/2026",
     lastUpdatedLabel: "hace 2 días",
     lastUpdatedDays: 2,
+    progress: 5,
   },
 ];
