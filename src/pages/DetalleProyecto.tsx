@@ -238,10 +238,10 @@ function DetalleProyecto() {
             <div className="detalle-docs-card">
               <div className="detalle-docs-header">
                 <h2 className="detalle-docs-title">Documentos generados</h2>
-                <button type="button" className="detalle-docs-generate-btn">
+                <Link to={`/chat/${project.id}`} className="detalle-docs-generate-btn">
                   <Plus size={16} strokeWidth={2.5} />
                   Generar nuevo documento
-                </button>
+                </Link>
               </div>
 
               <div className="detalle-doc-item">
@@ -285,13 +285,10 @@ function DetalleProyecto() {
                       <Check size={15} strokeWidth={2.5} />
                       Aprobar
                     </button>
-                    <button
-                      type="button"
-                      className="detalle-doc-btn detalle-doc-btn--regenerate"
-                    >
+                    <Link to={`/chat/${project.id}`} className="detalle-doc-btn detalle-doc-btn--regenerate">
                       <RefreshCw size={15} strokeWidth={2.2} />
                       Generar nueva version
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
