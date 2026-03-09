@@ -20,11 +20,13 @@ const routeNames: Record<string, string> = {
   proyectos: "Proyectos",
   crear: "Crear Proyecto",
   detalle: "Detalle",
+  chat: "Chat",
 };
 
 function BreadcrumbProjects() {
   const location = useLocation();
-  const pathSegments = location.pathname.split("/").filter(Boolean);
+  const raw = location.pathname.split("/").filter(Boolean);
+  const pathSegments = raw[0] === "chat" && raw[1] ? [raw[1], raw[0]] : raw;
 
   function getSegmentName(segment: string) {
     if (routeNames[segment]) return routeNames[segment];
