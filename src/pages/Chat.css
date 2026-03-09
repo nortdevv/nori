@@ -1,0 +1,505 @@
+/* ── Layout principal ── */
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.chat-nav {
+  flex-shrink: 0;
+}
+
+.chat-split {
+  flex: 1;
+  min-height: 0;
+  padding: 24px 100px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  background-color: #f4f4f4;
+}
+
+/* ── Step Indicator ── */
+.step-indicator {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 100px;
+  flex-shrink: 0;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+}
+
+.step-item__inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  background-color: #e5e5e5;
+  color: #6b6b6b;
+  transition: all 0.2s;
+}
+
+.step-circle--active {
+  background-color: #ec0029;
+  color: #fff;
+  box-shadow: 0 0 0 4px #ffd0d8;
+}
+
+.step-circle--done {
+  background-color: #ec0029;
+  color: #fff;
+}
+
+.step-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6b6b6b;
+}
+
+.step-label--active {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.step-label--done {
+  color: #1a1a1a;
+}
+
+.step-connector {
+  width: 112px;
+  height: 2px;
+  margin: 0 16px;
+  background-color: #e5e5e5;
+  transition: background-color 0.3s;
+}
+
+.step-connector--done {
+  background-color: #ec0029;
+}
+
+/* ── Chat Panel ── */
+.chat-panel {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.chat-panel__header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.chat-panel__title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #1a1a1a;
+}
+
+.chat-panel__subtitle {
+  font-size: 13px;
+  color: #6b6b6b;
+  margin-top: 2px;
+}
+
+.chat-panel__badge {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  background-color: #e8e8e8;
+  font-size: 12px;
+  color: #4a4a4a;
+  font-weight: 500;
+}
+
+.chat-panel__messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chat-panel__quick-actions {
+  padding: 12px 24px 8px;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.chat-panel__quick-btn {
+  padding: 6px 14px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background-color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a4a4a;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.chat-panel__quick-btn:hover {
+  border-color: #ec0029;
+  color: #ec0029;
+}
+
+.chat-panel__input-row {
+  padding: 8px 24px 20px;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.chat-panel__input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.chat-panel__input:focus {
+  border-color: #ec0029;
+}
+
+.chat-panel__send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #ec0029;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.chat-panel__send-btn:hover {
+  background-color: #c8001f;
+}
+
+/* ── Chat Bubble ── */
+.chat-bubble {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-bubble--nori {
+  justify-content: flex-start;
+}
+
+.chat-bubble--user {
+  justify-content: flex-end;
+}
+
+.chat-bubble__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ec0029;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.chat-bubble__text {
+  max-width: 80%;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.chat-bubble__text--nori {
+  border-radius: 12px 12px 12px 4px;
+  background-color: #f7f7f7;
+  color: #1a1a1a;
+}
+
+.chat-bubble__text--user {
+  border-radius: 12px 12px 4px 12px;
+  background-color: #fef2f2;
+  border: 1px solid #ffd6d6;
+  color: #1a1a1a;
+}
+
+/* ── Document Panel ── */
+.doc-panel {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.doc-panel__header {
+  padding: 24px 24px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e5e5;
+  flex-shrink: 0;
+}
+
+.doc-panel__header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #1a1a1a;
+}
+
+.doc-panel__refresh {
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.doc-panel__refresh:hover {
+  transform: rotate(180deg);
+}
+
+.doc-panel__sections {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.doc-panel__generate-btn {
+  width: 100%;
+  padding: 12px 24px;
+  background-color: #ec0029;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.doc-panel__generate-btn:hover {
+  background-color: #c8001f;
+}
+
+.doc-panel__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid #e5e5e5;
+  flex-shrink: 0;
+}
+
+.doc-panel__page-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #e5e5e5;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4a4a4a;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.doc-panel__page-btn:hover:not(:disabled) {
+  border-color: #ec0029;
+  color: #ec0029;
+}
+
+.doc-panel__page-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.doc-panel__page-label {
+  font-size: 13px;
+  color: #6b6b6b;
+  font-weight: 500;
+  min-width: 36px;
+  text-align: center;
+}
+
+.doc-panel__footer {
+  padding: 16px;
+  border-top: 1px solid #e5e5e5;
+  flex-shrink: 0;
+}
+
+/* ── Doc Section Item ── */
+.doc-section {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.doc-section--collapsed {
+  border-left: 4px solid #ec0029;
+}
+
+.doc-section__header {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background-color: #f5f6f7;
+}
+
+.doc-section__label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.doc-section__check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #e8f5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doc-section__content {
+  padding: 10px 16px 14px 40px;
+  font-size: 13px;
+  background-color: #fff;
+  border-top: 1px solid #eeeeee;
+}
+
+.doc-section__content--completed {
+  color: #4a4a4a;
+}
+
+.doc-section__content--pending {
+  color: #6b6b6b;
+  font-style: italic;
+}
+
+/* ── Doc Section Badge ── */
+.doc-section__badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+.doc-section__badge--red {
+  color: #ec0029;
+  background-color: #fff0f2;
+}
+
+.doc-section__badge--cyan {
+  color: #0096a0;
+  background-color: #e6f7f8;
+}
+
+.doc-section__badge--navy {
+  color: #1a3399;
+  background-color: #d0d8f5;
+}
+
+.doc-section__content-badge {
+  margin-bottom: 8px;
+}
+
+/* ── Doc Subsections ── */
+.doc-section__subsections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.doc-section__subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.doc-section__subsection-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Risk Table ── */
+.risk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  table-layout: fixed;
+}
+
+.risk-table__col--riesgo {
+  width: 22%;
+}
+
+.risk-table th {
+  background-color: #f0f4f8;
+  color: #4a4a4a;
+  font-weight: 600;
+  padding: 6px 10px;
+  text-align: left;
+  border: 1px solid #e5e5e5;
+}
+
+.risk-table td {
+  padding: 5px 10px;
+  border: 1px solid #e5e5e5;
+  color: #6b6b6b;
+}
