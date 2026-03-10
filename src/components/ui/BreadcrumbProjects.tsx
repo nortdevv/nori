@@ -7,8 +7,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "./Breadcrumb";
-import React from "react";
-import { projects } from "../../data/projects";
+import React, { useState, useEffect } from "react";
+import { chatApi } from "../../services/api";
+import type { ProjectDisplay } from "../../types/project";
+import { toProjectDisplay } from "../../types/project";
 
 // En este vector se lleva el mapeo de la ruta dentro de la URL y como se verá
 // escrito dentro del Breadcrumb
@@ -27,12 +29,26 @@ function BreadcrumbProjects() {
   const location = useLocation();
   const raw = location.pathname.split("/").filter(Boolean);
   const pathSegments = raw[0] === "chat" && raw[1] ? [raw[1], raw[0]] : raw;
+  const [projects, setProjects] = useState<ProjectDisplay[]>([]);
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const { conversations } = await chatApi.getConversations();
+        const displayProjects = conversations.map(toProjectDisplay);
+        setProjects(displayProjects);
+      } catch (err) {
+        console.error('Error loading projects for breadcrumb:', err);
+      }
+    };
+    loadProjects();
+  }, []);
 
   function getSegmentName(segment: string) {
     if (routeNames[segment]) return routeNames[segment];
 
-    const project = projects.find((p) => p.id === Number(segment));
-    if (project) return project.title;
+    const project = projects.find((p) => p.project_id === segment);
+    if (project) return project.name;
 
     return segment;
   }

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Send,
   FileText,
@@ -12,64 +12,29 @@ import Navbar from "../components/ui/Navbar";
 import SubNavbar from "../components/ui/SubNavbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import StepIndicator from "../components/ui/StepIndicator";
-import ChatBubble, { type Message } from "../components/ui/ChatBubble";
+import ChatBubble, { type Message as ChatBubbleMessage } from "../components/ui/ChatBubble";
 import DocSectionItem, {
   type DocSection,
 } from "../components/ui/DocSectionItem";
 import DocPreviewModal from "../components/ui/DocPreviewModal";
-import { projects } from "../data/projects";
-import { getChatData } from "../data/chats";
+import { chatApi } from "../services/api";
+import type { Message } from "../types/project";
 import "./Chat.css";
 
 const STEPS = ["Contexto", "Levantamiento", "Revisión"];
 
 const INITIAL_SECTIONS = [
-  { id: 1, title: "1. Introducción" },
-  { id: 2, title: "2. Alcance del proyecto" },
-  { id: 3, title: "3. Requerimientos funcionales" },
-  { id: 4, title: "4. Requerimientos no funcionales" },
-  {
-    id: 5,
-    title: "5. Beneficios",
-    subsections: [{ id: "5.1", title: "5.1 Otros Beneficios" }],
-  },
-  {
-    id: 6,
-    title: "6. Participación de otras áreas",
-    subsections: [
-      {
-        id: "6.1",
-        title: "6.1 Riesgos",
-        badge: "Obligatorio",
-        badgeColor: "red" as const,
-        hasRiskTable: true,
-      },
-    ],
-  },
-  {
-    id: 7,
-    title: "7. Exclusiones",
-    badge: "Únicamente si aplica",
-    badgeColor: "cyan" as const,
-  },
-  {
-    id: 8,
-    title: "8. Supuestos",
-    badge: "Únicamente si aplica",
-    badgeColor: "cyan" as const,
-  },
-  {
-    id: 9,
-    title: "9. Restricciones",
-    badge: "Únicamente si aplica",
-    badgeColor: "cyan" as const,
-  },
-  {
-    id: 10,
-    title: "10. Anexos",
-    badge: "Opcional",
-    badgeColor: "navy" as const,
-  },
+  { id: 0, title: "0. Información General del Solicitante" },
+  { id: 1, title: "1. Descripción General y Justificación" },
+  { id: 2, title: "2. Objetivos de la Iniciativa" },
+  { id: 3, title: "3. Áreas Impactadas" },
+  { id: 4, title: "4. Requerimientos de Negocio" },
+  { id: 5, title: "5. Beneficios" },
+  { id: 6, title: "6. Participación de Otras Áreas" },
+  { id: 7, title: "7. Riesgos" },
+  { id: 8, title: "8. Exclusiones" },
+  { id: 9, title: "9. Supuestos" },
+  { id: 10, title: "10. Restricciones" },
 ];
 
 function getCurrentStep(msgCount: number): number {
@@ -84,12 +49,14 @@ function ChatPanel({
   onInputChange,
   onSend,
   currentSection,
+  isSending,
 }: {
-  messages: Message[];
+  messages: ChatBubbleMessage[];
   inputValue: string;
   onInputChange: (v: string) => void;
   onSend: () => void;
   currentSection: string;
+  isSending: boolean;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -111,9 +78,14 @@ function ChatPanel({
       </div>
 
       <div className="chat-panel__messages">
-        {messages.map((msg) => (
-          <ChatBubble key={msg.id} message={msg} />
+        {messages.map((msg, idx) => (
+          <ChatBubble key={`${msg.from}-${idx}`} message={msg} />
         ))}
+        {isSending && (
+          <div style={{ padding: '1rem', color: '#64748b', fontSize: '0.875rem' }}>
+            Nori está escribiendo...
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -134,10 +106,15 @@ function ChatPanel({
           className="chat-panel__input"
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onSend()}
+          onKeyDown={(e) => e.key === "Enter" && !isSending && onSend()}
           placeholder="Describe tu proyecto o responde a Nori..."
+          disabled={isSending}
         />
-        <button className="chat-panel__send-btn" onClick={onSend}>
+        <button
+          className="chat-panel__send-btn"
+          onClick={onSend}
+          disabled={isSending}
+        >
           <Send size={16} color="#fff" />
         </button>
       </div>
@@ -215,28 +192,20 @@ function DocumentPanel({
 
 function Chat() {
   const { id } = useParams<{ id: string }>();
-  const project = projects.find((p) => p.id === Number(id)) ?? projects[0];
+  const navigate = useNavigate();
 
-  const chatData = getChatData(project.id);
-
-  const initialMsgCount = chatData?.messages.length ?? 1;
+  const [projectName, setProjectName] = useState("Proyecto");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
-  const [messages, setMessages] = useState<Message[]>(
-    chatData?.messages ?? [
-      {
-        id: 1,
-        from: "nori",
-        text: `¡Hola! Soy Nori, tu asistente para levantar requerimientos de software. Veo que quieres trabajar en "${project.title}". ¿Puedes contarme más sobre el objetivo del proyecto?`,
-      },
-    ],
-  );
+  const [messages, setMessages] = useState<ChatBubbleMessage[]>([]);
   const [sections, setSections] = useState<DocSection[]>(
-    chatData?.sections ??
-      INITIAL_SECTIONS.map((s, i) => ({
-        ...s,
-        completed: false,
-        expanded: i !== 0,
-      })),
+    INITIAL_SECTIONS.map((s, i) => ({
+      ...s,
+      completed: false,
+      expanded: true, // All sections expanded by default
+    }))
   );
   const [showPreview, setShowPreview] = useState(false);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
@@ -261,23 +230,158 @@ function Chat() {
     const url = URL.createObjectURL(previewBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${project.title}.docx`;
+    a.download = `${projectName}.docx`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      { id: Date.now(), from: "user", text: inputValue },
-    ]);
-    setInputValue("");
-  };
-
   useEffect(() => {
     document.title = "Chat — Nori";
-  }, []);
+    if (!id) {
+      navigate('/');
+      return;
+    }
+    loadHistory();
+  }, [id]);
+
+  const loadHistory = async () => {
+    if (!id) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { messages: history } = await chatApi.getHistory(id);
+
+      // Convert backend messages to ChatBubble format
+      const chatMessages: ChatBubbleMessage[] = history.map((msg, idx) => ({
+        id: idx + 1,
+        from: msg.role === 'user' ? 'user' : 'nori',
+        text: msg.content,
+      }));
+
+      setMessages(chatMessages);
+
+      // Try to get project name from conversations list
+      const { conversations } = await chatApi.getConversations();
+      const project = conversations.find(p => p.project_id === id);
+      if (project) {
+        setProjectName(project.name);
+      }
+
+      // Load document sections
+      try {
+        const { sections: backendSections } = await chatApi.getDocumentSections(id);
+
+        // Merge backend sections with INITIAL_SECTIONS
+        const mergedSections = INITIAL_SECTIONS.map((initialSection) => {
+          const backendSection = backendSections.find(
+            (bs: any) => bs.section_no === initialSection.id
+          );
+
+          return {
+            ...initialSection,
+            completed: backendSection?.is_complete ?? false,
+            content: backendSection?.content ?? null,
+            expanded: true, // All sections expanded by default
+          };
+        });
+
+        setSections(mergedSections);
+      } catch (sectionErr) {
+        console.error('Error loading document sections:', sectionErr);
+        // Keep default sections if loading fails
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load chat history');
+      console.error('Error loading history:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || !id || isSending) return;
+
+    const messageText = inputValue.trim();
+    setInputValue("");
+    setIsSending(true);
+
+    // Optimistically add user message
+    const userMessage: ChatBubbleMessage = {
+      id: messages.length + 1,
+      from: 'user',
+      text: messageText,
+    };
+    setMessages(prev => [...prev, userMessage]);
+
+    try {
+      const response = await chatApi.sendMessage({
+        projectId: id,
+        message: messageText,
+      });
+
+      // Add AI response
+      const aiMessage: ChatBubbleMessage = {
+        id: messages.length + 2,
+        from: 'nori',
+        text: response.reply,
+      };
+      setMessages(prev => [...prev, aiMessage]);
+
+      // If a document section was updated, reload all sections to get latest content
+      if (response.documentSectionUpdated !== null) {
+        try {
+          const { sections: backendSections } = await chatApi.getDocumentSections(id);
+
+          setSections(prev =>
+            prev.map(section => {
+              const backendSection = backendSections.find(
+                (bs: any) => bs.section_no === section.id
+              );
+
+              return {
+                ...section,
+                completed: backendSection?.is_complete ?? section.completed,
+                content: backendSection?.content ?? section.content,
+              };
+            })
+          );
+        } catch (sectionErr) {
+          console.error('Error reloading document sections:', sectionErr);
+          // Fallback to just marking as completed
+          setSections(prev =>
+            prev.map(s =>
+              s.id === response.documentSectionUpdated
+                ? { ...s, completed: true }
+                : s
+            )
+          );
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to send message');
+      console.error('Error sending message:', err);
+      // Remove optimistic message on error
+      setMessages(prev => prev.slice(0, -1));
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="chat-page">
+        <div className="chat-nav">
+          <Navbar />
+          <SubNavbar />
+          <BreadcrumbProjects />
+        </div>
+        <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
+          <p style={{ fontSize: '1.125rem' }}>Cargando conversación...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="chat-page">
@@ -287,9 +391,20 @@ function Chat() {
         <BreadcrumbProjects />
       </div>
 
+      {error && (
+        <div style={{
+          padding: '1rem',
+          backgroundColor: '#fee2e2',
+          color: '#dc2626',
+          textAlign: 'center',
+        }}>
+          {error}
+        </div>
+      )}
+
       <StepIndicator
         steps={STEPS}
-        currentStep={getCurrentStep(initialMsgCount)}
+        currentStep={getCurrentStep(messages.length)}
       />
 
       <div className="chat-split">
@@ -298,10 +413,8 @@ function Chat() {
           inputValue={inputValue}
           onInputChange={setInputValue}
           onSend={handleSend}
-          currentSection={
-            sections.find((s) => !s.completed)?.title ??
-            sections[sections.length - 1].title
-          }
+          currentSection={sections.find((s) => s.id > 0 && !s.completed)?.title ?? sections[sections.length - 1].title}
+          isSending={isSending}
         />
         <DocumentPanel
           sections={sections}

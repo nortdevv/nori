@@ -1,15 +1,15 @@
 import { Clock3 } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { Project, ProjectStatus } from "../../types/project";
+import type { ProjectDisplay } from "../../types/project";
 
 type Props = {
-  project: Project;
+  project: ProjectDisplay;
 };
 
 function ProjectCard({ project }: Props) {
   return (
     <Link
-      to={`/${project.id}`}
+      to={`/${project.project_id}`}
       style={{
         textDecoration: "none",
         color: "inherit",
@@ -19,8 +19,10 @@ function ProjectCard({ project }: Props) {
     >
       <article className="project-card">
         <div className="project-card__body">
-          <h2 className="project-card__title">{project.title}</h2>
-          <p className="project-card__description">{project.description}</p>
+          <h2 className="project-card__title">{project.name}</h2>
+          <p className="project-card__description">
+            {project.description || 'Sin descripción'}
+          </p>
         </div>
 
         <div className="project-card__footer">
@@ -29,7 +31,7 @@ function ProjectCard({ project }: Props) {
               project.status
             )}`}
           >
-            {project.status}
+            {project.statusLabel}
           </span>
 
           <span className="project-card__timestamp">
@@ -42,9 +44,9 @@ function ProjectCard({ project }: Props) {
   );
 }
 
-function getStatusClassName(status: ProjectStatus) {
-  if (status === "Completado") return "project-status-badge--completed";
-  if (status === "Borrador") return "project-status-badge--draft";
+function getStatusClassName(status: string) {
+  if (status === "completed") return "project-status-badge--completed";
+  if (status === "draft") return "project-status-badge--draft";
   return "project-status-badge--progress";
 }
 

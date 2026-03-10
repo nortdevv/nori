@@ -428,6 +428,25 @@
   font-style: italic;
 }
 
+.doc-section__content-text {
+  color: #1a1a1a;
+  line-height: 1.6;
+}
+
+.doc-section__content-text p {
+  margin: 0 0 0.75rem 0;
+}
+
+.doc-section__content-text ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.doc-section__content-text li {
+  margin-bottom: 0.5rem;
+  color: #1a1a1a;
+}
+
 /* ── Doc Section Badge ── */
 .doc-section__badge {
   font-size: 11px;

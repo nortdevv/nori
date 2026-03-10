@@ -1,7 +1,7 @@
 import { ChevronDown, Search } from "lucide-react";
-import type { ProjectStatus, SortOption } from "../../types/project";
+import type { SortOption } from "../../types/project";
 
-type FilterValue = "Todos" | ProjectStatus;
+type FilterValue = "Todos" | "in_progress" | "completed" | "draft";
 
 type Props = {
   searchTerm: string;
@@ -14,9 +14,9 @@ type Props = {
 
 const filters: Array<{ label: string; value: FilterValue }> = [
   { label: "Todos", value: "Todos" },
-  { label: "En Progreso", value: "En progreso" },
-  { label: "Completados", value: "Completado" },
-  { label: "Borradores", value: "Borrador" },
+  { label: "En Progreso", value: "in_progress" },
+  { label: "Completados", value: "completed" },
+  { label: "Borradores", value: "draft" },
 ];
 
 function ProjectsToolbar({
