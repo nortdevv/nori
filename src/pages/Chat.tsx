@@ -20,6 +20,18 @@ import { projects } from "../data/projects";
 import { getChatData } from "../data/chats";
 import "./Chat.css";
 
+const CHAT_API_URL =
+  import.meta.env.VITE_CHAT_API_URL?.trim() || "http://localhost:3001";
+const CHAT_PROJECT_MAP_STORAGE_KEY = "nori-chat-project-map-v1";
+
+type ConversationMap = Record<string, string>;
+
+interface BackendHistoryMessage {
+  message_no: number;
+  role: "user" | "model";
+  content: string;
+}
+
 const STEPS = ["Contexto", "Levantamiento", "Revisión"];
 
 const INITIAL_SECTIONS = [
@@ -84,12 +96,14 @@ function ChatPanel({
   onInputChange,
   onSend,
   currentSection,
+  isSending,
 }: {
   messages: Message[];
   inputValue: string;
   onInputChange: (v: string) => void;
   onSend: () => void;
   currentSection: string;
+  isSending: boolean;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -122,6 +136,7 @@ function ChatPanel({
           <button
             key={label}
             className="chat-panel__quick-btn"
+            disabled={isSending}
             onClick={() => onInputChange(label)}
           >
             {label}
@@ -133,11 +148,12 @@ function ChatPanel({
         <input
           className="chat-panel__input"
           value={inputValue}
+          disabled={isSending}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onSend()}
           placeholder="Describe tu proyecto o responde a Nori..."
         />
-        <button className="chat-panel__send-btn" onClick={onSend}>
+        <button className="chat-panel__send-btn" onClick={onSend} disabled={isSending}>
           <Send size={16} color="#fff" />
         </button>
       </div>
@@ -214,11 +230,12 @@ function DocumentPanel({
 function Chat() {
   const { id } = useParams<{ id: string }>();
   const project = projects.find((p) => p.id === Number(id)) ?? projects[0];
+  const routeProjectKey = String(project.id);
 
   const chatData = getChatData(project.id);
-
-  const initialMsgCount = chatData?.messages.length ?? 1;
   const [inputValue, setInputValue] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [backendProjectId, setBackendProjectId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(
     chatData?.messages ?? [
       {
@@ -237,18 +254,142 @@ function Chat() {
       })),
   );
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      { id: Date.now(), from: "user", text: inputValue },
-    ]);
+  function readConversationMap(): ConversationMap {
+    try {
+      const raw = localStorage.getItem(CHAT_PROJECT_MAP_STORAGE_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        return parsed as ConversationMap;
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  }
+
+  function saveConversationMap(map: ConversationMap) {
+    localStorage.setItem(CHAT_PROJECT_MAP_STORAGE_KEY, JSON.stringify(map));
+  }
+
+  function toUiMessages(history: BackendHistoryMessage[]): Message[] {
+    return history.map((msg) => ({
+      id: msg.message_no,
+      from: msg.role === "user" ? "user" : "nori",
+      text: msg.content,
+    }));
+  }
+
+  async function initializeConversation() {
+    try {
+      const map = readConversationMap();
+      let mappedProjectId = map[routeProjectKey];
+
+      if (!mappedProjectId) {
+        const createRes = await fetch(`${CHAT_API_URL}/api/chat/conversations`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: project.title,
+            description: project.description,
+            type: project.category,
+          }),
+        });
+
+        if (!createRes.ok) {
+          throw new Error("No se pudo crear conversación en backend");
+        }
+
+        const created = (await createRes.json()) as { projectId?: string };
+        if (!created.projectId) {
+          throw new Error("Respuesta inválida al crear conversación");
+        }
+
+        mappedProjectId = created.projectId;
+        map[routeProjectKey] = mappedProjectId;
+        saveConversationMap(map);
+      }
+
+      setBackendProjectId(mappedProjectId);
+
+      const historyRes = await fetch(
+        `${CHAT_API_URL}/api/chat/history/${mappedProjectId}`,
+      );
+      if (!historyRes.ok) {
+        throw new Error("No se pudo cargar historial");
+      }
+
+      const historyJson = (await historyRes.json()) as {
+        messages?: BackendHistoryMessage[];
+      };
+      const uiMessages = toUiMessages(historyJson.messages ?? []);
+
+      if (uiMessages.length > 0) {
+        setMessages(uiMessages);
+      }
+    } catch (error) {
+      console.error("Error connecting chat to backend:", error);
+      // Keep mock data as fallback for local UI development.
+    }
+  }
+
+  const handleSend = async () => {
+    const text = inputValue.trim();
+    if (!text || isSending || !backendProjectId) return;
+
+    setMessages((prev) => [...prev, { id: Date.now(), from: "user", text }]);
     setInputValue("");
+
+    setIsSending(true);
+    try {
+      const sendRes = await fetch(`${CHAT_API_URL}/api/chat/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: backendProjectId,
+          message: text,
+        }),
+      });
+
+      if (!sendRes.ok) {
+        throw new Error("No se pudo enviar mensaje");
+      }
+
+      const response = (await sendRes.json()) as { reply?: string };
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          from: "nori",
+          text:
+            response.reply?.trim() ||
+            "No recibí respuesta del asistente. Intenta de nuevo.",
+        },
+      ]);
+    } catch (error) {
+      console.error("Error sending message to backend:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          from: "nori",
+          text: "No pude conectar con el backend en este momento.",
+        },
+      ]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   useEffect(() => {
     document.title = "Chat — Nori";
   }, []);
+
+  useEffect(() => {
+    void initializeConversation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeProjectKey]);
 
   return (
     <div className="chat-page">
@@ -260,7 +401,7 @@ function Chat() {
 
       <StepIndicator
         steps={STEPS}
-        currentStep={getCurrentStep(initialMsgCount)}
+        currentStep={getCurrentStep(messages.length)}
       />
 
       <div className="chat-split">
@@ -269,6 +410,7 @@ function Chat() {
           inputValue={inputValue}
           onInputChange={setInputValue}
           onSend={handleSend}
+          isSending={isSending}
           currentSection={sections.find((s) => !s.completed)?.title ?? sections[sections.length - 1].title}
         />
         <DocumentPanel
