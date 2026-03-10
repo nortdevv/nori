@@ -16,6 +16,7 @@ import ChatBubble, { type Message } from "../components/ui/ChatBubble";
 import DocSectionItem, {
   type DocSection,
 } from "../components/ui/DocSectionItem";
+import DocPreviewModal from "../components/ui/DocPreviewModal";
 import { projects } from "../data/projects";
 import { getChatData } from "../data/chats";
 import "./Chat.css";
@@ -70,7 +71,6 @@ const INITIAL_SECTIONS = [
     badgeColor: "navy" as const,
   },
 ];
-
 
 function getCurrentStep(msgCount: number): number {
   if (msgCount < 6) return 1;
@@ -150,9 +150,11 @@ const PAGE_SIZE = 5;
 function DocumentPanel({
   sections,
   onToggle,
+  onGenerate,
 }: {
   sections: DocSection[];
   onToggle: (id: number) => void;
+  onGenerate: () => void;
 }) {
   const [page, setPage] = useState(0);
   const totalPages = Math.ceil(sections.length / PAGE_SIZE);
@@ -202,7 +204,7 @@ function DocumentPanel({
       </div>
 
       <div className="doc-panel__footer">
-        <button className="doc-panel__generate-btn">
+        <button className="doc-panel__generate-btn" onClick={onGenerate}>
           <FileText size={16} />
           Generar Documento
         </button>
@@ -236,6 +238,33 @@ function Chat() {
         expanded: i !== 0,
       })),
   );
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+
+  const handleGenerate = async () => {
+    // Abre el modal de inmediato — el skeleton se muestra mientras espera el back
+    setPreviewBlob(null);
+    setShowPreview(true);
+
+    try {
+      // TODO: reemplazar con la llamada real al backend
+      const blob = await fetch("/test.docx").then((r) => r.blob()); // TEST
+      setPreviewBlob(blob);
+    } catch (err) {
+      console.error("Error al generar el documento:", err);
+      setShowPreview(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!previewBlob) return;
+    const url = URL.createObjectURL(previewBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${project.title}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
@@ -269,7 +298,10 @@ function Chat() {
           inputValue={inputValue}
           onInputChange={setInputValue}
           onSend={handleSend}
-          currentSection={sections.find((s) => !s.completed)?.title ?? sections[sections.length - 1].title}
+          currentSection={
+            sections.find((s) => !s.completed)?.title ??
+            sections[sections.length - 1].title
+          }
         />
         <DocumentPanel
           sections={sections}
@@ -280,8 +312,17 @@ function Chat() {
               ),
             )
           }
+          onGenerate={handleGenerate}
         />
       </div>
+
+      {showPreview && (
+        <DocPreviewModal
+          docxBlob={previewBlob}
+          onCancel={() => setShowPreview(false)}
+          onDownload={handleDownload}
+        />
+      )}
     </div>
   );
 }
