@@ -34,7 +34,6 @@ const INITIAL_SECTIONS = [
   { id: 8, title: "8. Exclusiones" },
   { id: 9, title: "9. Supuestos" },
   { id: 10, title: "10. Restricciones" },
-  { id: 11, title: "11. Anexos" },
 ];
 
 
@@ -203,7 +202,7 @@ function Chat() {
     INITIAL_SECTIONS.map((s, i) => ({
       ...s,
       completed: false,
-      expanded: i !== 0,
+      expanded: true, // All sections expanded by default
     }))
   );
 
@@ -245,7 +244,7 @@ function Chat() {
         const { sections: backendSections } = await chatApi.getDocumentSections(id);
 
         // Merge backend sections with INITIAL_SECTIONS
-        const mergedSections = INITIAL_SECTIONS.map((initialSection, idx) => {
+        const mergedSections = INITIAL_SECTIONS.map((initialSection) => {
           const backendSection = backendSections.find(
             (bs: any) => bs.section_no === initialSection.id
           );
@@ -254,7 +253,7 @@ function Chat() {
             ...initialSection,
             completed: backendSection?.is_complete ?? false,
             content: backendSection?.content ?? null,
-            expanded: idx === 0, // Expand first section by default
+            expanded: true, // All sections expanded by default
           };
         });
 
@@ -385,7 +384,7 @@ function Chat() {
           inputValue={inputValue}
           onInputChange={setInputValue}
           onSend={handleSend}
-          currentSection={sections.find((s) => !s.completed)?.title ?? sections[sections.length - 1].title}
+          currentSection={sections.find((s) => s.id > 0 && !s.completed)?.title ?? sections[sections.length - 1].title}
           isSending={isSending}
         />
         <DocumentPanel
