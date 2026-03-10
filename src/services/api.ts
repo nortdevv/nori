@@ -13,19 +13,27 @@ async function apiFetch<T>(
     ...options.headers,
   };
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      error: `HTTP ${response.status}: ${response.statusText}`
-    }));
-    throw new Error(error.error || error.message || 'Request failed');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({
+        error: `HTTP ${response.status}: ${response.statusText}`
+      }));
+      throw new Error(error.error || error.message || 'Request failed');
+    }
+
+    return response.json();
+  } catch (error: any) {
+    // Handle network errors (backend unavailable, CORS, etc.)
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Backend service unavailable. Please check your connection or try again later.');
+    }
+    throw error;
   }
-
-  return response.json();
 }
 
 // ============================================================================
@@ -111,28 +119,36 @@ export const documentApi = {
    * Returns a Blob for downloading
    */
   generateDocument: async (projectId: string): Promise<Blob> => {
-    const response = await fetch(
-      `${API_CONFIG.documentService}/api/documents/generate`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          projectId,
-          options: { onlyCompleteSections: false }
-        }),
+    try {
+      const response = await fetch(
+        `${API_CONFIG.documentService}/api/documents/generate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            projectId,
+            options: { onlyCompleteSections: false }
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({
+          error: 'Document generation failed'
+        }));
+        throw new Error(error.error || 'Document generation failed');
       }
-    );
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        error: 'Document generation failed'
-      }));
-      throw new Error(error.error || 'Document generation failed');
+      return response.blob();
+    } catch (error: any) {
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Document service unavailable. Please check your connection or try again later.');
+      }
+      throw error;
     }
-
-    return response.blob();
   },
 
   /**
