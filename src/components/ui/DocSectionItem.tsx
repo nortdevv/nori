@@ -1,54 +1,35 @@
+import React from "react";
 import { ChevronDown, ChevronRight, Check } from "lucide-react";
 import "../../pages/Chat.css";
-
-export interface DocSubSection {
-  id: string;
-  title: string;
-  badge?: string;
-  badgeColor?: "red" | "cyan" | "navy";
-  hasRiskTable?: boolean;
-}
 
 export interface DocSection {
   id: number;
   title: string;
-  badge?: string;
-  badgeColor?: "red" | "cyan" | "navy";
   completed: boolean;
   expanded: boolean;
-  subsections?: DocSubSection[];
+  content?: any; // Document section content from backend
 }
 
-const RISK_ROWS = ["Crédito", "Liquidez", "Mercado", "Operativo", "Reputacional"];
+function renderSectionContent(content: any): React.ReactNode {
+  if (!content) return null;
 
-function RiskTable() {
+  // Display the full JSON content in a readable format (similar to demo)
   return (
-    <table className="risk-table">
-      <thead>
-        <tr>
-          <th className="risk-table__col--riesgo">Riesgo</th>
-          <th>Probable Pérdida</th>
-          <th>Justificación</th>
-        </tr>
-      </thead>
-      <tbody>
-        {RISK_ROWS.map((row) => (
-          <tr key={row}>
-            <td>{row}</td>
-            <td>N/A</td>
-            <td>N/A</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-function SectionBadge({ text, color }: { text: string; color?: "red" | "cyan" | "navy" }) {
-  return (
-    <span className={`doc-section__badge doc-section__badge--${color ?? "cyan"}`}>
-      ({text})
-    </span>
+    <pre style={{
+      backgroundColor: '#f5f5f5',
+      borderRadius: '4px',
+      padding: '10px',
+      fontFamily: '"Courier New", monospace',
+      fontSize: '11px',
+      maxHeight: '200px',
+      overflowY: 'auto',
+      whiteSpace: 'pre-wrap',
+      wordWrap: 'break-word',
+      color: '#333',
+      margin: 0,
+    }}>
+      {JSON.stringify(content, null, 2)}
+    </pre>
   );
 }
 
@@ -80,29 +61,14 @@ function DocSectionItem({
 
       {section.expanded && (
         <div className="doc-section__content">
-          {section.subsections ? (
-            <div className="doc-section__subsections">
-              {section.subsections.map((sub) => (
-                <div key={sub.id} className="doc-section__subsection">
-                  <div className="doc-section__subsection-title">
-                    <span>{sub.title}</span>
-                    {sub.badge && <SectionBadge text={sub.badge} color={sub.badgeColor} />}
-                  </div>
-                  {sub.hasRiskTable && <RiskTable />}
-                </div>
-              ))}
+          {section.content ? (
+            <div className="doc-section__content-text">
+              {renderSectionContent(section.content)}
             </div>
           ) : (
-            <>
-              {section.badge && (
-                <div className="doc-section__content-badge">
-                  <SectionBadge text={section.badge} color={section.badgeColor} />
-                </div>
-              )}
-              <span className={section.completed ? "doc-section__content--completed" : "doc-section__content--pending"}>
-                {section.completed ? "Sección completada." : "Aún no completado"}
-              </span>
-            </>
+            <span className={section.completed ? "doc-section__content--completed" : "doc-section__content--pending"}>
+              {section.completed ? "Sección completada." : "Aún no completado"}
+            </span>
           )}
         </div>
       )}
