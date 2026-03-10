@@ -18,7 +18,6 @@ import DocSectionItem, {
 } from "../components/ui/DocSectionItem";
 import DocPreviewModal from "../components/ui/DocPreviewModal";
 import { chatApi } from "../services/api";
-import type { Message } from "../types/project";
 import "./Chat.css";
 
 const STEPS = ["Contexto", "Levantamiento", "Revisión"];
@@ -201,7 +200,7 @@ function Chat() {
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatBubbleMessage[]>([]);
   const [sections, setSections] = useState<DocSection[]>(
-    INITIAL_SECTIONS.map((s, i) => ({
+    INITIAL_SECTIONS.map((s) => ({
       ...s,
       completed: false,
       expanded: true, // All sections expanded by default

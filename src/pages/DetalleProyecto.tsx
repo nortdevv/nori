@@ -11,12 +11,9 @@ import {
   Pencil,
   Copy,
   Trash2,
-  CalendarDays,
   Plus,
   FileText,
-  Eye,
   Download,
-  Check,
   RefreshCw,
 } from "lucide-react";
 import "./DetalleProyecto.css";
