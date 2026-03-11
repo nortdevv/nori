@@ -1,39 +1,30 @@
-import { useState, useRef, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  Send,
-  FileText,
-  RefreshCw,
-  MapPin,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import Navbar from "../components/ui/Navbar";
-import SubNavbar from "../components/ui/SubNavbar";
-import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
-import StepIndicator from "../components/ui/StepIndicator";
-import ChatBubble, { type Message as ChatBubbleMessage } from "../components/ui/ChatBubble";
-import DocSectionItem, {
-  type DocSection,
-} from "../components/ui/DocSectionItem";
-import DocPreviewModal from "../components/ui/DocPreviewModal";
-import { chatApi } from "../services/api";
-import "./Chat.css";
+import { ChevronLeft, ChevronRight, FileText, MapPin, RefreshCw, Send } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import BreadcrumbProjects from '../components/ui/BreadcrumbProjects';
+import ChatBubble, { type Message as ChatBubbleMessage } from '../components/ui/ChatBubble';
+import DocPreviewModal from '../components/ui/DocPreviewModal';
+import DocSectionItem, { type DocSection } from '../components/ui/DocSectionItem';
+import Navbar from '../components/ui/Navbar';
+import StepIndicator from '../components/ui/StepIndicator';
+import SubNavbar from '../components/ui/SubNavbar';
+import { chatApi, documentApi } from '../services/api';
+import './Chat.css';
 
-const STEPS = ["Contexto", "Levantamiento", "Revisión"];
+const STEPS = ['Contexto', 'Levantamiento', 'Revisión'];
 
 const INITIAL_SECTIONS = [
-  { id: 0, title: "0. Información General del Solicitante" },
-  { id: 1, title: "1. Descripción General y Justificación" },
-  { id: 2, title: "2. Objetivos de la Iniciativa" },
-  { id: 3, title: "3. Áreas Impactadas" },
-  { id: 4, title: "4. Requerimientos de Negocio" },
-  { id: 5, title: "5. Beneficios" },
-  { id: 6, title: "6. Participación de Otras Áreas" },
-  { id: 7, title: "7. Riesgos" },
-  { id: 8, title: "8. Exclusiones" },
-  { id: 9, title: "9. Supuestos" },
-  { id: 10, title: "10. Restricciones" },
+  { id: 0, title: '0. Información General del Solicitante' },
+  { id: 1, title: '1. Descripción General y Justificación' },
+  { id: 2, title: '2. Objetivos de la Iniciativa' },
+  { id: 3, title: '3. Áreas Impactadas' },
+  { id: 4, title: '4. Requerimientos de Negocio' },
+  { id: 5, title: '5. Beneficios' },
+  { id: 6, title: '6. Participación de Otras Áreas' },
+  { id: 7, title: '7. Riesgos' },
+  { id: 8, title: '8. Exclusiones' },
+  { id: 9, title: '9. Supuestos' },
+  { id: 10, title: '10. Restricciones' },
 ];
 
 function getCurrentStep(msgCount: number): number {
@@ -60,18 +51,16 @@ function ChatPanel({
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   return (
     <div className="chat-panel">
       <div className="chat-panel__header">
         <div className="chat-panel__title">Asistente Conversacional</div>
-        <div className="chat-panel__subtitle">
-          Responde las preguntas de Nori
-        </div>
+        <div className="chat-panel__subtitle">Responde las preguntas de Nori</div>
         <div className="chat-panel__badge">
-          <MapPin size={13} color="#6B6B6B" />
+          <MapPin size={13} color="#6B6BB" />
           <span>Trabajando en: {currentSection}</span>
         </div>
       </div>
@@ -81,20 +70,14 @@ function ChatPanel({
           <ChatBubble key={`${msg.from}-${idx}`} message={msg} />
         ))}
         {isSending && (
-          <div style={{ padding: '1rem', color: '#64748b', fontSize: '0.875rem' }}>
-            Nori está escribiendo...
-          </div>
+          <div style={{ padding: '1rem', color: '#64748b', fontSize: '0.875rem' }}>Nori está escribiendo...</div>
         )}
         <div ref={bottomRef} />
       </div>
 
       <div className="chat-panel__quick-actions">
-        {["Continuar", "Agregar más detalles"].map((label) => (
-          <button
-            key={label}
-            className="chat-panel__quick-btn"
-            onClick={() => onInputChange(label)}
-          >
+        {['Continuar', 'Agregar más detalles'].map((label) => (
+          <button key={label} className="chat-panel__quick-btn" onClick={() => onInputChange(label)}>
             {label}
           </button>
         ))}
@@ -105,15 +88,11 @@ function ChatPanel({
           className="chat-panel__input"
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !isSending && onSend()}
+          onKeyDown={(e) => e.key === 'Enter' && !isSending && onSend()}
           placeholder="Describe tu proyecto o responde a Nori..."
           disabled={isSending}
         />
-        <button
-          className="chat-panel__send-btn"
-          onClick={onSend}
-          disabled={isSending}
-        >
+        <button className="chat-panel__send-btn" onClick={onSend} disabled={isSending}>
           <Send size={16} color="#fff" />
         </button>
       </div>
@@ -134,10 +113,7 @@ function DocumentPanel({
 }) {
   const [page, setPage] = useState(0);
   const totalPages = Math.ceil(sections.length / PAGE_SIZE);
-  const visible = sections.slice(
-    page * PAGE_SIZE,
-    page * PAGE_SIZE + PAGE_SIZE,
-  );
+  const visible = sections.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <div className="doc-panel">
@@ -151,20 +127,12 @@ function DocumentPanel({
 
       <div className="doc-panel__sections">
         {visible.map((section) => (
-          <DocSectionItem
-            key={section.id}
-            section={section}
-            onToggle={onToggle}
-          />
+          <DocSectionItem key={section.id} section={section} onToggle={onToggle} />
         ))}
       </div>
 
       <div className="doc-panel__pagination">
-        <button
-          className="doc-panel__page-btn"
-          onClick={() => setPage((p) => p - 1)}
-          disabled={page === 0}
-        >
+        <button className="doc-panel__page-btn" onClick={() => setPage((p) => p - 1)} disabled={page === 0}>
           <ChevronLeft size={16} />
         </button>
         <span className="doc-panel__page-label">
@@ -193,33 +161,35 @@ function Chat() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [projectName, setProjectName] = useState("Proyecto");
+  const [projectName, setProjectName] = useState('Proyecto');
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<ChatBubbleMessage[]>([]);
   const [sections, setSections] = useState<DocSection[]>(
     INITIAL_SECTIONS.map((s) => ({
       ...s,
       completed: false,
       expanded: true, // All sections expanded by default
-    }))
+    })),
   );
   const [showPreview, setShowPreview] = useState(false);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
 
   const handleGenerate = async () => {
+    if (!id) return;
+
     // Abre el modal de inmediato — el skeleton se muestra mientras espera el back
     setPreviewBlob(null);
     setShowPreview(true);
 
     try {
-      // TODO: reemplazar con la llamada real al backend
-      const blob = await fetch("/test.docx").then((r) => r.blob()); // TEST
+      const blob = await documentApi.generateDocument(id);
       setPreviewBlob(blob);
-    } catch (err) {
-      console.error("Error al generar el documento:", err);
+    } catch (err: any) {
+      console.error('Error al generar el documento:', err);
+      setError(err.message || 'Failed to generate document');
       setShowPreview(false);
     }
   };
@@ -227,7 +197,7 @@ function Chat() {
   const handleDownload = () => {
     if (!previewBlob) return;
     const url = URL.createObjectURL(previewBlob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `${projectName}.docx`;
     a.click();
@@ -235,7 +205,7 @@ function Chat() {
   };
 
   useEffect(() => {
-    document.title = "Chat — Nori";
+    document.title = 'Chat — Nori';
     if (!id) {
       navigate('/');
       return;
@@ -262,7 +232,7 @@ function Chat() {
 
       // Try to get project name from conversations list
       const { conversations } = await chatApi.getConversations();
-      const project = conversations.find(p => p.project_id === id);
+      const project = conversations.find((p) => p.project_id === id);
       if (project) {
         setProjectName(project.name);
       }
@@ -273,9 +243,7 @@ function Chat() {
 
         // Merge backend sections with INITIAL_SECTIONS
         const mergedSections = INITIAL_SECTIONS.map((initialSection) => {
-          const backendSection = backendSections.find(
-            (bs: any) => bs.section_no === initialSection.id
-          );
+          const backendSection = backendSections.find((bs: any) => bs.section_no === initialSection.id);
 
           return {
             ...initialSection,
@@ -302,7 +270,7 @@ function Chat() {
     if (!inputValue.trim() || !id || isSending) return;
 
     const messageText = inputValue.trim();
-    setInputValue("");
+    setInputValue('');
     setIsSending(true);
 
     // Optimistically add user message
@@ -311,7 +279,7 @@ function Chat() {
       from: 'user',
       text: messageText,
     };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
 
     try {
       const response = await chatApi.sendMessage({
@@ -325,35 +293,29 @@ function Chat() {
         from: 'nori',
         text: response.reply,
       };
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, aiMessage]);
 
       // If a document section was updated, reload all sections to get latest content
       if (response.documentSectionUpdated !== null) {
         try {
           const { sections: backendSections } = await chatApi.getDocumentSections(id);
 
-          setSections(prev =>
-            prev.map(section => {
-              const backendSection = backendSections.find(
-                (bs: any) => bs.section_no === section.id
-              );
+          setSections((prev) =>
+            prev.map((section) => {
+              const backendSection = backendSections.find((bs: any) => bs.section_no === section.id);
 
               return {
                 ...section,
                 completed: backendSection?.is_complete ?? section.completed,
                 content: backendSection?.content ?? section.content,
               };
-            })
+            }),
           );
         } catch (sectionErr) {
           console.error('Error reloading document sections:', sectionErr);
           // Fallback to just marking as completed
-          setSections(prev =>
-            prev.map(s =>
-              s.id === response.documentSectionUpdated
-                ? { ...s, completed: true }
-                : s
-            )
+          setSections((prev) =>
+            prev.map((s) => (s.id === response.documentSectionUpdated ? { ...s, completed: true } : s)),
           );
         }
       }
@@ -361,7 +323,7 @@ function Chat() {
       setError(err.message || 'Failed to send message');
       console.error('Error sending message:', err);
       // Remove optimistic message on error
-      setMessages(prev => prev.slice(0, -1));
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsSending(false);
     }
@@ -391,20 +353,19 @@ function Chat() {
       </div>
 
       {error && (
-        <div style={{
-          padding: '1rem',
-          backgroundColor: '#fee2e2',
-          color: '#dc2626',
-          textAlign: 'center',
-        }}>
+        <div
+          style={{
+            padding: '1rem',
+            backgroundColor: '#fee2e2',
+            color: '#dc262',
+            textAlign: 'center',
+          }}
+        >
           {error}
         </div>
       )}
 
-      <StepIndicator
-        steps={STEPS}
-        currentStep={getCurrentStep(messages.length)}
-      />
+      <StepIndicator steps={STEPS} currentStep={getCurrentStep(messages.length)} />
 
       <div className="chat-split">
         <ChatPanel
@@ -417,26 +378,17 @@ function Chat() {
         />
         <DocumentPanel
           sections={sections}
-          onToggle={(id) =>
-            setSections((prev) =>
-              prev.map((s) =>
-                s.id === id ? { ...s, expanded: !s.expanded } : s,
-              ),
-            )
-          }
+          onToggle={(id) => setSections((prev) => prev.map((s) => (s.id === id ? { ...s, expanded: !s.expanded } : s)))}
           onGenerate={handleGenerate}
         />
       </div>
 
       {showPreview && (
-        <DocPreviewModal
-          docxBlob={previewBlob}
-          onCancel={() => setShowPreview(false)}
-          onDownload={handleDownload}
-        />
+        <DocPreviewModal docxBlob={previewBlob} onCancel={() => setShowPreview(false)} onDownload={handleDownload} />
       )}
     </div>
   );
 }
 
 export default Chat;
+
