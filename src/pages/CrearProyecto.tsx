@@ -193,7 +193,7 @@ function CrearProyecto() {
                   disabled={isCreating}
                   style={{
                     flex: 1,
-                    backgroundColor: isCreating ? "#9ca3af" : "#3b82f6",
+                    backgroundColor: isCreating ? "#9ca3af" : "#ec0029",
                     color: "white",
                     padding: "0.75rem",
                     borderRadius: "0.375rem",

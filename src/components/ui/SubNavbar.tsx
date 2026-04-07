@@ -2,23 +2,23 @@ function SubNavbar() {
   return (
     <div
       style={{
-        backgroundColor: "#ffffff",
-        display: "flex",
-        alignItems: "center",
-        padding: "15px 100px",
-        width: "100%",
-        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-        position: "relative",
+        backgroundColor: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        height: '54px',
+        padding: '0 110px',
+        width: '100%',
+        position: 'relative',
         zIndex: 10,
       }}
     >
       <span
         style={{
-          fontFamily: "'Montserrat', sans-serif",
-          fontWeight: 350,
-          fontSize: "18px",
-          color: "#7B868B",
-          letterSpacing: "0.5px",
+          fontFamily: "'Gotham Book', sans-serif",
+          fontWeight: 400,
+          fontSize: '17px',
+          color: '#5B6670',
+          letterSpacing: '0.5px',
         }}
       >
         Nori
@@ -28,3 +28,4 @@ function SubNavbar() {
 }
 
 export default SubNavbar;
+

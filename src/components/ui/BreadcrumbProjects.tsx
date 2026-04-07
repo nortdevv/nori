@@ -1,4 +1,8 @@
-import { useLocation, Link } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { chatApi } from '../../services/api';
+import type { ProjectDisplay } from '../../types/project';
+import { toProjectDisplay } from '../../types/project';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,11 +10,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "./Breadcrumb";
-import React, { useState, useEffect } from "react";
-import { chatApi } from "../../services/api";
-import type { ProjectDisplay } from "../../types/project";
-import { toProjectDisplay } from "../../types/project";
+} from './Breadcrumb';
 
 // En este vector se lleva el mapeo de la ruta dentro de la URL y como se verá
 // escrito dentro del Breadcrumb
@@ -19,16 +19,16 @@ import { toProjectDisplay } from "../../types/project";
 // Breadcrumb: Proyectos > Detalle osea /detalle == Detalle
 
 const routeNames: Record<string, string> = {
-  proyectos: "Proyectos",
-  crear: "Crear Proyecto",
-  detalle: "Detalle",
-  chat: "Chat",
+  proyectos: 'Proyectos',
+  crear: 'Crear Proyecto',
+  detalle: 'Detalle',
+  chat: 'Chat',
 };
 
 function BreadcrumbProjects() {
   const location = useLocation();
-  const raw = location.pathname.split("/").filter(Boolean);
-  const pathSegments = raw[0] === "chat" && raw[1] ? [raw[1], raw[0]] : raw;
+  const raw = location.pathname.split('/').filter(Boolean);
+  const pathSegments = raw[0] === 'chat' && raw[1] ? [raw[1], raw[0]] : raw;
   const [projects, setProjects] = useState<ProjectDisplay[]>([]);
 
   useEffect(() => {
@@ -57,20 +57,20 @@ function BreadcrumbProjects() {
     <Breadcrumb>
       <div
         style={{
-          backgroundColor: "#ecf0f2",
-          display: "flex",
-          alignItems: "center",
-          padding: "18px 100px",
-          width: "100%",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+          backgroundColor: '#EBF0F2',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '15px 110px',
+          width: '100%',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
         }}
       >
-        <BreadcrumbList className="text-base">
+        <BreadcrumbList style={{ fontFamily: "'Gotham Medium', sans-serif", fontSize: '14px', color: '#323E48' }}>
           <BreadcrumbItem>
             {pathSegments.length === 0 ? (
-              <BreadcrumbPage>Proyectos</BreadcrumbPage>
+              <BreadcrumbPage className="font-semibold">Proyectos</BreadcrumbPage>
             ) : (
-              <BreadcrumbLink asChild>
+              <BreadcrumbLink asChild className="font-semibold">
                 <Link to="/">Proyectos</Link>
               </BreadcrumbLink>
             )}
@@ -78,22 +78,18 @@ function BreadcrumbProjects() {
 
           {/* Segmentos dinámicos en el path de Breadcrumb*/}
           {pathSegments.map((segment, index) => {
-            const path = "/" + pathSegments.slice(0, index + 1).join("/");
+            const path = '/' + pathSegments.slice(0, index + 1).join('/');
             const isLast = index === pathSegments.length - 1;
             const name = getSegmentName(segment);
 
             return (
               <React.Fragment key={path}>
-                <BreadcrumbSeparator
-                  className={isLast ? "text-[#EC0029] [&>svg]:size-3.5" : ""}
-                />
+                <BreadcrumbSeparator className={isLast ? 'text-[#EB0029] [&>svg]:size-3.5' : ''} />
                 <BreadcrumbItem>
                   {isLast ? (
-                    <BreadcrumbPage className="text-[#EC0029] font-semibold">
-                      {name}
-                    </BreadcrumbPage>
+                    <BreadcrumbPage className="text-[#EB0029] font-semibold">{name}</BreadcrumbPage>
                   ) : (
-                    <BreadcrumbLink asChild>
+                    <BreadcrumbLink asChild className="font-semibold">
                       <Link to={path}>{name}</Link>
                     </BreadcrumbLink>
                   )}
@@ -108,3 +104,4 @@ function BreadcrumbProjects() {
 }
 
 export default BreadcrumbProjects;
+

@@ -1,4 +1,6 @@
 import { FileText } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import "../../pages/Chat.css";
 
 export interface Message {
@@ -18,7 +20,7 @@ function ChatBubble({ message }: { message: Message }) {
         </div>
       )}
       <div className={`chat-bubble__text ${isUser ? "chat-bubble__text--user" : "chat-bubble__text--nori"}`}>
-        {message.text}
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>
       </div>
     </div>
   );

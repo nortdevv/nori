@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, FileText, MapPin, RefreshCw, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, RefreshCw, Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BreadcrumbProjects from '../components/ui/BreadcrumbProjects';
@@ -6,12 +6,9 @@ import ChatBubble, { type Message as ChatBubbleMessage } from '../components/ui/
 import DocPreviewModal from '../components/ui/DocPreviewModal';
 import DocSectionItem, { type DocSection } from '../components/ui/DocSectionItem';
 import Navbar from '../components/ui/Navbar';
-import StepIndicator from '../components/ui/StepIndicator';
 import SubNavbar from '../components/ui/SubNavbar';
 import { chatApi, documentApi } from '../services/api';
 import './Chat.css';
-
-const STEPS = ['Contexto', 'Levantamiento', 'Revisión'];
 
 const INITIAL_SECTIONS = [
   { id: 0, title: '0. Información General del Solicitante' },
@@ -27,10 +24,16 @@ const INITIAL_SECTIONS = [
   { id: 10, title: '10. Restricciones' },
 ];
 
-function getCurrentStep(msgCount: number): number {
-  if (msgCount < 6) return 1;
-  if (msgCount < 12) return 2;
-  return 3;
+function getProgressColor(progress: number) {
+  if (progress === 100) return '#16a34a';
+  return '#ec0029';
+}
+
+function calculateProgress(sections: DocSection[]): number {
+  // Only count sections 1-10 (exclude section 0)
+  const relevantSections = sections.filter(s => s.id >= 1 && s.id <= 10);
+  const completedSections = relevantSections.filter(s => s.completed).length;
+  return Math.round((completedSections / relevantSections.length) * 100);
 }
 
 function ChatPanel({
@@ -38,30 +41,51 @@ function ChatPanel({
   inputValue,
   onInputChange,
   onSend,
-  currentSection,
+  progress,
   isSending,
 }: {
   messages: ChatBubbleMessage[];
   inputValue: string;
   onInputChange: (v: string) => void;
   onSend: () => void;
-  currentSection: string;
+  progress: number;
   isSending: boolean;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [inputValue]);
+
   return (
     <div className="chat-panel">
       <div className="chat-panel__header">
-        <div className="chat-panel__title">Asistente Conversacional</div>
-        <div className="chat-panel__subtitle">Responde las preguntas de Nori</div>
-        <div className="chat-panel__badge">
-          <MapPin size={13} color="#6B6BB" />
-          <span>Trabajando en: {currentSection}</span>
+        <div>
+          <div className="chat-panel__title">Asistente Conversacional</div>
+          <div className="chat-panel__subtitle">Responde las preguntas de Nori</div>
+        </div>
+        <div className="chat-panel__progress">
+          <span className="chat-panel__progress-label">Progreso</span>
+          <div className="chat-panel__progress-track">
+            <div
+              className="chat-panel__progress-bar"
+              style={{
+                width: `${progress}%`,
+                backgroundColor: getProgressColor(progress),
+              }}
+            />
+          </div>
+          <span className="chat-panel__progress-percent" style={{ color: getProgressColor(progress) }}>
+            {progress}%
+          </span>
         </div>
       </div>
 
@@ -84,13 +108,20 @@ function ChatPanel({
       </div>
 
       <div className="chat-panel__input-row">
-        <input
+        <textarea
+          ref={textareaRef}
           className="chat-panel__input"
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && !isSending && onSend()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !isSending) {
+              e.preventDefault();
+              onSend();
+            }
+          }}
           placeholder="Describe tu proyecto o responde a Nori..."
           disabled={isSending}
+          rows={1}
         />
         <button className="chat-panel__send-btn" onClick={onSend} disabled={isSending}>
           <Send size={16} color="#fff" />
@@ -344,6 +375,8 @@ function Chat() {
     );
   }
 
+  const progress = calculateProgress(sections);
+
   return (
     <div className="chat-page">
       <div className="chat-nav">
@@ -365,15 +398,13 @@ function Chat() {
         </div>
       )}
 
-      <StepIndicator steps={STEPS} currentStep={getCurrentStep(messages.length)} />
-
       <div className="chat-split">
         <ChatPanel
           messages={messages}
           inputValue={inputValue}
           onInputChange={setInputValue}
           onSend={handleSend}
-          currentSection={sections.find((s) => s.id > 0 && !s.completed)?.title ?? sections[sections.length - 1].title}
+          progress={progress}
           isSending={isSending}
         />
         <DocumentPanel

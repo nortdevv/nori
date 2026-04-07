@@ -188,143 +188,143 @@ function DetalleProyecto() {
         </div>
 
         <div className="detalle-cards">
-              <div className="detalle-main-card">
-                <h1 className="detalle-main-card__title">{project.name}</h1>
-                <p className="detalle-main-card__subtitle">
-                  {project.type} · Creado el {new Date(project.date_created).toLocaleDateString('es-ES')}
+          <div className="detalle-main-card">
+            <h1 className="detalle-main-card__title">{project.name}</h1>
+            <p className="detalle-main-card__subtitle">
+              {project.type} · Creado el {new Date(project.date_created).toLocaleDateString('es-ES')}
+            </p>
+
+            <div className="detalle-badges">
+              <span
+                className="detalle-badge"
+                style={getStatusStyle(project.status)}
+              >
+                {project.statusLabel}
+              </span>
+              <span className="detalle-badge detalle-badge--category">
+                {project.type}
+              </span>
+            </div>
+
+            <hr className="detalle-separator" />
+
+            <p className="detalle-section-label">Descripción</p>
+            <p className="detalle-objective-text">
+              {project.description || 'Sin descripción'}
+            </p>
+
+            <div className="detalle-info-row">
+              <div>
+                <p className="detalle-section-label detalle-section-label--info">
+                  Mensajes
                 </p>
-
-                <div className="detalle-badges">
-                  <span
-                    className="detalle-badge"
-                    style={getStatusStyle(project.status)}
-                  >
-                    {project.statusLabel}
-                  </span>
-                  <span className="detalle-badge detalle-badge--category">
-                    {project.type}
-                  </span>
-                </div>
-
-                <hr className="detalle-separator" />
-
-                <p className="detalle-section-label">Descripción</p>
-                <p className="detalle-objective-text">
-                  {project.description || 'Sin descripción'}
-                </p>
-
-                <div className="detalle-info-row">
-                  <div>
-                    <p className="detalle-section-label detalle-section-label--info">
-                      Mensajes
-                    </p>
-                    <span className="detalle-department-value">
-                      {project.message_count || 0}
-                    </span>
-                  </div>
-
-                  <div>
-                    <p className="detalle-section-label detalle-section-label--info">
-                      ID del Proyecto
-                    </p>
-                    <span className="detalle-department-value" style={{ fontSize: '0.75rem' }}>
-                      {project.project_id.slice(0, 8)}...
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="detalle-side-card">
-                <p className="detalle-side-label">Estado del proyecto</p>
-                <span
-                  className="detalle-side-status-badge"
-                  style={getStatusStyle(project.status)}
-                >
-                  {project.statusLabel}
+                <span className="detalle-department-value">
+                  {project.message_count || 0}
                 </span>
-
-                <hr className="detalle-side-separator" />
-
-                <p className="detalle-side-label detalle-side-label--activity">
-                  Ultima actividad
-                </p>
-                <p className="detalle-side-value">{project.lastUpdatedLabel}</p>
-
-                <p className="detalle-side-label detalle-side-label--activity">
-                  Fecha de creacion
-                </p>
-                <p className="detalle-side-value">
-                  {new Date(project.date_created).toLocaleDateString('es-ES')}
-                </p>
-
-                <hr className="detalle-side-separator detalle-side-separator--progress" />
-
-                <div className="detalle-progress-header">
-                  <p className="detalle-progress-label">Progreso</p>
-                  <span
-                    className="detalle-progress-percent"
-                    style={{ color: getProgressColor(project.progress_pct) }}
-                  >
-                    {project.progress_pct}%
-                  </span>
-                </div>
-                <div className="detalle-progress-track">
-                  <div
-                    className="detalle-progress-bar"
-                    style={{
-                      width: `${project.progress_pct}%`,
-                      backgroundColor: getProgressColor(project.progress_pct),
-                    }}
-                  />
-                </div>
               </div>
 
-            <div className="detalle-docs-card">
-              <div className="detalle-docs-header">
-                <h2 className="detalle-docs-title">Documentos</h2>
-                <Link to={`/chat/${project.project_id}`} className="detalle-docs-generate-btn">
-                  <Plus size={16} strokeWidth={2.5} />
-                  Continuar chat
-                </Link>
-              </div>
-
-              <div className="detalle-doc-item">
-                <div className="detalle-doc-item__left-border" />
-                <div className="detalle-doc-item__content">
-                  <div className="detalle-doc-item__header">
-                    <div className="detalle-doc-item__info">
-                      <FileText size={20} color="#ec0029" strokeWidth={2} />
-                      <div>
-                        <p className="detalle-doc-item__name">
-                          Documento de requerimientos
-                        </p>
-                        <p className="detalle-doc-item__meta">
-                          Proyecto: {project.name}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="detalle-doc-item__actions">
-                    <button
-                      type="button"
-                      className="detalle-doc-btn detalle-doc-btn--download"
-                      onClick={handleGenerateDocument}
-                      disabled={isGenerating}
-                    >
-                      <Download size={15} strokeWidth={2.2} />
-                      {isGenerating ? 'Generando...' : 'Descargar .docx'}
-                    </button>
-                    <Link
-                      to={`/chat/${project.project_id}`}
-                      className="detalle-doc-btn detalle-doc-btn--regenerate"
-                    >
-                      <RefreshCw size={15} strokeWidth={2.2} />
-                      Actualizar contenido
-                    </Link>
-                  </div>
-                </div>
+              <div>
+                <p className="detalle-section-label detalle-section-label--info">
+                  ID del Proyecto
+                </p>
+                <span className="detalle-department-value" style={{ fontSize: '0.75rem' }}>
+                  {project.project_id.slice(0, 8)}...
+                </span>
               </div>
             </div>
+          </div>
+
+          <div className="detalle-side-card">
+            <p className="detalle-side-label">Estado del proyecto</p>
+            <span
+              className="detalle-side-status-badge"
+              style={getStatusStyle(project.status)}
+            >
+              {project.statusLabel}
+            </span>
+
+            <hr className="detalle-side-separator" />
+
+            <p className="detalle-side-label detalle-side-label--activity">
+              Ultima actividad
+            </p>
+            <p className="detalle-side-value">{project.lastUpdatedLabel}</p>
+
+            <p className="detalle-side-label detalle-side-label--activity">
+              Fecha de creacion
+            </p>
+            <p className="detalle-side-value">
+              {new Date(project.date_created).toLocaleDateString('es-ES')}
+            </p>
+
+            <hr className="detalle-side-separator detalle-side-separator--progress" />
+
+            <div className="detalle-progress-header">
+              <p className="detalle-progress-label">Progreso</p>
+              <span
+                className="detalle-progress-percent"
+                style={{ color: getProgressColor(project.progress_pct) }}
+              >
+                {project.progress_pct}%
+              </span>
+            </div>
+            <div className="detalle-progress-track">
+              <div
+                className="detalle-progress-bar"
+                style={{
+                  width: `${project.progress_pct}%`,
+                  backgroundColor: getProgressColor(project.progress_pct),
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="detalle-docs-card">
+          <div className="detalle-docs-header">
+            <h2 className="detalle-docs-title">Documentos</h2>
+            <Link to={`/chat/${project.project_id}`} className="detalle-docs-generate-btn">
+              <Plus size={16} strokeWidth={2.5} />
+              Continuar chat
+            </Link>
+          </div>
+
+          <div className="detalle-doc-item">
+            <div className="detalle-doc-item__left-border" />
+            <div className="detalle-doc-item__content">
+              <div className="detalle-doc-item__header">
+                <div className="detalle-doc-item__info">
+                  <FileText size={20} color="#ec0029" strokeWidth={2} />
+                  <div>
+                    <p className="detalle-doc-item__name">
+                      Documento de requerimientos
+                    </p>
+                    <p className="detalle-doc-item__meta">
+                      Proyecto: {project.name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="detalle-doc-item__actions">
+                <button
+                  type="button"
+                  className="detalle-doc-btn detalle-doc-btn--download"
+                  onClick={handleGenerateDocument}
+                  disabled={isGenerating}
+                >
+                  <Download size={15} strokeWidth={2.2} />
+                  {isGenerating ? 'Generando...' : 'Descargar .docx'}
+                </button>
+                <Link
+                  to={`/chat/${project.project_id}`}
+                  className="detalle-doc-btn detalle-doc-btn--regenerate"
+                >
+                  <RefreshCw size={15} strokeWidth={2.2} />
+                  Actualizar contenido
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>

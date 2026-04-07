@@ -59,6 +59,7 @@
   display: flex;
   gap: 24px;
   align-items: stretch;
+  margin-bottom: 24px;
 }
 
 /* ── Card principal (izquierda) ── */
@@ -273,7 +274,6 @@
 
 /* ── Documentos generados ── */
 .detalle-docs-card {
-  margin-top: 24px;
   background-color: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
