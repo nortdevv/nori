@@ -3,14 +3,12 @@
 // ============================================================================
 
 /**
- * Project from backend (matches 02-project.sql schema)
+ * Project from backend (matches listConversations response)
  */
 export interface Project {
   project_id: string;           // UUID
-  user_id: string;              // UUID
   name: string;                 // Project name
-  description: string | null;   // Optional description
-  type: string;                 // e.g., "Proyecto"
+  tags: string[];               // Categories from section 0 iniciativa.tipo
   status: string;               // e.g., "in_progress", "completed"
   progress_pct: number;         // 0-100
   date_created: string;         // ISO timestamp
@@ -68,6 +66,7 @@ export type SortOption = "recent" | "name";
 export function toProjectDisplay(project: Project): ProjectDisplay {
   return {
     ...project,
+    tags: project.tags || [],
     statusLabel: getStatusLabel(project.status),
     lastUpdatedLabel: getRelativeTime(project.last_updated),
     progressLabel: `${project.progress_pct}%`,

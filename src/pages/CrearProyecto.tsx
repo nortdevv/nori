@@ -5,18 +5,57 @@ import SubNavbar from "../components/ui/SubNavbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { chatApi } from "../services/api";
 
+const PREDEFINED_TAGS = [
+  "Cumplimiento Regulatorio",
+  "Retención de Clientes",
+  "Incremento de Ingresos",
+  "Eficiencia Operativa",
+  "Transformación Digital",
+  "Seguridad",
+];
+
+const PRIORITY_OPTIONS = ["Alta", "Media", "Baja"] as const;
+
 function CrearProyecto() {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [type, setType] = useState("Proyecto");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [customTagInput, setCustomTagInput] = useState("");
+  const [priority, setPriority] = useState<string>("");
+  const [sponsor, setSponsor] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Crear Proyecto — Nori";
   }, []);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const addCustomTag = () => {
+    const trimmed = customTagInput.trim();
+    if (trimmed && !selectedTags.includes(trimmed)) {
+      setSelectedTags((prev) => [...prev, trimmed]);
+    }
+    setCustomTagInput("");
+  };
+
+  const handleCustomTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addCustomTag();
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setSelectedTags((prev) => prev.filter((t) => t !== tag));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,11 +71,12 @@ function CrearProyecto() {
     try {
       const { projectId } = await chatApi.createConversation({
         name: name.trim(),
-        description: description.trim() || undefined,
-        type,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
+        priority: priority || undefined,
+        sponsor: sponsor.trim() || undefined,
+        startDate: startDate || undefined,
       });
 
-      // Redirect to chat page for new project
       navigate(`/chat/${projectId}`);
     } catch (err: any) {
       setError(err.message || "Failed to create project");
@@ -47,146 +87,194 @@ function CrearProyecto() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <div style={{ flexShrink: 0 }}>
         <Navbar />
         <SubNavbar />
         <BreadcrumbProjects />
       </div>
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          backgroundColor: "#f8fafc",
-          padding: "3rem 1rem",
-        }}
-      >
+      <div style={{ flex: 1, overflowY: "auto", backgroundColor: "#f8fafc", padding: "3rem 1rem" }}>
         <div style={{ maxWidth: "48rem", margin: "0 auto" }}>
-          <div
-            style={{
-              backgroundColor: "white",
-              borderRadius: "0.5rem",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              padding: "2rem",
-            }}
-          >
-            <h1
-              style={{
-                fontSize: "1.875rem",
-                fontWeight: "bold",
-                color: "#1a1a1a",
-                marginBottom: "1.5rem",
-              }}
-            >
+          <div style={{ backgroundColor: "white", borderRadius: "0.5rem", boxShadow: "0 1px 3px rgba(0,0,0,0.1)", padding: "2rem" }}>
+            <h1 style={{ fontSize: "1.875rem", fontWeight: "bold", color: "#1a1a1a", marginBottom: "1.5rem" }}>
               Crear Nuevo Proyecto
             </h1>
 
             {error && (
-              <div
-                style={{
-                  marginBottom: "1rem",
-                  padding: "1rem",
-                  backgroundColor: "#fee2e2",
-                  border: "1px solid #fca5a5",
-                  borderRadius: "0.375rem",
-                }}
-              >
+              <div style={{ marginBottom: "1rem", padding: "1rem", backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.375rem" }}>
                 <p style={{ color: "#dc2626" }}>{error}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              {/* Project Name */}
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.875rem",
-                    fontWeight: "500",
-                    color: "#374151",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  Nombre del Proyecto *
-                </label>
+                <label style={labelStyle}>Nombre del Proyecto *</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem 1rem",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "0.375rem",
-                    fontSize: "1rem",
-                  }}
+                  style={inputStyle}
                   placeholder="Ej: Sistema de Gestión de Inventario"
                   required
                 />
               </div>
 
+              {/* Category Tags */}
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.875rem",
-                    fontWeight: "500",
-                    color: "#374151",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  Descripción (opcional)
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem 1rem",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "0.375rem",
-                    fontSize: "1rem",
-                  }}
-                  placeholder="Describe brevemente el proyecto..."
+                <label style={labelStyle}>Categorías</label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  {PREDEFINED_TAGS.map((tag) => {
+                    const isSelected = selectedTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        style={{
+                          padding: "0.375rem 0.75rem",
+                          borderRadius: "9999px",
+                          fontSize: "0.8125rem",
+                          fontWeight: "500",
+                          border: isSelected ? "1.5px solid #ec0029" : "1.5px solid #d1d5db",
+                          backgroundColor: isSelected ? "#fef2f2" : "white",
+                          color: isSelected ? "#ec0029" : "#4b5563",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        {isSelected ? "✓ " : ""}{tag}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Custom tag input */}
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <input
+                    type="text"
+                    value={customTagInput}
+                    onChange={(e) => setCustomTagInput(e.target.value)}
+                    onKeyDown={handleCustomTagKeyDown}
+                    style={{ ...inputStyle, flex: 1 }}
+                    placeholder="Agregar categoría personalizada..."
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomTag}
+                    disabled={!customTagInput.trim()}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      backgroundColor: customTagInput.trim() ? "#ec0029" : "#e5e7eb",
+                      color: customTagInput.trim() ? "white" : "#9ca3af",
+                      border: "none",
+                      borderRadius: "0.375rem",
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      cursor: customTagInput.trim() ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    Agregar
+                  </button>
+                </div>
+                {/* Selected custom tags (not in predefined) */}
+                {selectedTags.filter((t) => !PREDEFINED_TAGS.includes(t)).length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginTop: "0.5rem" }}>
+                    {selectedTags
+                      .filter((t) => !PREDEFINED_TAGS.includes(t))
+                      .map((tag) => (
+                        <span
+                          key={tag}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.25rem",
+                            padding: "0.25rem 0.625rem",
+                            borderRadius: "9999px",
+                            fontSize: "0.8125rem",
+                            fontWeight: "500",
+                            backgroundColor: "#fef2f2",
+                            color: "#ec0029",
+                            border: "1.5px solid #ec0029",
+                          }}
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => removeTag(tag)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: "#ec0029",
+                              cursor: "pointer",
+                              padding: "0",
+                              fontSize: "1rem",
+                              lineHeight: "1",
+                            }}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Priority + Sponsor row */}
+              <div style={{ display: "flex", gap: "1.5rem" }}>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Prioridad</label>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    {PRIORITY_OPTIONS.map((opt) => {
+                      const isSelected = priority === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setPriority(isSelected ? "" : opt)}
+                          style={{
+                            flex: 1,
+                            padding: "0.5rem",
+                            borderRadius: "0.375rem",
+                            fontSize: "0.875rem",
+                            fontWeight: "500",
+                            border: isSelected ? "1.5px solid #ec0029" : "1.5px solid #d1d5db",
+                            backgroundColor: isSelected ? "#fef2f2" : "white",
+                            color: isSelected ? "#ec0029" : "#4b5563",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Sponsor</label>
+                  <input
+                    type="text"
+                    value={sponsor}
+                    onChange={(e) => setSponsor(e.target.value)}
+                    style={inputStyle}
+                    placeholder="Nombre del sponsor"
+                  />
+                </div>
+              </div>
+
+              {/* Start Date */}
+              <div>
+                <label style={labelStyle}>Fecha de inicio estimada</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  style={inputStyle}
                 />
               </div>
 
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.875rem",
-                    fontWeight: "500",
-                    color: "#374151",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  Tipo de Proyecto
-                </label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem 1rem",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "0.375rem",
-                    fontSize: "1rem",
-                  }}
-                >
-                  <option value="Proyecto">Proyecto</option>
-                  <option value="Iniciativa">Iniciativa</option>
-                  <option value="Mejora">Mejora</option>
-                </select>
-              </div>
-
+              {/* Buttons */}
               <div style={{ display: "flex", gap: "1rem", paddingTop: "1rem" }}>
                 <button
                   type="submit"
@@ -229,5 +317,22 @@ function CrearProyecto() {
     </div>
   );
 }
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: "0.875rem",
+  fontWeight: "500",
+  color: "#374151",
+  marginBottom: "0.5rem",
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "0.5rem 1rem",
+  border: "1px solid #d1d5db",
+  borderRadius: "0.375rem",
+  fontSize: "1rem",
+  boxSizing: "border-box",
+};
 
 export default CrearProyecto;
