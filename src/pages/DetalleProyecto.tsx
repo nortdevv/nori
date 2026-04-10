@@ -191,7 +191,7 @@ function DetalleProyecto() {
           <div className="detalle-main-card">
             <h1 className="detalle-main-card__title">{project.name}</h1>
             <p className="detalle-main-card__subtitle">
-              {project.type} · Creado el {new Date(project.date_created).toLocaleDateString('es-ES')}
+              Creado el {new Date(project.date_created).toLocaleDateString('es-ES')}
             </p>
 
             <div className="detalle-badges">
@@ -201,17 +201,15 @@ function DetalleProyecto() {
               >
                 {project.statusLabel}
               </span>
-              <span className="detalle-badge detalle-badge--category">
-                {project.type}
-              </span>
+              {project.tags && project.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="detalle-badge detalle-badge--category"
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
-
-            <hr className="detalle-separator" />
-
-            <p className="detalle-section-label">Descripción</p>
-            <p className="detalle-objective-text">
-              {project.description || 'Sin descripción'}
-            </p>
 
             <div className="detalle-info-row">
               <div>

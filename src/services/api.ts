@@ -54,7 +54,13 @@ export const chatApi = {
   /**
    * Create a new conversation/project
    */
-  createConversation: (data: { name: string; description?: string; type?: string }) =>
+  createConversation: (data: {
+    name: string;
+    tags?: string[];
+    priority?: string;
+    sponsor?: string;
+    startDate?: string;
+  }) =>
     apiFetch<{ projectId: string; userId: string }>(
       API_CONFIG.chatService,
       '/api/chat/conversations',

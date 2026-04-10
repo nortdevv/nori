@@ -48,7 +48,7 @@ function Proyectos() {
         const matchesSearch =
           normalizedSearch.length === 0 ||
           project.name.toLowerCase().includes(normalizedSearch) ||
-          (project.description && project.description.toLowerCase().includes(normalizedSearch));
+          (project.tags && project.tags.some(tag => tag.toLowerCase().includes(normalizedSearch)));
 
         return matchesFilter && matchesSearch;
       })
