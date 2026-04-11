@@ -1,8 +1,9 @@
-import { ChevronLeft, ChevronRight, FileText, RefreshCw, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, GitBranch, RefreshCw, Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BreadcrumbProjects from '../components/ui/BreadcrumbProjects';
 import ChatBubble, { type Message as ChatBubbleMessage } from '../components/ui/ChatBubble';
+import DiagramModal from '../components/ui/DiagramModal';
 import DocPreviewModal from '../components/ui/DocPreviewModal';
 import DocSectionItem, { type DocSection } from '../components/ui/DocSectionItem';
 import Navbar from '../components/ui/Navbar';
@@ -137,10 +138,14 @@ function DocumentPanel({
   sections,
   onToggle,
   onGenerate,
+  onGenerateDiagram,
+  progress,
 }: {
   sections: DocSection[];
   onToggle: (id: number) => void;
   onGenerate: () => void;
+  onGenerateDiagram: () => void;
+  progress: number;
 }) {
   const [page, setPage] = useState(0);
   const totalPages = Math.ceil(sections.length / PAGE_SIZE);
@@ -179,6 +184,16 @@ function DocumentPanel({
       </div>
 
       <div className="doc-panel__footer">
+        {progress === 100 && (
+          <button
+            className="doc-panel__generate-btn"
+            style={{ backgroundColor: '#1a1a1a' }}
+            onClick={onGenerateDiagram}
+          >
+            <GitBranch size={16} />
+            Generar Diagrama
+          </button>
+        )}
         <button className="doc-panel__generate-btn" onClick={onGenerate}>
           <FileText size={16} />
           Generar Documento
@@ -208,6 +223,13 @@ function Chat() {
   const [showPreview, setShowPreview] = useState(false);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
 
+  // Diagram state
+  const [showDiagram, setShowDiagram] = useState(false);
+  const [diagramImageUrl, setDiagramImageUrl] = useState<string | null>(null);
+  const [diagramSvgUrl, setDiagramSvgUrl] = useState<string | null>(null);
+  const [isGeneratingDiagram, setIsGeneratingDiagram] = useState(false);
+  const [diagramError, setDiagramError] = useState<string | null>(null);
+
   const handleGenerate = async () => {
     if (!id) return;
 
@@ -233,6 +255,27 @@ function Chat() {
     a.download = `${projectName}.docx`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleGenerateDiagram = async () => {
+    if (!id) return;
+
+    setDiagramImageUrl(null);
+    setDiagramSvgUrl(null);
+    setDiagramError(null);
+    setIsGeneratingDiagram(true);
+    setShowDiagram(true);
+
+    try {
+      const result = await chatApi.generateDiagram(id);
+      setDiagramImageUrl(result.imageUrl);
+      setDiagramSvgUrl(result.svgUrl);
+    } catch (err: any) {
+      console.error('Error generating diagram:', err);
+      setDiagramError(err.message || 'Error al generar el diagrama');
+    } finally {
+      setIsGeneratingDiagram(false);
+    }
   };
 
   useEffect(() => {
@@ -411,11 +454,24 @@ function Chat() {
           sections={sections}
           onToggle={(id) => setSections((prev) => prev.map((s) => (s.id === id ? { ...s, expanded: !s.expanded } : s)))}
           onGenerate={handleGenerate}
+          onGenerateDiagram={handleGenerateDiagram}
+          progress={progress}
         />
       </div>
 
       {showPreview && (
         <DocPreviewModal docxBlob={previewBlob} onCancel={() => setShowPreview(false)} onDownload={handleDownload} />
+      )}
+
+      {showDiagram && (
+        <DiagramModal
+          imageUrl={diagramImageUrl}
+          svgUrl={diagramSvgUrl}
+          isGenerating={isGeneratingDiagram}
+          error={diagramError}
+          onClose={() => setShowDiagram(false)}
+          onRegenerate={handleGenerateDiagram}
+        />
       )}
     </div>
   );

@@ -113,6 +113,42 @@ export const chatApi = {
       `/api/chat/document-sections/${projectId}`,
       { method: 'GET' }
     ),
+
+  /**
+   * Generate an architecture diagram for a project
+   */
+  generateDiagram: (projectId: string) =>
+    apiFetch<{
+      projectId: string;
+      diagramId: string;
+      source: string;
+      imageUrl: string;
+      svgUrl: string;
+    }>(
+      API_CONFIG.chatService,
+      '/api/chat/generate-diagram',
+      {
+        method: 'POST',
+        body: JSON.stringify({ projectId }),
+      }
+    ),
+
+  /**
+   * Get existing architecture diagram for a project
+   */
+  getDiagram: (projectId: string) =>
+    apiFetch<{
+      projectId: string;
+      diagramId: string;
+      source: string;
+      imageUrl: string;
+      svgUrl: string;
+      lastUpdated: string;
+    }>(
+      API_CONFIG.chatService,
+      `/api/chat/diagram/${projectId}`,
+      { method: 'GET' }
+    ),
 };
 
 // ============================================================================
