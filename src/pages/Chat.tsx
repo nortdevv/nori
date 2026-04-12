@@ -135,10 +135,12 @@ const PAGE_SIZE = 5;
 
 function DocumentPanel({
   sections,
+  projectId,
   onToggle,
   onGenerate,
 }: {
   sections: DocSection[];
+  projectId: string;
   onToggle: (id: number) => void;
   onGenerate: () => void;
 }) {
@@ -158,7 +160,7 @@ function DocumentPanel({
 
       <div className="doc-panel__sections">
         {visible.map((section) => (
-          <DocSectionItem key={section.id} section={section} onToggle={onToggle} />
+          <DocSectionItem key={section.id} section={section} projectId={projectId} onToggle={onToggle} />
         ))}
       </div>
 
@@ -409,6 +411,7 @@ function Chat() {
         />
         <DocumentPanel
           sections={sections}
+          projectId={id ?? ""}
           onToggle={(id) => setSections((prev) => prev.map((s) => (s.id === id ? { ...s, expanded: !s.expanded } : s)))}
           onGenerate={handleGenerate}
         />
