@@ -202,4 +202,17 @@ export const documentApi = {
       `/api/documents/${projectId}`,
       { method: 'GET' }
     ),
+
+  /**
+   * Update a document section content
+   */
+  patchSection: (projectId: string, sectionNo: number, content: any) =>
+    apiFetch<any>(
+      API_CONFIG.documentService,
+      `/api/documents/projects/${projectId}/sections/${sectionNo}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ content }),
+      }
+    ),
 };
