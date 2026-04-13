@@ -224,6 +224,8 @@ function Chat() {
   );
   const [showPreview, setShowPreview] = useState(false);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+  const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
+  const [docError, setDocError] = useState<string | null>(null);
 
   // Diagram state
   const [showDiagram, setShowDiagram] = useState(false);
@@ -235,8 +237,10 @@ function Chat() {
   const handleGenerate = async () => {
     if (!id) return;
 
-    // Abre el modal de inmediato — el skeleton se muestra mientras espera el back
+    // Open modal immediately with loading state, then generate
     setPreviewBlob(null);
+    setDocError(null);
+    setIsGeneratingDoc(true);
     setShowPreview(true);
 
     try {
@@ -244,9 +248,14 @@ function Chat() {
       setPreviewBlob(blob);
     } catch (err: any) {
       console.error('Error al generar el documento:', err);
-      setError(err.message || 'Failed to generate document');
-      setShowPreview(false);
+      setDocError(err.message || 'Error al generar el documento');
+    } finally {
+      setIsGeneratingDoc(false);
     }
+  };
+
+  const handleRegenerate = () => {
+    handleGenerate();
   };
 
   const handleDownload = () => {
@@ -463,7 +472,15 @@ function Chat() {
       </div>
 
       {showPreview && (
-        <DocPreviewModal docxBlob={previewBlob} onCancel={() => setShowPreview(false)} onDownload={handleDownload} />
+        <DocPreviewModal
+          isGenerating={isGeneratingDoc}
+          docxBlob={previewBlob}
+          error={docError}
+          projectName={projectName}
+          onClose={() => { setShowPreview(false); setPreviewBlob(null); setDocError(null); }}
+          onDownload={handleDownload}
+          onRegenerate={handleRegenerate}
+        />
       )}
 
       {showDiagram && (
