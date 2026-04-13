@@ -210,6 +210,12 @@ export const documentApi = {
   },
 
   /**
+   * Returns the URL for the HTML preview (used as iframe src)
+   */
+  previewUrl: (projectId: string): string =>
+    `${API_CONFIG.documentService}/api/documents/preview/${projectId}`,
+
+  /**
    * Get project metadata from document service
    */
   getProject: (projectId: string) =>
