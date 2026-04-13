@@ -1,0 +1,10 @@
+/* Hide the red brand panel on mobile screens */
+@media (max-width: 768px) {
+  #login-brand-panel {
+    display: none !important;
+  }
+
+  #login-form-panel {
+    padding: 1.5rem 1rem;
+  }
+}

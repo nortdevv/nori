@@ -30,11 +30,27 @@ async function apiFetch<T>(
   } catch (error: any) {
     // Handle network errors (backend unavailable, CORS, etc.)
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('Backend service unavailable. Please check your connection or try again later.');
+      throw new Error('Servicio Backend no disponible. Checa tu conexión o inténtalo de nuevo más tarde.');
     }
     throw error;
   }
 }
+
+// ============================================================================
+// Auth Service API
+// ============================================================================
+
+export const authApi = {
+  /**
+   * Login with email and password. Returns a JWT token and user info.
+   */
+  login: (email: string, password: string) =>
+    apiFetch<{ token: string; user: { id: string; email: string; name: string } }>(
+      API_CONFIG.authService,
+      '/api/auth/login',
+      { method: 'POST', body: JSON.stringify({ email, password }) }
+    ),
+};
 
 // ============================================================================
 // Chat Service API
@@ -187,7 +203,7 @@ export const documentApi = {
     } catch (error: any) {
       // Handle network errors
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Document service unavailable. Please check your connection or try again later.');
+        throw new Error('Servicio de documentos no disponible. Checa tu conexión o inténtalo de nuevo más tarde.');
       }
       throw error;
     }
