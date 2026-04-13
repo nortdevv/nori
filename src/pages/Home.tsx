@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 import HomeHeader from "../components/ui/HomeHeader";
 import ProjectCard from "../components/ui/ProjectCard";
 import ProjectsToolbar from "../components/ui/ProjectsToolbar";
@@ -11,6 +12,8 @@ import { toProjectDisplay } from "../types/project";
 type FilterValue = "Todos" | "in_progress" | "completed" | "draft";
 
 function Proyectos() {
+  const { user } = useAuth();
+  const welcomeName = user?.name || user?.email || "Usuario";
   const [projects, setProjects] = useState<ProjectDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +112,7 @@ function Proyectos() {
       <main className="dashboard-content">
         <section className="dashboard-hero">
           <div>
-            <h1 className="dashboard-title">Workspace de NortDev</h1>
+            <h1 className="dashboard-title">Bienvenido, {welcomeName}</h1>
             <p className="dashboard-subtitle">
               Gestiona y genera la documentación de tus proyectos de software.
             </p>

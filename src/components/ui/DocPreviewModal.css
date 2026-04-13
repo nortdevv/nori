@@ -17,9 +17,8 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
-  width: 820px;
-  max-width: 100%;
-  max-height: 90vh;
+  width: min(1100px, 95vw);
+  height: 92vh;
   overflow: hidden;
 }
 
@@ -37,6 +36,8 @@
   font-size: 15px;
   font-weight: 600;
   color: #1a1a1a;
+  display: flex;
+  align-items: center;
 }
 
 .doc-preview-modal__close {
@@ -58,97 +59,100 @@
   color: #ec0029;
 }
 
-/* ── Body / preview area ── */
+/* ── Body ── */
 .doc-preview-modal__body {
   flex: 1;
-  overflow-y: auto;
-  padding: 24px;
+  overflow: hidden;
   background-color: #f4f4f4;
   min-height: 0;
-}
-
-.doc-preview-modal__content {
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-/* docx-preview renders pages — give them some breathing room */
-.doc-preview-modal__content .docx-render section.docx {
-  margin: 0 auto 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* ── Skeleton loading ── */
-.doc-preview-modal__skeleton-page {
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  padding: 48px 56px;
-  min-height: 500px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.doc-preview-modal__skeleton-line {
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #e5e5e5 25%, #f0f0f0 50%, #e5e5e5 75%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.4s infinite;
-  width: 100%;
-}
-
-.doc-preview-modal__skeleton-line--title {
-  height: 20px;
-  width: 60%;
-  margin-bottom: 8px;
-}
-
-.doc-preview-modal__skeleton-line--heading {
-  height: 15px;
-  width: 40%;
-}
-
-.doc-preview-modal__skeleton-line--medium {
-  width: 75%;
-}
-
-.doc-preview-modal__skeleton-line--short {
-  width: 50%;
-}
-
-.doc-preview-modal__skeleton-gap {
-  height: 16px;
-}
-
-.doc-preview-modal__skeleton-spinner-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 24px;
-  font-size: 13px;
-  color: #6b6b6b;
+  justify-content: center;
 }
 
-.doc-preview-modal__skeleton-spinner {
-  width: 18px;
-  height: 18px;
+/* ── Loading state (matches DiagramModal) ── */
+.doc-preview-modal__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 64px 24px;
+}
+
+.doc-preview-modal__spinner {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 2px solid #e5e5e5;
+  border: 3px solid #e5e5e5;
   border-top-color: #ec0029;
-  animation: skeleton-spin 0.7s linear infinite;
-  flex-shrink: 0;
+  animation: doc-spin 0.7s linear infinite;
 }
 
-@keyframes skeleton-shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-@keyframes skeleton-spin {
+@keyframes doc-spin {
   to { transform: rotate(360deg); }
+}
+
+.doc-preview-modal__loading-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.doc-preview-modal__loading-subtext {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: -8px;
+}
+
+/* ── Error state ── */
+.doc-preview-modal__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: #dc2626;
+  text-align: center;
+}
+
+.doc-preview-modal__error-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+}
+
+.doc-preview-modal__error-text {
+  font-size: 14px;
+  color: #6b6b6b;
+  max-width: 400px;
+}
+
+/* ── DOCX rendered preview ── */
+.doc-preview-modal__docx-scroll {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.doc-preview-modal__docx-container {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* docx-preview page styling */
+.doc-preview-modal__docx-container .docx-render section.docx {
+  margin: 0 auto 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  background: #fff;
 }
 
 /* ── Footer ── */
@@ -174,9 +178,14 @@
   transition: border-color 0.15s, color 0.15s;
 }
 
-.doc-preview-modal__cancel-btn:hover {
+.doc-preview-modal__cancel-btn:hover:not(:disabled) {
   border-color: #1a1a1a;
   color: #1a1a1a;
+}
+
+.doc-preview-modal__cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .doc-preview-modal__download-btn {
