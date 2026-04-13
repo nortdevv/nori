@@ -27,8 +27,14 @@ function getStatusStyle(status: string) {
 
 function getProgressColor(progress: number) {
   if (progress === 100) return "#16a34a";
-  if (progress >= 50) return "#ec0029";
   return "#ec0029";
+}
+
+function calculateProgress(sections: { is_complete: boolean; section_no: number }[]): number {
+  const relevant = sections.filter((s) => s.section_no >= 1 && s.section_no <= 10);
+  if (relevant.length === 0) return 0;
+  const completed = relevant.filter((s) => s.is_complete).length;
+  return Math.round((completed / relevant.length) * 100);
 }
 
 function DetalleProyecto() {
@@ -39,6 +45,7 @@ function DetalleProyecto() {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [realProgress, setRealProgress] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -70,6 +77,15 @@ function DetalleProyecto() {
       }
 
       setProject(toProjectDisplay(found));
+
+      // Fetch real progress from document sections (same logic as Chat page)
+      try {
+        const { sections } = await chatApi.getDocumentSections(id);
+        setRealProgress(calculateProgress(sections));
+      } catch {
+        // If sections fail, fall back to the stored value
+        setRealProgress(found.progress_pct ?? 0);
+      }
     } catch (err: any) {
       setError(err.message || "Failed to load project");
       console.error("Error loading project:", err);
@@ -261,17 +277,17 @@ function DetalleProyecto() {
               <p className="detalle-progress-label">Progreso</p>
               <span
                 className="detalle-progress-percent"
-                style={{ color: getProgressColor(project.progress_pct) }}
+                style={{ color: getProgressColor(realProgress ?? project.progress_pct) }}
               >
-                {project.progress_pct}%
+                {realProgress ?? project.progress_pct}%
               </span>
             </div>
             <div className="detalle-progress-track">
               <div
                 className="detalle-progress-bar"
                 style={{
-                  width: `${project.progress_pct}%`,
-                  backgroundColor: getProgressColor(project.progress_pct),
+                  width: `${realProgress ?? project.progress_pct}%`,
+                  backgroundColor: getProgressColor(realProgress ?? project.progress_pct),
                 }}
               />
             </div>
