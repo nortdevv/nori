@@ -5,12 +5,15 @@ import {
   RefreshCw,
   GitBranch,
   AlertTriangle,
-  Code,
-  Eye,
   ZoomIn,
   ZoomOut,
   Maximize2,
-  Palette,
+  Plus,
+  Trash2,
+  Save,
+  ArrowRight,
+  PanelRightOpen,
+  PanelRightClose,
 } from "lucide-react";
 import mermaid from "mermaid";
 import {
@@ -18,9 +21,17 @@ import {
   TransformComponent,
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
+import {
+  parseMermaidCode,
+  serializeMermaidCode,
+  generateNodeId,
+  SHAPE_LABELS,
+  type DiagramNode,
+  type DiagramEdge,
+  type NodeShape,
+} from "../../utils/diagramParser";
 import "./DiagramModal.css";
 
-// Initialize mermaid once
 mermaid.initialize({
   startOnLoad: false,
   theme: "default",
@@ -29,14 +40,24 @@ mermaid.initialize({
 });
 
 const NODE_COLORS = [
-  { name: "Rojo Banorte", value: "#ec0029" },
+  { name: "Default", value: "" },
+  { name: "Rojo", value: "#ec0029" },
   { name: "Azul", value: "#3b82f6" },
   { name: "Verde", value: "#22c55e" },
   { name: "Morado", value: "#8b5cf6" },
   { name: "Naranja", value: "#f97316" },
-  { name: "Amarillo", value: "#eab308" },
   { name: "Rosa", value: "#ec4899" },
+  { name: "Cian", value: "#06b6d4" },
   { name: "Gris", value: "#6b7280" },
+];
+
+const SHAPES: NodeShape[] = [
+  "rect",
+  "rounded",
+  "stadium",
+  "cylinder",
+  "hexagon",
+  "circle",
 ];
 
 interface DiagramModalProps {
@@ -45,7 +66,7 @@ interface DiagramModalProps {
   error: string | null;
   onClose: () => void;
   onRegenerate: () => void;
-  onSaveSource: (newSource: string) => void;
+  onSave: (newSource: string) => void;
 }
 
 function DiagramModal({
@@ -54,37 +75,62 @@ function DiagramModal({
   error,
   onClose,
   onRegenerate,
-  onSaveSource,
+  onSave,
 }: DiagramModalProps) {
   const uniqueId = useId();
   const renderIdRef = useRef(0);
 
-  // Tabs: "preview" or "editor"
-  const [activeTab, setActiveTab] = useState<"preview" | "editor">("preview");
-  const [editorCode, setEditorCode] = useState(source || "");
+  // Diagram data model
+  const [nodes, setNodes] = useState<DiagramNode[]>([]);
+  const [edges, setEdges] = useState<DiagramEdge[]>([]);
+
+  // SVG rendering
   const [svgHtml, setSvgHtml] = useState("");
   const [renderError, setRenderError] = useState<string | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  // Color picker
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [colorPickerPos, setColorPickerPos] = useState({ x: 0, y: 0 });
+  // Add forms
+  const [showAddNode, setShowAddNode] = useState(false);
+  const [newNodeLabel, setNewNodeLabel] = useState("");
+  const [newNodeShape, setNewNodeShape] = useState<NodeShape>("rect");
+  const [newNodeColor, setNewNodeColor] = useState("");
+
+  const [showAddEdge, setShowAddEdge] = useState(false);
+  const [newEdgeFrom, setNewEdgeFrom] = useState("");
+  const [newEdgeTo, setNewEdgeTo] = useState("");
+  const [newEdgeLabel, setNewEdgeLabel] = useState("");
+
+  // Editing node
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+  const [colorPickerNodeId, setColorPickerNodeId] = useState<string | null>(null);
+
+  // Panel toggle
+  const [showPanel, setShowPanel] = useState(true);
+
+  // SVG node click color picker
+  const [svgColorPicker, setSvgColorPicker] = useState<{
+    nodeId: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
   const svgContainerRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<ReactZoomPanPinchRef>(null);
 
-  // Render mermaid code to SVG
+  // ─── Render Mermaid ──────────────────────────────────────────────
+
   const renderDiagram = useCallback(
     async (code: string) => {
       if (!code.trim()) {
         setSvgHtml("");
         return;
       }
-
       try {
         setRenderError(null);
         renderIdRef.current += 1;
         const renderId = `mermaid-${uniqueId.replace(/:/g, "")}-${renderIdRef.current}`;
+        const oldEl = document.getElementById(renderId);
+        if (oldEl) oldEl.remove();
         const { svg } = await mermaid.render(renderId, code);
         setSvgHtml(svg);
       } catch (err: any) {
@@ -95,87 +141,215 @@ function DiagramModal({
     [uniqueId]
   );
 
-  // Render when source changes (initial load or regenerate)
+  // ─── Parse source on load ────────────────────────────────────────
+
   useEffect(() => {
     if (source) {
-      setEditorCode(source);
+      const data = parseMermaidCode(source);
+      setNodes(data.nodes);
+      setEdges(data.edges);
       renderDiagram(source);
+      setHasChanges(false);
     }
   }, [source, renderDiagram]);
 
-  // Attach click handlers to SVG nodes for color picking
+  // ─── Re-render on data changes ──────────────────────────────────
+
+  const rerender = useCallback(
+    (newNodes: DiagramNode[], newEdges: DiagramEdge[]) => {
+      const code = serializeMermaidCode({ nodes: newNodes, edges: newEdges });
+      renderDiagram(code);
+      setHasChanges(true);
+    },
+    [renderDiagram]
+  );
+
+  // ─── Fix SVG sizing ─────────────────────────────────────────────
+
   useEffect(() => {
     if (!svgHtml || !svgContainerRef.current) return;
-
-    const container = svgContainerRef.current;
-    const nodes = container.querySelectorAll<SVGElement>(".node");
-
-    const handleNodeClick = (e: Event) => {
-      e.stopPropagation();
-      const node = (e.currentTarget as SVGElement);
-      const nodeId = node.id;
-
-      // Get click position relative to the modal
-      const mouseEvent = e as MouseEvent;
-      const rect = container.closest(".diagram-modal")?.getBoundingClientRect();
-      if (rect) {
-        setColorPickerPos({
-          x: mouseEvent.clientX - rect.left,
-          y: mouseEvent.clientY - rect.top,
-        });
+    const svgEl = svgContainerRef.current.querySelector("svg");
+    if (!svgEl) return;
+    const viewBox = svgEl.getAttribute("viewBox");
+    if (viewBox) {
+      svgEl.removeAttribute("width");
+      svgEl.style.width = "100%";
+      svgEl.style.height = "auto";
+      svgEl.style.maxHeight = "none";
+      svgEl.style.minHeight = "350px";
+    } else {
+      const w = svgEl.getAttribute("width");
+      const h = svgEl.getAttribute("height");
+      if (w && h) {
+        svgEl.setAttribute("viewBox", `0 0 ${parseFloat(w)} ${parseFloat(h)}`);
+        svgEl.removeAttribute("width");
+        svgEl.removeAttribute("height");
+        svgEl.style.width = "100%";
+        svgEl.style.height = "auto";
+        svgEl.style.minHeight = "350px";
       }
-
-      setSelectedNodeId(nodeId);
-      setShowColorPicker(true);
-    };
-
-    nodes.forEach((node) => {
-      node.style.cursor = "pointer";
-      node.addEventListener("click", handleNodeClick);
-    });
-
-    return () => {
-      nodes.forEach((node) => {
-        node.removeEventListener("click", handleNodeClick);
-      });
-    };
+    }
   }, [svgHtml]);
 
-  // Apply color to selected node
-  const applyColor = (color: string) => {
-    if (!selectedNodeId || !svgContainerRef.current) return;
+  // ─── SVG node click handler (event delegation) ──────────────────
 
-    const node = svgContainerRef.current.querySelector(`#${CSS.escape(selectedNodeId)}`);
-    if (!node) return;
+  const handleSvgClick = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as Element;
+      const nodeEl = target.closest(".node");
+      if (!nodeEl) {
+        setSvgColorPicker(null);
+        return;
+      }
+      // Extract node ID — Mermaid generates ids like "flowchart-NODEID-123"
+      const elId = nodeEl.getAttribute("id") || "";
+      const match = elId.match(/flowchart-(\w+)-\d+/);
+      const nodeId = match ? match[1] : elId;
+      if (nodeId && nodes.some((n) => n.id === nodeId)) {
+        const rect = nodeEl.getBoundingClientRect();
+        const modalEl = svgContainerRef.current?.closest(".diagram-modal");
+        if (!modalEl) return;
+        const modalRect = modalEl.getBoundingClientRect();
+        setSvgColorPicker({
+          nodeId,
+          x: rect.left + rect.width / 2 - modalRect.left,
+          y: rect.bottom - modalRect.top + 8,
+        });
+      }
+    },
+    [nodes]
+  );
 
-    // Find the rect/polygon/circle/path shape inside the node group
-    const shapes = node.querySelectorAll<SVGElement>(
-      "rect, polygon, circle, ellipse, path.basic"
+  // ─── Node CRUD ──────────────────────────────────────────────────
+
+  const handleAddNode = () => {
+    if (!newNodeLabel.trim()) return;
+    const id = generateNodeId(nodes);
+    const newNode: DiagramNode = {
+      id,
+      label: newNodeLabel.trim(),
+      shape: newNodeShape,
+      color: newNodeColor || null,
+    };
+    const updated = [...nodes, newNode];
+    setNodes(updated);
+    rerender(updated, edges);
+    setNewNodeLabel("");
+    setNewNodeShape("rect");
+    setNewNodeColor("");
+    setShowAddNode(false);
+  };
+
+  const handleDeleteNode = (nodeId: string) => {
+    const updatedNodes = nodes.filter((n) => n.id !== nodeId);
+    const updatedEdges = edges.filter(
+      (e) => e.from !== nodeId && e.to !== nodeId
     );
-    shapes.forEach((shape) => {
-      shape.style.fill = color;
-      shape.style.stroke = color;
-      shape.style.filter = "brightness(0.9)";
-    });
-
-    // Make text white for dark backgrounds
-    const texts = node.querySelectorAll<SVGElement>("text, .nodeLabel");
-    texts.forEach((text) => {
-      text.style.fill = "#ffffff";
-    });
-
-    setShowColorPicker(false);
-    setSelectedNodeId(null);
+    setNodes(updatedNodes);
+    setEdges(updatedEdges);
+    rerender(updatedNodes, updatedEdges);
   };
 
-  // Apply editor changes
-  const handleApplyCode = () => {
-    renderDiagram(editorCode);
-    onSaveSource(editorCode);
-    setActiveTab("preview");
+  const handleUpdateNode = (
+    nodeId: string,
+    field: keyof DiagramNode,
+    value: string
+  ) => {
+    const updated = nodes.map((n) =>
+      n.id === nodeId
+        ? { ...n, [field]: field === "color" ? value || null : value }
+        : n
+    );
+    setNodes(updated);
+    // Debounce rendering for label changes
+    if (field !== "label") {
+      rerender(updated, edges);
+    }
   };
 
-  // Download as SVG
+  const handleNodeLabelBlur = () => {
+    setEditingNodeId(null);
+    rerender(nodes, edges);
+  };
+
+  const handleNodeLabelKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      setEditingNodeId(null);
+      rerender(nodes, edges);
+    }
+  };
+
+  // ─── Edge CRUD ──────────────────────────────────────────────────
+
+  const handleAddEdge = () => {
+    if (!newEdgeFrom || !newEdgeTo || newEdgeFrom === newEdgeTo) return;
+    const newEdge: DiagramEdge = {
+      from: newEdgeFrom,
+      to: newEdgeTo,
+      label: newEdgeLabel.trim(),
+    };
+    const updated = [...edges, newEdge];
+    setEdges(updated);
+    rerender(nodes, updated);
+    setNewEdgeFrom("");
+    setNewEdgeTo("");
+    setNewEdgeLabel("");
+    setShowAddEdge(false);
+  };
+
+  const handleDeleteEdge = (index: number) => {
+    const updated = edges.filter((_, i) => i !== index);
+    setEdges(updated);
+    rerender(nodes, updated);
+  };
+
+  // ─── Save ───────────────────────────────────────────────────────
+
+  const handleSave = () => {
+    const code = serializeMermaidCode({ nodes, edges });
+    onSave(code);
+    setHasChanges(false);
+  };
+
+  // ─── Downloads ──────────────────────────────────────────────────
+
+  const handleDownloadPng = () => {
+    if (!svgContainerRef.current) return;
+    const svgEl = svgContainerRef.current.querySelector("svg");
+    if (!svgEl) return;
+    const clone = svgEl.cloneNode(true) as SVGElement;
+    const viewBox = svgEl.getAttribute("viewBox");
+    if (viewBox) {
+      const parts = viewBox.split(" ").map(Number);
+      clone.setAttribute("width", String(parts[2]));
+      clone.setAttribute("height", String(parts[3]));
+    }
+    const svgData = new XMLSerializer().serializeToString(clone);
+    const svgBlob = new Blob([svgData], {
+      type: "image/svg+xml;charset=utf-8",
+    });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth * 2;
+      canvas.height = img.naturalHeight * 2;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(2, 2);
+      ctx.drawImage(img, 0, 0);
+      const pngUrl = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = pngUrl;
+      a.download = "diagrama-arquitectura.png";
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  };
+
   const handleDownloadSvg = () => {
     if (!svgHtml) return;
     const blob = new Blob([svgHtml], { type: "image/svg+xml" });
@@ -187,80 +361,38 @@ function DiagramModal({
     URL.revokeObjectURL(url);
   };
 
-  // Download as PNG
-  const handleDownloadPng = () => {
-    if (!svgContainerRef.current) return;
-    const svgEl = svgContainerRef.current.querySelector("svg");
-    if (!svgEl) return;
+  // ─── Render ─────────────────────────────────────────────────────
 
-    const canvas = document.createElement("canvas");
-    const svgData = new XMLSerializer().serializeToString(svgEl);
-    const img = new Image();
-    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(svgBlob);
-
-    img.onload = () => {
-      canvas.width = img.naturalWidth * 2;
-      canvas.height = img.naturalHeight * 2;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.scale(2, 2);
-      ctx.drawImage(img, 0, 0);
-
-      const pngUrl = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = pngUrl;
-      a.download = "diagrama-arquitectura.png";
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-    img.src = url;
-  };
-
-  // Close color picker when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => setShowColorPicker(false);
-    if (showColorPicker) {
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
-    }
-  }, [showColorPicker]);
+  const getNodeLabel = (nodeId: string) =>
+    nodes.find((n) => n.id === nodeId)?.label || nodeId;
 
   return (
     <div className="diagram-modal-overlay" onClick={onClose}>
-      <div className="diagram-modal diagram-modal--wide" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="diagram-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="diagram-modal__header">
           <span className="diagram-modal__title">
             <GitBranch size={18} color="#ec0029" />
             Diagrama de Arquitectura
           </span>
-
-          <div className="diagram-modal__tabs">
+          <div className="diagram-modal__header-actions">
+            {hasChanges && (
+              <button className="diagram-modal__save-btn" onClick={handleSave}>
+                <Save size={14} />
+                Guardar
+              </button>
+            )}
             <button
-              className={`diagram-modal__tab ${activeTab === "preview" ? "diagram-modal__tab--active" : ""}`}
-              onClick={() => setActiveTab("preview")}
+              className="diagram-modal__close"
+              onClick={onClose}
+              aria-label="Cerrar"
             >
-              <Eye size={14} />
-              Vista Previa
-            </button>
-            <button
-              className={`diagram-modal__tab ${activeTab === "editor" ? "diagram-modal__tab--active" : ""}`}
-              onClick={() => {
-                setActiveTab("editor");
-                setShowColorPicker(false);
-              }}
-            >
-              <Code size={14} />
-              Editor
+              <X size={18} />
             </button>
           </div>
-
-          <button className="diagram-modal__close" onClick={onClose} aria-label="Cerrar">
-            <X size={18} />
-          </button>
         </div>
 
         {/* Body */}
@@ -278,7 +410,7 @@ function DiagramModal({
             </div>
           )}
 
-          {/* Error from backend */}
+          {/* Error */}
           {error && !isGenerating && (
             <div className="diagram-modal__error">
               <div className="diagram-modal__error-icon">
@@ -288,131 +420,411 @@ function DiagramModal({
             </div>
           )}
 
-          {/* Preview tab */}
-          {!isGenerating && !error && activeTab === "preview" && svgHtml && (
-            <div className="diagram-modal__preview-area">
-              {/* Zoom controls */}
-              <div className="diagram-modal__zoom-controls">
-                <button
-                  className="diagram-modal__zoom-btn"
-                  onClick={() => zoomRef.current?.zoomIn()}
-                  title="Acercar"
-                >
-                  <ZoomIn size={16} />
-                </button>
-                <button
-                  className="diagram-modal__zoom-btn"
-                  onClick={() => zoomRef.current?.zoomOut()}
-                  title="Alejar"
-                >
-                  <ZoomOut size={16} />
-                </button>
-                <button
-                  className="diagram-modal__zoom-btn"
-                  onClick={() => zoomRef.current?.resetTransform()}
-                  title="Restablecer"
-                >
-                  <Maximize2 size={16} />
-                </button>
-                <div className="diagram-modal__zoom-separator" />
-                <button
-                  className="diagram-modal__zoom-btn diagram-modal__zoom-btn--color"
-                  title="Haz clic en un nodo para cambiar su color"
-                >
-                  <Palette size={16} />
-                </button>
-              </div>
-
-              {renderError && (
-                <div className="diagram-modal__render-error">
-                  <AlertTriangle size={14} />
-                  <span>{renderError}</span>
+          {/* Two-panel layout */}
+          {!isGenerating && !error && svgHtml && (
+            <>
+              {/* LEFT: SVG Preview */}
+              <div className="diagram-modal__preview-panel">
+                <div className="diagram-modal__zoom-controls">
+                  <button
+                    className="diagram-modal__zoom-btn"
+                    onClick={() => zoomRef.current?.zoomIn()}
+                    title="Acercar"
+                  >
+                    <ZoomIn size={16} />
+                  </button>
+                  <button
+                    className="diagram-modal__zoom-btn"
+                    onClick={() => zoomRef.current?.zoomOut()}
+                    title="Alejar"
+                  >
+                    <ZoomOut size={16} />
+                  </button>
+                  <button
+                    className="diagram-modal__zoom-btn"
+                    onClick={() => zoomRef.current?.resetTransform()}
+                    title="Restablecer"
+                  >
+                    <Maximize2 size={16} />
+                  </button>
+                  <div className="diagram-modal__zoom-divider" />
+                  <button
+                    className={`diagram-modal__zoom-btn ${showPanel ? 'diagram-modal__zoom-btn--active' : ''}`}
+                    onClick={() => setShowPanel(!showPanel)}
+                    title={showPanel ? 'Ocultar panel' : 'Mostrar panel'}
+                  >
+                    {showPanel ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+                  </button>
                 </div>
-              )}
 
-              <TransformWrapper
-                ref={zoomRef}
-                initialScale={1}
-                minScale={0.3}
-                maxScale={3}
-                centerOnInit
-                wheel={{ step: 0.08 }}
-              >
-                <TransformComponent
-                  wrapperStyle={{ width: "100%", height: "100%" }}
-                  contentStyle={{ width: "100%", display: "flex", justifyContent: "center" }}
+                {renderError && (
+                  <div className="diagram-modal__render-error">
+                    <AlertTriangle size={14} />
+                    <span>{renderError}</span>
+                  </div>
+                )}
+
+                <TransformWrapper
+                  ref={zoomRef}
+                  initialScale={0.85}
+                  minScale={0.2}
+                  maxScale={4}
+                  centerOnInit
+                  wheel={{ step: 0.08 }}
+                  doubleClick={{ disabled: true }}
                 >
+                  <TransformComponent
+                    wrapperClass="diagram-modal__transform-wrapper"
+                    contentClass="diagram-modal__transform-content"
+                  >
+                    <div
+                      ref={svgContainerRef}
+                      className="diagram-modal__svg-container"
+                      dangerouslySetInnerHTML={{ __html: svgHtml }}
+                      onClickCapture={handleSvgClick}
+                    />
+                  </TransformComponent>
+                </TransformWrapper>
+
+                {/* Floating color picker for SVG node clicks */}
+                {svgColorPicker && (
                   <div
-                    ref={svgContainerRef}
-                    className="diagram-modal__svg-container"
-                    dangerouslySetInnerHTML={{ __html: svgHtml }}
-                  />
-                </TransformComponent>
-              </TransformWrapper>
-
-              <p className="diagram-modal__hint">
-                🖱️ Scroll para zoom · Arrastra para mover · Clic en un nodo para cambiar su color
-              </p>
-            </div>
-          )}
-
-          {/* Editor tab */}
-          {!isGenerating && !error && activeTab === "editor" && (
-            <div className="diagram-modal__editor-area">
-              <div className="diagram-modal__editor-header">
-                <span>Código Mermaid</span>
-                <button className="diagram-modal__apply-btn" onClick={handleApplyCode}>
-                  <Eye size={14} />
-                  Aplicar y ver
-                </button>
+                    className="diagram-modal__svg-color-picker"
+                    style={{
+                      left: svgColorPicker.x,
+                      top: svgColorPicker.y,
+                    }}
+                  >
+                    <span className="diagram-modal__svg-color-picker-label">
+                      {nodes.find((n) => n.id === svgColorPicker.nodeId)?.label}
+                    </span>
+                    <div className="diagram-modal__svg-color-picker-grid">
+                      {NODE_COLORS.map((c) => (
+                        <button
+                          key={c.value}
+                          className={`diagram-modal__color-option ${
+                            (nodes.find((n) => n.id === svgColorPicker.nodeId)?.color || "") === c.value
+                              ? "diagram-modal__color-option--active"
+                              : ""
+                          }`}
+                          style={{ backgroundColor: c.value || "#d1d5db" }}
+                          title={c.name}
+                          onClick={() => {
+                            handleUpdateNode(svgColorPicker.nodeId, "color", c.value);
+                            setSvgColorPicker(null);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <textarea
-                className="diagram-modal__textarea"
-                value={editorCode}
-                onChange={(e) => setEditorCode(e.target.value)}
-                spellCheck={false}
-                placeholder="graph TD&#10;    A-->B"
-              />
-              <p className="diagram-modal__editor-hint">
-                Edita el código Mermaid directamente. Haz clic en "Aplicar y ver" para previsualizar los cambios.
-              </p>
-            </div>
+
+              {/* RIGHT: Visual Editor Panel */}
+              {showPanel && (
+              <div className="diagram-modal__editor-panel">
+                {/* Nodes Section */}
+                <div className="diagram-modal__section">
+                  <div className="diagram-modal__section-header">
+                    <span className="diagram-modal__section-title">
+                      Nodos ({nodes.length})
+                    </span>
+                    <button
+                      className="diagram-modal__add-btn"
+                      onClick={() => {
+                        setShowAddNode(!showAddNode);
+                        setShowAddEdge(false);
+                      }}
+                    >
+                      <Plus size={13} />
+                    </button>
+                  </div>
+
+                  {/* Add Node Form */}
+                  {showAddNode && (
+                    <div className="diagram-modal__add-form">
+                      <input
+                        type="text"
+                        className="diagram-modal__input"
+                        placeholder="Nombre del nodo"
+                        value={newNodeLabel}
+                        onChange={(e) => setNewNodeLabel(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleAddNode()}
+                        autoFocus
+                      />
+                      <div className="diagram-modal__form-row">
+                        <select
+                          className="diagram-modal__select"
+                          value={newNodeShape}
+                          onChange={(e) =>
+                            setNewNodeShape(e.target.value as NodeShape)
+                          }
+                        >
+                          {SHAPES.map((s) => (
+                            <option key={s} value={s}>
+                              {SHAPE_LABELS[s]}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          className="diagram-modal__select diagram-modal__select--color"
+                          value={newNodeColor}
+                          onChange={(e) => setNewNodeColor(e.target.value)}
+                          style={
+                            newNodeColor
+                              ? {
+                                  borderColor: newNodeColor,
+                                  backgroundColor: newNodeColor + "18",
+                                }
+                              : undefined
+                          }
+                        >
+                          {NODE_COLORS.map((c) => (
+                            <option key={c.value} value={c.value}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <button
+                        className="diagram-modal__form-submit"
+                        onClick={handleAddNode}
+                        disabled={!newNodeLabel.trim()}
+                      >
+                        Agregar nodo
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Node List */}
+                  <div className="diagram-modal__node-list">
+                    {[...nodes].sort((a, b) => a.label.localeCompare(b.label)).map((node) => (
+                      <div key={node.id} className="diagram-modal__node-card">
+                        {/* Color swatch picker */}
+                        <div className="diagram-modal__node-color-wrap">
+                          <button
+                            className="diagram-modal__color-swatch"
+                            style={{
+                              backgroundColor: node.color || "#d1d5db",
+                            }}
+                            onClick={() =>
+                              setColorPickerNodeId(
+                                colorPickerNodeId === node.id ? null : node.id
+                              )
+                            }
+                            title="Cambiar color"
+                          />
+                          {colorPickerNodeId === node.id && (
+                            <div className="diagram-modal__color-dropdown">
+                              {NODE_COLORS.map((c) => (
+                                <button
+                                  key={c.value}
+                                  className={`diagram-modal__color-option ${
+                                    (node.color || "") === c.value
+                                      ? "diagram-modal__color-option--active"
+                                      : ""
+                                  }`}
+                                  style={{
+                                    backgroundColor: c.value || "#d1d5db",
+                                  }}
+                                  title={c.name}
+                                  onClick={() => {
+                                    handleUpdateNode(
+                                      node.id,
+                                      "color",
+                                      c.value
+                                    );
+                                    setColorPickerNodeId(null);
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Label */}
+                        <div className="diagram-modal__node-info">
+                          {editingNodeId === node.id ? (
+                            <input
+                              type="text"
+                              className="diagram-modal__node-input"
+                              value={node.label}
+                              onChange={(e) =>
+                                handleUpdateNode(
+                                  node.id,
+                                  "label",
+                                  e.target.value
+                                )
+                              }
+                              onBlur={handleNodeLabelBlur}
+                              onKeyDown={handleNodeLabelKeyDown}
+                              autoFocus
+                            />
+                          ) : (
+                            <span
+                              className="diagram-modal__node-label"
+                              onClick={() => setEditingNodeId(node.id)}
+                              title="Clic para editar"
+                            >
+                              {node.label}
+                            </span>
+                          )}
+                          <div className="diagram-modal__node-meta">
+                            <select
+                              className="diagram-modal__shape-select"
+                              value={node.shape}
+                              onChange={(e) =>
+                                handleUpdateNode(
+                                  node.id,
+                                  "shape",
+                                  e.target.value
+                                )
+                              }
+                            >
+                              {SHAPES.map((s) => (
+                                <option key={s} value={s}>
+                                  {SHAPE_LABELS[s]}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Delete */}
+                        <button
+                          className="diagram-modal__delete-btn"
+                          onClick={() => handleDeleteNode(node.id)}
+                          title="Eliminar nodo"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Edges Section */}
+                <div className="diagram-modal__section">
+                  <div className="diagram-modal__section-header">
+                    <span className="diagram-modal__section-title">
+                      Conexiones ({edges.length})
+                    </span>
+                    <button
+                      className="diagram-modal__add-btn"
+                      onClick={() => {
+                        setShowAddEdge(!showAddEdge);
+                        setShowAddNode(false);
+                      }}
+                      disabled={nodes.length < 2}
+                    >
+                      <Plus size={13} />
+                    </button>
+                  </div>
+
+                  {/* Add Edge Form */}
+                  {showAddEdge && (
+                    <div className="diagram-modal__add-form">
+                      <div className="diagram-modal__form-row">
+                        <select
+                          className="diagram-modal__select"
+                          value={newEdgeFrom}
+                          onChange={(e) => setNewEdgeFrom(e.target.value)}
+                        >
+                          <option value="">Origen...</option>
+                          {nodes.map((n) => (
+                            <option key={n.id} value={n.id}>
+                              {n.label}
+                            </option>
+                          ))}
+                        </select>
+                        <ArrowRight
+                          size={16}
+                          className="diagram-modal__arrow-icon"
+                        />
+                        <select
+                          className="diagram-modal__select"
+                          value={newEdgeTo}
+                          onChange={(e) => setNewEdgeTo(e.target.value)}
+                        >
+                          <option value="">Destino...</option>
+                          {nodes.map((n) => (
+                            <option key={n.id} value={n.id}>
+                              {n.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <input
+                        type="text"
+                        className="diagram-modal__input"
+                        placeholder="Etiqueta (opcional)"
+                        value={newEdgeLabel}
+                        onChange={(e) => setNewEdgeLabel(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleAddEdge()}
+                      />
+                      <button
+                        className="diagram-modal__form-submit"
+                        onClick={handleAddEdge}
+                        disabled={
+                          !newEdgeFrom || !newEdgeTo || newEdgeFrom === newEdgeTo
+                        }
+                      >
+                        Agregar conexión
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Edge List */}
+                  <div className="diagram-modal__edge-list">
+                    {[...edges]
+                      .map((edge, i) => ({ edge, originalIndex: i }))
+                      .sort((a, b) => getNodeLabel(a.edge.from).localeCompare(getNodeLabel(b.edge.from)))
+                      .map(({ edge, originalIndex }) => (
+                      <div key={originalIndex} className="diagram-modal__edge-row">
+                        <span className="diagram-modal__edge-text">
+                          <strong>{getNodeLabel(edge.from)}</strong>
+                          {" → "}
+                          <strong>{getNodeLabel(edge.to)}</strong>
+                          {edge.label && (
+                            <span className="diagram-modal__edge-label-text">
+                              {" "}
+                              ({edge.label})
+                            </span>
+                          )}
+                        </span>
+                        <button
+                          className="diagram-modal__delete-btn"
+                          onClick={() => handleDeleteEdge(originalIndex)}
+                          title="Eliminar conexión"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    {edges.length === 0 && (
+                      <p className="diagram-modal__empty-text">
+                        Sin conexiones
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Color Picker Popup */}
-        {showColorPicker && (
-          <div
-            className="diagram-modal__color-picker"
-            style={{ left: colorPickerPos.x, top: colorPickerPos.y }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <span className="diagram-modal__color-picker-title">Color del nodo</span>
-            <div className="diagram-modal__color-grid">
-              {NODE_COLORS.map((c) => (
-                <button
-                  key={c.value}
-                  className="diagram-modal__color-swatch"
-                  style={{ backgroundColor: c.value }}
-                  title={c.name}
-                  onClick={() => applyColor(c.value)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Footer */}
         <div className="diagram-modal__footer">
-          <button className="diagram-modal__btn diagram-modal__btn--cancel" onClick={onClose}>
+          <button
+            className="diagram-modal__btn diagram-modal__btn--cancel"
+            onClick={onClose}
+          >
             Cerrar
           </button>
           <button
             className="diagram-modal__btn diagram-modal__btn--regenerate"
-            onClick={() => {
-              setShowColorPicker(false);
-              onRegenerate();
-            }}
+            onClick={onRegenerate}
             disabled={isGenerating}
           >
             <RefreshCw size={16} />

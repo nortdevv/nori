@@ -7,25 +7,21 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 24px;
+  padding: 20px;
 }
 
-/* ── Modal container (wider for editor) ── */
+/* ── Modal ── */
 .diagram-modal {
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.19);
   display: flex;
   flex-direction: column;
-  width: 900px;
+  width: 1200px;
   max-width: 100%;
-  max-height: 90vh;
+  height: 88vh;
   overflow: hidden;
   position: relative;
-}
-
-.diagram-modal--wide {
-  width: 1100px;
 }
 
 /* ── Header ── */
@@ -33,10 +29,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 14px 20px;
   border-bottom: 1px solid #e5e5e5;
   flex-shrink: 0;
-  gap: 16px;
 }
 
 .diagram-modal__title {
@@ -46,34 +41,32 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  white-space: nowrap;
 }
 
-.diagram-modal__tabs {
-  display: flex;
-  gap: 4px;
-  background-color: #f4f4f4;
-  border-radius: 8px;
-  padding: 3px;
-}
-
-.diagram-modal__tab {
+.diagram-modal__header-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  font-size: 13px;
-  font-weight: 500;
-  color: #6b6b6b;
-  cursor: pointer;
-  transition: all 0.15s;
+  gap: 8px;
 }
 
-.diagram-modal__tab:hover {
-  color: #1a1a1a;
+.diagram-modal__save-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  border: none;
+  border-radius: 7px;
+  background-color: #22c55e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  animation: fade-in 0.2s;
+}
+
+.diagram-modal__save-btn:hover {
+  background-color: #16a34a;
 }
 
 .diagram-modal__tab--active {
@@ -93,8 +86,7 @@
   justify-content: center;
   cursor: pointer;
   color: #6b6b6b;
-  transition: border-color 0.15s, color 0.15s;
-  flex-shrink: 0;
+  transition: all 0.15s;
 }
 
 .diagram-modal__close:hover {
@@ -102,77 +94,79 @@
   color: #ec0029;
 }
 
-/* ── Body ── */
+/* ── Body: Two panels ── */
 .diagram-modal__body {
   flex: 1;
-  overflow: hidden;
-  background-color: #f4f4f4;
   min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Preview Panel (left) ── */
+.diagram-modal__preview-panel {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  background-color: #f8f8f8;
+  border-right: 1px solid #e5e5e5;
+  display: flex;
+  flex-direction: column;
+}
+
+.diagram-modal__transform-wrapper {
+  flex: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.diagram-modal__transform-content {
+  width: 100%;
+  min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* ── Preview area ── */
-.diagram-modal__preview-area {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  min-height: 450px;
-}
-
 .diagram-modal__svg-container {
   padding: 24px;
+  min-width: 500px;
 }
 
 .diagram-modal__svg-container svg {
-  max-width: 100%;
+  width: 100%;
   height: auto;
+  min-height: 350px;
 }
 
-/* Highlight nodes on hover */
+.diagram-modal__svg-container .node {
+  cursor: pointer;
+}
+
 .diagram-modal__svg-container .node:hover {
-  filter: brightness(0.95) drop-shadow(0 0 4px rgba(236, 0, 41, 0.3));
-  transition: filter 0.15s;
-}
-
-.diagram-modal__hint {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 11px;
-  color: #9ca3af;
-  background-color: rgba(255, 255, 255, 0.9);
-  padding: 4px 12px;
-  border-radius: 20px;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 5;
+  filter: brightness(0.92);
 }
 
 .diagram-modal__render-error {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  margin: 8px 16px;
+  padding: 8px 14px;
+  margin: 8px 12px 0;
   background-color: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 8px;
   color: #dc2626;
   font-size: 12px;
+  flex-shrink: 0;
 }
 
-/* ── Zoom controls ── */
+/* ── Zoom Controls ── */
 .diagram-modal__zoom-controls {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 10px;
   display: flex;
-  gap: 4px;
+  gap: 3px;
   z-index: 10;
   background-color: #fff;
   border-radius: 8px;
@@ -182,10 +176,10 @@
 }
 
 .diagram-modal__zoom-btn {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   background-color: transparent;
   display: flex;
   align-items: center;
@@ -196,100 +190,158 @@
 }
 
 .diagram-modal__zoom-btn:hover {
-  background-color: #f4f4f4;
+  background-color: #f0f0f0;
   color: #1a1a1a;
 }
 
-.diagram-modal__zoom-btn--color {
-  color: #ec0029;
+.diagram-modal__zoom-btn--active {
+  background-color: #ec0029;
+  color: #fff;
 }
 
-.diagram-modal__zoom-btn--color:hover {
-  background-color: #fff5f5;
+.diagram-modal__zoom-btn--active:hover {
+  background-color: #c8001f;
+  color: #fff;
 }
 
-.diagram-modal__zoom-separator {
+.diagram-modal__zoom-divider {
   width: 1px;
+  height: 20px;
   background-color: #e5e5e5;
-  margin: 4px 2px;
+  margin: 0 2px;
 }
 
-/* ── Editor area ── */
-.diagram-modal__editor-area {
-  width: 100%;
-  height: 100%;
+/* ── SVG floating color picker ── */
+.diagram-modal__svg-color-picker {
+  position: absolute;
+  z-index: 30;
+  background-color: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  transform: translateX(-50%);
+  animation: fade-in 0.12s ease-out;
+}
+
+.diagram-modal__svg-color-picker-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b6b6b;
+  margin-bottom: 8px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.diagram-modal__svg-color-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+/* ── Editor Panel (right) ── */
+.diagram-modal__editor-panel {
+  width: 340px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  min-height: 450px;
+  overflow-y: auto;
+  background-color: #fff;
 }
 
-.diagram-modal__editor-header {
+.diagram-modal__section {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.diagram-modal__section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background-color: #1e1e2e;
-  color: #cdd6f4;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
-.diagram-modal__apply-btn {
+.diagram-modal__section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b6b6b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.diagram-modal__add-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1.5px dashed #ccc;
+  background: transparent;
+  color: #999;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #a6e3a1;
-  font-size: 12px;
-  font-weight: 600;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.15s;
-  text-transform: none;
-  letter-spacing: normal;
 }
 
-.diagram-modal__apply-btn:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: #a6e3a1;
+.diagram-modal__add-btn:hover:not(:disabled) {
+  border-color: #ec0029;
+  color: #ec0029;
+  background-color: #fff5f5;
 }
 
-.diagram-modal__textarea {
-  flex: 1;
+.diagram-modal__add-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ── Add Forms ── */
+.diagram-modal__add-form {
+  padding: 12px 16px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fade-in 0.15s;
+}
+
+.diagram-modal__input {
   width: 100%;
-  padding: 16px;
-  border: none;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #1a1a1a;
+  background-color: #fff;
   outline: none;
-  resize: none;
-  font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", "Courier New", monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #cdd6f4;
-  background-color: #1e1e2e;
-  tab-size: 4;
+  transition: border-color 0.15s;
 }
 
-.diagram-modal__textarea::placeholder {
-  color: #585b70;
+.diagram-modal__input:focus {
+  border-color: #ec0029;
 }
 
-.diagram-modal__editor-hint {
-  padding: 8px 16px;
+.diagram-modal__form-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.diagram-modal__select {
+  flex: 1;
+  padding: 7px 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   font-size: 11px;
-  color: #9ca3af;
-  background-color: #f4f4f4;
-  border-top: 1px solid #e5e5e5;
-  margin: 0;
-}
-
-/* ── Color picker ── */
-.diagram-modal__color-picker {
-  position: absolute;
-  z-index: 100;
+  color: #1a1a1a;
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 3px 11px rgba(0, 0, 0, 0.16);
@@ -299,38 +351,231 @@
   transform: translate(-50%, 8px);
 }
 
-.diagram-modal__color-picker-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: #6b6b6b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: block;
-  margin-bottom: 8px;
+.diagram-modal__select:focus {
+  border-color: #ec0029;
 }
 
-.diagram-modal__color-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+.diagram-modal__arrow-icon {
+  color: #ccc;
+  flex-shrink: 0;
+}
+
+.diagram-modal__form-submit {
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background-color: #ec0029;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.diagram-modal__form-submit:hover:not(:disabled) {
+  background-color: #c8001f;
+}
+
+.diagram-modal__form-submit:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── Node Card ── */
+.diagram-modal__node-list {
+  padding: 4px 0;
+}
+
+.diagram-modal__node-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.1s;
+}
+
+.diagram-modal__node-card:hover {
+  background-color: #fafafa;
+}
+
+/* Color swatch button */
+.diagram-modal__node-color-wrap {
+  flex-shrink: 0;
+  position: relative;
 }
 
 .diagram-modal__color-swatch {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
-  border: 2px solid transparent;
+  border: 2px solid rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: all 0.15s;
+  padding: 0;
+  outline: none;
+  transition: transform 0.1s, box-shadow 0.15s;
 }
 
 .diagram-modal__color-swatch:hover {
-  transform: scale(1.15);
+  transform: scale(1.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+/* Color dropdown popover */
+.diagram-modal__color-dropdown {
+  position: absolute;
+  top: 36px;
+  left: -4px;
+  z-index: 20;
+  background-color: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  animation: fade-in 0.12s ease-out;
+}
+
+.diagram-modal__color-option {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  transition: transform 0.1s, border-color 0.15s;
+}
+
+.diagram-modal__color-option:hover {
+  transform: scale(1.18);
+}
+
+.diagram-modal__color-option--active {
   border-color: #1a1a1a;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
 }
 
-/* ── Error state ── */
+.diagram-modal__node-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  cursor: text;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.1s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagram-modal__node-label:hover {
+  background-color: #f0f0f0;
+}
+
+.diagram-modal__node-input {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  padding: 2px 4px;
+  border: 1px solid #ec0029;
+  border-radius: 4px;
+  outline: none;
+  width: 100%;
+  background-color: #fff;
+}
+
+.diagram-modal__node-meta {
+  display: flex;
+  gap: 4px;
+}
+
+.diagram-modal__shape-select {
+  padding: 1px 4px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #999;
+  background-color: transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+.diagram-modal__shape-select:focus {
+  border-color: #ec0029;
+  color: #1a1a1a;
+}
+
+/* Delete button */
+.diagram-modal__delete-btn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 5px;
+  background-color: transparent;
+  color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.diagram-modal__delete-btn:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* ── Edge List ── */
+.diagram-modal__edge-list {
+  padding: 4px 0;
+}
+
+.diagram-modal__edge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 16px;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.1s;
+}
+
+.diagram-modal__edge-row:hover {
+  background-color: #fafafa;
+}
+
+.diagram-modal__edge-text {
+  font-size: 12px;
+  color: #4a4a4a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.diagram-modal__edge-text strong {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.diagram-modal__edge-label-text {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.diagram-modal__empty-text {
+  font-size: 11px;
+  color: #c0c0c0;
+  text-align: center;
+  padding: 16px;
+  margin: 0;
+}
+
+/* ── Error / Loading ── */
 .diagram-modal__error {
   display: flex;
   flex-direction: column;
@@ -339,6 +584,7 @@
   padding: 48px 24px;
   color: #dc2626;
   text-align: center;
+  margin: auto;
 }
 
 .diagram-modal__error-icon {
@@ -358,13 +604,13 @@
   max-width: 400px;
 }
 
-/* ── Loading state ── */
 .diagram-modal__loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
   padding: 64px 24px;
+  margin: auto;
 }
 
 .diagram-modal__spinner {
@@ -388,9 +634,7 @@
 }
 
 @keyframes diagram-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 /* ── Footer ── */
@@ -399,20 +643,20 @@
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  padding: 14px 24px;
+  padding: 12px 20px;
   border-top: 1px solid #e5e5e5;
   flex-shrink: 0;
 }
 
 .diagram-modal__btn {
-  padding: 9px 18px;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 7px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.15s;
 }
 
