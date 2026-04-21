@@ -1,78 +1,131 @@
-import { useEffect, useRef } from "react";
-import { X, Download } from "lucide-react";
-import { renderAsync } from "docx-preview";
-import "./DocPreviewModal.css";
+import { useEffect, useRef } from 'react';
+import { X, Download, FileText, AlertTriangle } from 'lucide-react';
+import { renderAsync } from 'docx-preview';
+import './DocPreviewModal.css';
 
 interface DocPreviewModalProps {
+  isGenerating: boolean;
   docxBlob: Blob | null;
-  onCancel: () => void;
+  error: string | null;
+  onClose: () => void;
   onDownload: () => void;
+  onRegenerate: () => void;
+  projectName?: string;
 }
 
-function DocPreviewModal({ docxBlob, onCancel, onDownload }: DocPreviewModalProps) {
+function clearNode(node: HTMLElement) {
+  while (node.firstChild) node.removeChild(node.firstChild);
+}
+
+function DocPreviewModal({
+  isGenerating,
+  docxBlob,
+  error,
+  onClose,
+  onDownload,
+  onRegenerate,
+  projectName,
+}: DocPreviewModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Render the DOCX blob into the container div whenever it arrives
   useEffect(() => {
-    if (!containerRef.current || !docxBlob) return;
-    containerRef.current.innerHTML = "";
-    renderAsync(docxBlob, containerRef.current, undefined, {
-      className: "docx-render",
+    if (!docxBlob || !containerRef.current) return;
+
+    const container = containerRef.current;
+    clearNode(container);
+
+    renderAsync(docxBlob, container, undefined, {
       inWrapper: true,
       ignoreWidth: false,
       ignoreHeight: false,
-      ignoreFonts: false,
       breakPages: true,
+      renderHeaders: true,
+      renderFooters: true,
       useBase64URL: true,
-    }).catch(console.error);
+      className: 'docx-render',
+    }).catch((err) => {
+      console.error('docx-preview render error:', err);
+      const msg = document.createElement('p');
+      msg.style.cssText = 'padding:24px;color:#6b6b6b;text-align:center';
+      msg.textContent = 'No se pudo renderizar la vista previa. Descarga el documento para verlo.';
+      clearNode(container);
+      container.appendChild(msg);
+    });
   }, [docxBlob]);
 
   return (
-    <div className="doc-preview-overlay" onClick={onCancel}>
+    <div className="doc-preview-overlay" onClick={onClose}>
       <div className="doc-preview-modal" onClick={(e) => e.stopPropagation()}>
+
+        {/* ── Header ── */}
         <div className="doc-preview-modal__header">
-          <span className="doc-preview-modal__title">Vista Previa del Documento</span>
-          <button className="doc-preview-modal__close" onClick={onCancel} aria-label="Cerrar">
+          <span className="doc-preview-modal__title">
+            <FileText size={18} color="#ec0029" style={{ marginRight: 8 }} />
+            {isGenerating
+              ? 'Generando documento...'
+              : projectName
+                ? `Vista Previa — ${projectName}`
+                : 'Vista Previa del Documento'}
+          </span>
+          <button className="doc-preview-modal__close" onClick={onClose} aria-label="Cerrar">
             <X size={18} />
           </button>
         </div>
 
+        {/* ── Body ── */}
         <div className="doc-preview-modal__body">
-          {docxBlob ? (
-            <div ref={containerRef} className="doc-preview-modal__content" />
-          ) : (
-            <div className="doc-preview-modal__skeleton-page">
-              <div className="doc-preview-modal__skeleton-line doc-preview-modal__skeleton-line--title" />
-              <div className="doc-preview-modal__skeleton-line" />
-              <div className="doc-preview-modal__skeleton-line" />
-              <div className="doc-preview-modal__skeleton-line doc-preview-modal__skeleton-line--short" />
-              <div className="doc-preview-modal__skeleton-gap" />
-              <div className="doc-preview-modal__skeleton-line doc-preview-modal__skeleton-line--heading" />
-              <div className="doc-preview-modal__skeleton-line" />
-              <div className="doc-preview-modal__skeleton-line" />
-              <div className="doc-preview-modal__skeleton-line doc-preview-modal__skeleton-line--short" />
-              <div className="doc-preview-modal__skeleton-gap" />
-              <div className="doc-preview-modal__skeleton-line doc-preview-modal__skeleton-line--heading" />
-              <div className="doc-preview-modal__skeleton-line" />
-              <div className="doc-preview-modal__skeleton-line doc-preview-modal__skeleton-line--medium" />
-              <div className="doc-preview-modal__skeleton-spinner-row">
-                <div className="doc-preview-modal__skeleton-spinner" />
-                <span>Generando documento...</span>
+
+          {/* Loading state */}
+          {isGenerating && (
+            <div className="doc-preview-modal__loading">
+              <div className="doc-preview-modal__spinner" />
+              <span className="doc-preview-modal__loading-text">
+                Generando documento Word...
+              </span>
+              <span className="doc-preview-modal__loading-subtext">
+                Esto puede tardar unos segundos
+              </span>
+            </div>
+          )}
+
+          {/* Error state */}
+          {error && !isGenerating && (
+            <div className="doc-preview-modal__error">
+              <div className="doc-preview-modal__error-icon">
+                <AlertTriangle size={24} />
               </div>
+              <p className="doc-preview-modal__error-text">{error}</p>
+            </div>
+          )}
+
+          {/* DOCX rendered preview */}
+          {!isGenerating && !error && (
+            <div className="doc-preview-modal__docx-scroll">
+              <div ref={containerRef} className="doc-preview-modal__docx-container" />
             </div>
           )}
         </div>
 
+        {/* ── Footer ── */}
         <div className="doc-preview-modal__footer">
-          <button className="doc-preview-modal__cancel-btn" onClick={onCancel}>
-            Cancelar
+          <button className="doc-preview-modal__cancel-btn" onClick={onClose}>
+            Cerrar
+          </button>
+          <button
+            className="doc-preview-modal__cancel-btn"
+            onClick={onRegenerate}
+            disabled={isGenerating}
+          >
+            Regenerar
           </button>
           <button
             className="doc-preview-modal__download-btn"
             onClick={onDownload}
-            disabled={!docxBlob}
+            disabled={!docxBlob || isGenerating}
           >
             <Download size={16} />
-            Descargar
+            {isGenerating ? 'Generando...' : 'Descargar .docx'}
           </button>
         </div>
       </div>
