@@ -1,12 +1,18 @@
 import { API_CONFIG, STATIC_USER_ID } from '../config/api';
 
+function joinServiceUrl(base: string, path: string): string {
+  const b = base.replace(/\/$/, '');
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${b}${p}`;
+}
+
 // Generic fetch wrapper
 async function apiFetch<T>(
   serviceUrl: string,
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${serviceUrl}${endpoint}`;
+  const url = joinServiceUrl(serviceUrl, endpoint);
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -26,7 +32,14 @@ async function apiFetch<T>(
       throw new Error(error.error || error.message || 'Request failed');
     }
 
-    return response.json();
+    if (response.status === 204) {
+      return undefined as T;
+    }
+    const raw = await response.text();
+    if (!raw) {
+      return undefined as T;
+    }
+    return JSON.parse(raw) as T;
   } catch (error: any) {
     // Handle network errors (backend unavailable, CORS, etc.)
     if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -65,6 +78,20 @@ export const chatApi = {
       API_CONFIG.chatService,
       `/api/chat/conversations?userId=${STATIC_USER_ID}`,
       { method: 'GET' }
+    ),
+
+  /**
+   * Delete a project and related rows. Uses POST (not DELETE) because many
+   * proxies and hosted stacks return 404 for DELETE while POST works the same.
+   */
+  deleteConversation: (projectId: string) =>
+    apiFetch<{ success: boolean; projectId: string }>(
+      API_CONFIG.chatService,
+      `/api/chat/conversations/${encodeURIComponent(projectId)}/delete`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ userId: STATIC_USER_ID }),
+      }
     ),
 
   /**

@@ -1,3 +1,81 @@
+/* Layout: columnas con navegación entre proyectos */
+.detalle-proyecto-main {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  gap: 0;
+  /* Reintroduce top gap below breadcrumb (do not use padding: 0 top — it overrides .dashboard-content) */
+  padding: 24px 2px 32px 2px;
+}
+
+.detalle-proyecto-inner {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.detalle-sibling-rail {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.detalle-sibling-rail--right {
+  padding-left: 2px;
+}
+
+.detalle-sibling-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #334155;
+  background: #ffffff;
+  border: 1.5px solid #d6dce5;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.detalle-sibling-btn:hover:not(.detalle-sibling-btn--disabled) {
+  color: #ec0029;
+  border-color: #ec0029;
+  background: #fff5f5;
+}
+
+.detalle-sibling-btn--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .detalle-sibling-rail {
+    padding: 0 2px;
+  }
+
+  .detalle-sibling-btn {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+.detalle-action-error {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #fecaca;
+}
+
 /* ── Toolbar (botones superiores) ── */
 .detalle-toolbar {
   display: flex;
@@ -23,7 +101,10 @@
 
 .detalle-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .detalle-btn {
@@ -52,6 +133,24 @@
 .detalle-btn--delete {
   color: #ec0029;
   border: 1.5px solid #d6dce5;
+}
+
+.detalle-btn--delete:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.detalle-btn--chat {
+  color: #ffffff;
+  background-color: #ec0029;
+  border: 1.5px solid #ec0029;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.detalle-btn--chat:hover {
+  background-color: #c8001f;
+  border-color: #c8001f;
 }
 
 /* ── Layout de las dos cards ── */
@@ -282,7 +381,7 @@
 
 .detalle-docs-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 24px;
 }

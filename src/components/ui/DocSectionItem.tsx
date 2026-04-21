@@ -103,10 +103,7 @@ function DocSectionItem({
                       <Pencil size={14} />
                     </button>
                   )}
-                  <SectionContent
-                    sectionId={section.id}
-                    content={localContent}
-                  />
+                  <SectionContent content={localContent} />
                 </div>
               )}
             </div>
