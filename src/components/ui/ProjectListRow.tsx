@@ -38,7 +38,7 @@ function ProjectListRow({ project }: Props) {
             ))}
           </div>
         ) : (
-          <span className="project-list-row__empty">Sin categorías</span>
+          <span className="project-card__meta-empty">Sin categorías</span>
         )}
       </td>
       <td className="project-list-row__cell project-list-row__cell--progress">

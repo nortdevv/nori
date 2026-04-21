@@ -30,7 +30,7 @@ function getStatusStyle(status: string) {
 
 function getProgressColor(progress: number) {
   if (progress === 100) return "#16a34a";
-  return "#ec0029";
+  return "var(--nori-brand)";
 }
 
 const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
@@ -240,13 +240,22 @@ function DetalleProyecto() {
   if (isLoading) {
     return (
       <div className="dashboard-page">
-        <div style={{ flexShrink: 0 }}>
+        <div className="dashboard-shell-header">
           <Navbar />
           <BreadcrumbProjects />
         </div>
         <main className="dashboard-content">
-          <div style={{ textAlign: "center", padding: "4rem", color: "#64748b" }}>
-            <p style={{ fontSize: "1.125rem" }}>Cargando proyecto...</p>
+          <div
+            className="dashboard-loading-skeleton"
+            aria-busy="true"
+            aria-label="Cargando proyecto"
+          >
+            <div className="dashboard-loading-skeleton__hero" />
+            <div className="dashboard-loading-skeleton__toolbar" />
+            <div className="dashboard-loading-skeleton__grid">
+              <div className="dashboard-loading-skeleton__card" />
+              <div className="dashboard-loading-skeleton__card" />
+            </div>
           </div>
         </main>
       </div>
@@ -256,27 +265,21 @@ function DetalleProyecto() {
   if (error || !project) {
     return (
       <div className="dashboard-page">
-        <div style={{ flexShrink: 0 }}>
+        <div className="dashboard-shell-header">
           <Navbar />
           <BreadcrumbProjects />
         </div>
         <main className="dashboard-content">
-          <div style={{ textAlign: "center", padding: "4rem" }}>
-            <p style={{ color: "#dc2626", fontSize: "1.125rem", marginBottom: "1rem" }}>
+          <div className="dashboard-error-panel" role="alert">
+            <p className="dashboard-error-panel__message">
               {error || "Proyecto no encontrado"}
             </p>
             <button
+              type="button"
+              className="dashboard-create-button"
               onClick={() => navigate("/")}
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "0.375rem",
-                cursor: "pointer",
-              }}
             >
-              Volver al Inicio
+              Volver al inicio
             </button>
           </div>
         </main>
@@ -286,7 +289,7 @@ function DetalleProyecto() {
 
   return (
     <div className="dashboard-page">
-      <div style={{ flexShrink: 0 }}>
+      <div className="dashboard-shell-header">
         <Navbar />
         <BreadcrumbProjects />
       </div>
@@ -520,7 +523,12 @@ function DetalleProyecto() {
             <div className="detalle-doc-item__content">
               <div className="detalle-doc-item__header">
                 <div className="detalle-doc-item__info">
-                  <FileText size={20} color="#ec0029" strokeWidth={2} />
+                  <FileText
+                    size={20}
+                    strokeWidth={2}
+                    className="detalle-doc-item__file-icon"
+                    aria-hidden
+                  />
                   <div>
                     <p className="detalle-doc-item__name">
                       Documento de requerimientos

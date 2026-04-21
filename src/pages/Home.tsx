@@ -71,8 +71,18 @@ function Proyectos() {
       <div className="dashboard-page">
         <HomeHeader />
         <main className="dashboard-content">
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
-            <p style={{ fontSize: '1.125rem' }}>Cargando proyectos...</p>
+          <div
+            className="dashboard-loading-skeleton"
+            aria-busy="true"
+            aria-label="Cargando proyectos"
+          >
+            <div className="dashboard-loading-skeleton__hero" />
+            <div className="dashboard-loading-skeleton__toolbar" />
+            <div className="dashboard-loading-skeleton__grid">
+              <div className="dashboard-loading-skeleton__card" />
+              <div className="dashboard-loading-skeleton__card" />
+              <div className="dashboard-loading-skeleton__card" />
+            </div>
           </div>
         </main>
       </div>
@@ -84,20 +94,12 @@ function Proyectos() {
       <div className="dashboard-page">
         <HomeHeader />
         <main className="dashboard-content">
-          <div style={{ textAlign: 'center', padding: '4rem' }}>
-            <p style={{ color: '#dc2626', fontSize: '1.125rem', marginBottom: '1rem' }}>
-              Error: {error}
-            </p>
+          <div className="dashboard-error-panel" role="alert">
+            <p className="dashboard-error-panel__message">Error: {error}</p>
             <button
+              type="button"
+              className="dashboard-create-button"
               onClick={loadProjects}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.375rem',
-                cursor: 'pointer',
-              }}
             >
               Reintentar
             </button>
@@ -173,7 +175,7 @@ function Proyectos() {
                 Crea tu primer proyecto para empezar a generar la documentación
                 de tu software.
               </p>
-              <p style={{ marginTop: "1rem", marginBottom: 0 }}>
+              <p className="dashboard-empty-state__cta">
                 <Link to="/crear" className="dashboard-create-button">
                   <Plus size={18} strokeWidth={2.5} />
                   <span>Crear Nuevo Proyecto</span>

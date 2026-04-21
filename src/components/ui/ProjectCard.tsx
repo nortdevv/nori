@@ -29,7 +29,7 @@ function ProjectCard({ project }: Props) {
               ))}
             </div>
           ) : (
-            <p className="project-card__description">Sin categorías</p>
+            <p className="project-card__meta-empty">Sin categorías</p>
           )}
         </div>
 

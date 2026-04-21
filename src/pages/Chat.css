@@ -24,7 +24,7 @@
 /* ── Step Indicator ── */
 .step-indicator {
   background-color: #ffffff;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,20 +52,20 @@
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
-  background-color: #e5e5e5;
-  color: #6b6b6b;
+  background-color: #e2e8f0;
+  color: #64748b;
   transition: all 0.2s;
 }
 
 .step-circle--active {
-  background-color: #ec0029;
-  color: #fff;
-  box-shadow: 0 0 0 4px #ffd0d8;
+  background-color: var(--nori-brand);
+  color: var(--nori-brand-foreground);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--nori-brand) 22%, transparent);
 }
 
 .step-circle--done {
-  background-color: #ec0029;
-  color: #fff;
+  background-color: var(--nori-brand);
+  color: var(--nori-brand-foreground);
 }
 
 .step-label {
@@ -87,19 +87,19 @@
   width: 112px;
   height: 2px;
   margin: 0 16px;
-  background-color: #e5e5e5;
+  background-color: #e2e8f0;
   transition: background-color 0.3s;
 }
 
 .step-connector--done {
-  background-color: #ec0029;
+  background-color: var(--nori-brand);
 }
 
 /* ── Chat Panel ── */
 .chat-panel {
   background-color: #fff;
   border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--nori-shadow-card);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -108,7 +108,7 @@
 
 .chat-panel__header {
   padding: 24px 24px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
@@ -180,12 +180,12 @@
   display: flex;
   gap: 8px;
   flex-shrink: 0;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid #e2e8f0;
 }
 
 .chat-panel__quick-btn {
   padding: 6px 14px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   background-color: #fff;
   font-size: 13px;
@@ -198,8 +198,13 @@
 }
 
 .chat-panel__quick-btn:hover {
-  border-color: #ec0029;
-  color: #ec0029;
+  border-color: var(--nori-brand);
+  color: var(--nori-brand);
+}
+
+.chat-panel__quick-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--nori-brand);
 }
 
 .chat-panel__input-row {
@@ -213,7 +218,7 @@
 .chat-panel__input {
   flex: 1;
   padding: 12px 16px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 14px;
   color: #1a1a1a;
@@ -228,14 +233,15 @@
 }
 
 .chat-panel__input:focus {
-  border-color: #ec0029;
+  border-color: var(--nori-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--nori-brand) 12%, transparent);
 }
 
 .chat-panel__send-btn {
   width: 44px;
   height: 44px;
   border-radius: 8px;
-  background-color: #ec0029;
+  background-color: var(--nori-brand);
   border: none;
   display: flex;
   align-items: center;
@@ -243,10 +249,16 @@
   cursor: pointer;
   flex-shrink: 0;
   transition: background-color 0.15s;
+  color: var(--nori-brand-foreground);
 }
 
 .chat-panel__send-btn:hover {
-  background-color: #c8001f;
+  background-color: var(--nori-brand-hover);
+}
+
+.chat-panel__send-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fafafa, 0 0 0 4px var(--nori-brand);
 }
 
 /* ── Chat Bubble ── */
@@ -267,7 +279,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #ec0029;
+  background-color: var(--nori-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -299,7 +311,7 @@
 .doc-panel {
   background-color: #fff;
   border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--nori-shadow-card);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -311,7 +323,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 
@@ -345,7 +357,7 @@
 .doc-panel__generate-btn {
   width: 100%;
   padding: 12px 24px;
-  background-color: #ec0029;
+  background-color: var(--nori-brand);
   border: none;
   border-radius: 8px;
   display: flex;
@@ -354,13 +366,18 @@
   gap: 8px;
   font-weight: 600;
   font-size: 14px;
-  color: #fff;
+  color: var(--nori-brand-foreground);
   cursor: pointer;
   transition: background-color 0.15s;
 }
 
 .doc-panel__generate-btn:hover {
-  background-color: #c8001f;
+  background-color: var(--nori-brand-hover);
+}
+
+.doc-panel__generate-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fafafa, 0 0 0 4px var(--nori-brand);
 }
 
 .doc-panel__pagination {
@@ -369,7 +386,7 @@
   justify-content: center;
   gap: 12px;
   padding: 10px 16px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 
@@ -377,7 +394,7 @@
   width: 30px;
   height: 30px;
   border-radius: 6px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e2e8f0;
   background-color: #fff;
   display: flex;
   align-items: center;
@@ -390,8 +407,13 @@
 }
 
 .doc-panel__page-btn:hover:not(:disabled) {
-  border-color: #ec0029;
-  color: #ec0029;
+  border-color: var(--nori-brand);
+  color: var(--nori-brand);
+}
+
+.doc-panel__page-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--nori-brand);
 }
 
 .doc-panel__page-btn:disabled {
@@ -409,20 +431,20 @@
 
 .doc-panel__footer {
   padding: 16px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 
 /* ── Doc Section Item ── */
 .doc-section {
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
 }
 
 .doc-section--collapsed {
-  border-left: 4px solid #ec0029;
+  border-left: 4px solid var(--nori-brand);
 }
 
 .doc-section__header {
@@ -498,7 +520,7 @@
 }
 
 .doc-section__badge--red {
-  color: #ec0029;
+  color: var(--nori-brand);
   background-color: #fff0f2;
 }
 
@@ -526,7 +548,7 @@
   top: 4px;
   right: -2px;
   background: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e2e8f0;
   border-radius: 50%;
   width: 26px;
   height: 26px;
@@ -536,7 +558,7 @@
   align-items: center;
   justify-content: center;
   transition: background 0.15s, transform 0.1s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--nori-shadow-list-row);
 }
 
 .doc-section__edit-btn:hover {
@@ -552,13 +574,13 @@
   font-weight: 500;
   color: #444;
   background: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e2e8f0;
   border-radius: 20px;
   padding: 3px 10px;
   display: flex;
   align-items: center;
   gap: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--nori-shadow-list-row);
   white-space: nowrap;
 }
 
@@ -849,12 +871,12 @@
   font-weight: 600;
   padding: 6px 10px;
   text-align: left;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e2e8f0;
 }
 
 .risk-table td {
   padding: 5px 10px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e2e8f0;
   color: #6b6b6b;
 }
 
@@ -904,11 +926,11 @@
 }
 
 .chat-bubble__text a {
-  color: #ec0029;
+  color: var(--nori-brand);
   text-decoration: underline;
 }
 
 .chat-bubble__text a:hover {
-  color: #c8001f;
+  color: var(--nori-brand-hover);
 }
 

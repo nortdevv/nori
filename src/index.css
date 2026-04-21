@@ -45,6 +45,33 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Nori / Banorte shell — shared with App.css, Navbar, modals */
+  --nori-brand: #ec0029;
+  --nori-brand-hover: #c8001f;
+  --nori-brand-foreground: #ffffff;
+  --nori-shadow-toolbar: 0 2px 6px rgba(15, 23, 42, 0.06);
+  --nori-shadow-list-row: 0 2px 6px rgba(15, 23, 42, 0.06);
+  --nori-shadow-list-row-hover: 0 3px 10px rgba(15, 23, 42, 0.11);
+  --nori-shadow-card: 0 3px 8px rgba(15, 23, 42, 0.072);
+  --nori-shadow-card-hover: 0 4px 12px rgba(15, 23, 42, 0.13);
+  --nori-shadow-toggle-active: 0 1px 3px rgba(15, 23, 42, 0.13);
+  --nori-shadow-nav: 0 3px 4px rgba(0, 0, 0, 0.11);
+  --nori-shadow-dropdown: 0 6px 22px rgba(0, 0, 0, 0.16);
+
+  /* Dashboard typography (rem) — shell may render outside .dashboard-page (e.g. Crear) */
+  --dashboard-font-hero: 1.5rem;
+  --dashboard-font-hero-sm: 1.35rem;
+  --dashboard-font-lead: 0.9rem;
+  --dashboard-font-card-title: 1.05rem;
+  --dashboard-font-card-title-sm: 1rem;
+  --dashboard-font-row-title: 0.95rem;
+  --dashboard-font-meta: 0.75rem;
+  --dashboard-font-timestamp: 0.84rem;
+  --dashboard-font-body-input: 0.9375rem;
+  --dashboard-font-ui: 0.875rem;
+  --dashboard-font-section: 1.05rem;
+  --dashboard-font-table-label: 0.72rem;
 }
 
 .dark {

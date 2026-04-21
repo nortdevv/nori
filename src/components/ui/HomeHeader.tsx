@@ -3,7 +3,7 @@ import BreadcrumbProjects from "./BreadcrumbProjects";
 
 function HomeHeader() {
   return (
-    <div style={{ flexShrink: 0 }}>
+    <div className="dashboard-shell-header">
       <Navbar />
       <BreadcrumbProjects />
     </div>

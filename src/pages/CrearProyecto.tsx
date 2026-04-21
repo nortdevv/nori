@@ -87,13 +87,21 @@ function CrearProyecto() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
-      <div style={{ flexShrink: 0 }}>
+      <div className="dashboard-shell-header">
         <Navbar />
         <BreadcrumbProjects />
       </div>
       <div style={{ flex: 1, overflowY: "auto", backgroundColor: "#fafafa", padding: "3rem 1rem" }}>
         <div style={{ maxWidth: "48rem", margin: "0 auto" }}>
-          <div style={{ backgroundColor: "white", borderRadius: "0.5rem", boxShadow: "0 1px 3px rgba(0,0,0,0.1)", padding: "2rem" }}>
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "12px",
+              border: "1px solid #e2e8f0",
+              boxShadow: "var(--nori-shadow-card)",
+              padding: "2rem",
+            }}
+          >
             <h1 style={{ fontSize: "1.875rem", fontWeight: "bold", color: "#1a1a1a", marginBottom: "1.5rem" }}>
               Crear Nuevo Proyecto
             </h1>
@@ -134,9 +142,11 @@ function CrearProyecto() {
                           borderRadius: "9999px",
                           fontSize: "0.8125rem",
                           fontWeight: "500",
-                          border: isSelected ? "1.5px solid #ec0029" : "1.5px solid #d1d5db",
+                          border: isSelected
+                            ? "1.5px solid var(--nori-brand)"
+                            : "1.5px solid #d1d5db",
                           backgroundColor: isSelected ? "#fef2f2" : "white",
-                          color: isSelected ? "#ec0029" : "#4b5563",
+                          color: isSelected ? "var(--nori-brand)" : "#4b5563",
                           cursor: "pointer",
                           transition: "all 0.15s ease",
                         }}
@@ -162,7 +172,9 @@ function CrearProyecto() {
                     disabled={!customTagInput.trim()}
                     style={{
                       padding: "0.5rem 1rem",
-                      backgroundColor: customTagInput.trim() ? "#ec0029" : "#e5e7eb",
+                      backgroundColor: customTagInput.trim()
+                        ? "var(--nori-brand)"
+                        : "#e5e7eb",
                       color: customTagInput.trim() ? "white" : "#9ca3af",
                       border: "none",
                       borderRadius: "0.375rem",
@@ -191,8 +203,8 @@ function CrearProyecto() {
                             fontSize: "0.8125rem",
                             fontWeight: "500",
                             backgroundColor: "#fef2f2",
-                            color: "#ec0029",
-                            border: "1.5px solid #ec0029",
+                            color: "var(--nori-brand)",
+                            border: "1.5px solid var(--nori-brand)",
                           }}
                         >
                           {tag}
@@ -202,7 +214,7 @@ function CrearProyecto() {
                             style={{
                               background: "none",
                               border: "none",
-                              color: "#ec0029",
+                              color: "var(--nori-brand)",
                               cursor: "pointer",
                               padding: "0",
                               fontSize: "1rem",
@@ -235,9 +247,11 @@ function CrearProyecto() {
                             borderRadius: "0.375rem",
                             fontSize: "0.875rem",
                             fontWeight: "500",
-                            border: isSelected ? "1.5px solid #ec0029" : "1.5px solid #d1d5db",
+                            border: isSelected
+                              ? "1.5px solid var(--nori-brand)"
+                              : "1.5px solid #d1d5db",
                             backgroundColor: isSelected ? "#fef2f2" : "white",
-                            color: isSelected ? "#ec0029" : "#4b5563",
+                            color: isSelected ? "var(--nori-brand)" : "#4b5563",
                             cursor: "pointer",
                             transition: "all 0.15s ease",
                           }}
@@ -279,7 +293,7 @@ function CrearProyecto() {
                   disabled={isCreating}
                   style={{
                     flex: 1,
-                    backgroundColor: isCreating ? "#9ca3af" : "#ec0029",
+                    backgroundColor: isCreating ? "#9ca3af" : "var(--nori-brand)",
                     color: "white",
                     padding: "0.75rem",
                     borderRadius: "0.375rem",
