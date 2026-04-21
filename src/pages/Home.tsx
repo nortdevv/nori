@@ -4,9 +4,10 @@ import { Plus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import HomeHeader from "../components/ui/HomeHeader";
 import ProjectCard from "../components/ui/ProjectCard";
+import ProjectListRow from "../components/ui/ProjectListRow";
 import ProjectsToolbar from "../components/ui/ProjectsToolbar";
 import { chatApi } from "../services/api";
-import type { ProjectDisplay, SortOption } from "../types/project";
+import type { LibraryViewMode, ProjectDisplay, SortOption } from "../types/project";
 import { toProjectDisplay } from "../types/project";
 
 type FilterValue = "Todos" | "in_progress" | "completed" | "draft";
@@ -20,6 +21,7 @@ function Proyectos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterValue>("Todos");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
+  const [viewMode, setViewMode] = useState<LibraryViewMode>("grid");
 
   useEffect(() => {
     document.title = "Proyectos — Nori";
@@ -131,13 +133,37 @@ function Proyectos() {
           onFilterChange={setActiveFilter}
           sortBy={sortBy}
           onSortChange={setSortBy}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
         />
 
-        <section className="dashboard-grid" aria-label="Lista de proyectos">
-          {visibleProjects.map((project) => (
-            <ProjectCard key={project.project_id} project={project} />
-          ))}
-        </section>
+        {viewMode === "grid" ? (
+          <section className="dashboard-grid" aria-label="Proyectos en cuadrícula">
+            {visibleProjects.map((project) => (
+              <ProjectCard key={project.project_id} project={project} />
+            ))}
+          </section>
+        ) : visibleProjects.length > 0 ? (
+          <section className="dashboard-projects-list" aria-label="Proyectos en lista">
+            <div className="dashboard-projects-table-wrap">
+              <table className="projects-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Proyecto</th>
+                    <th scope="col">Categorías</th>
+                    <th scope="col">Progreso</th>
+                    <th scope="col">Actualización</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleProjects.map((project) => (
+                    <ProjectListRow key={project.project_id} project={project} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : null}
 
         {visibleProjects.length === 0 && (
           <section className="dashboard-empty-state">

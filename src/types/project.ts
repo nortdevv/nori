@@ -56,6 +56,9 @@ export interface ProjectDisplay extends Project {
 
 export type SortOption = "recent" | "name";
 
+/** How projects are shown on the home / library page */
+export type LibraryViewMode = "grid" | "list";
+
 // ============================================================================
 // Utility Functions
 // ============================================================================

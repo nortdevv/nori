@@ -21,20 +21,9 @@ function ProjectCard({ project }: Props) {
         <div className="project-card__body">
           <h2 className="project-card__title">{project.name}</h2>
           {project.tags && project.tags.length > 0 ? (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", marginTop: "0.5rem" }}>
+            <div className="project-card__tags">
               {project.tags.map((tag) => (
-                <span
-                  key={tag}
-                  style={{
-                    padding: "0.125rem 0.5rem",
-                    borderRadius: "9999px",
-                    fontSize: "0.6875rem",
-                    fontWeight: "500",
-                    backgroundColor: "#fef2f2",
-                    color: "#ec0029",
-                    border: "1px solid #fecaca",
-                  }}
-                >
+                <span key={tag} className="project-card__tag">
                   {tag}
                 </span>
               ))}
