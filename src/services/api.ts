@@ -165,6 +165,23 @@ export const chatApi = {
       `/api/chat/diagram/${projectId}`,
       { method: 'GET' }
     ),
+
+  /**
+   * Update an existing diagram's source code
+   */
+  updateDiagram: (projectId: string, source: string) =>
+    apiFetch<{
+      projectId: string;
+      diagramId: string;
+      source: string;
+    }>(
+      API_CONFIG.chatService,
+      `/api/chat/diagram/${projectId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ source }),
+      }
+    ),
 };
 
 // ============================================================================
