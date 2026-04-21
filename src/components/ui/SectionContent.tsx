@@ -5,7 +5,16 @@ const LABEL_MAP: Record<string, string> = {
   cr: "CR",
   dga: "DGA",
   email: "Información de contacto",
+  iniciativa: "Iniciativa",
   solicitante: "Solicitante",
+  sponsor: "Patrocinador",
+  prioridad: "Prioridad",
+  telefono: "Teléfono",
+  cargo: "Cargo",
+  area: "DGA",
+  socio_negocio_interno: "Socio de Negocio Interno",
+  fecha_inicio_estimada: "Fecha de inicio estimada",
+  business_case: "Caso de negocio (Business case)",
   patrocinador: "Patrocinador",
   socio_negocio: "Nombre del Socio de Negocio",
   tipo_iniciativa: "Tipo de la iniciativa",
@@ -135,15 +144,11 @@ function FieldBlock({ fieldKey, value }: { fieldKey: string; value: any }) {
 }
 
 interface SectionContentProps {
-  sectionId: number;
   content: any;
 }
 
 // Main component to render section content based on its type
-export default function SectionContent({
-  sectionId,
-  content,
-}: SectionContentProps) {
+export default function SectionContent({ content }: SectionContentProps) {
   if (!content) return null;
 
   let parsed: any = content;
@@ -160,10 +165,6 @@ export default function SectionContent({
 
   if (!parsed) {
     return <p className="sc-plain">{content}</p>;
-  }
-  //section 0, 2 column table
-  if (sectionId === 0 && typeof parsed === "object" && !Array.isArray(parsed)) {
-    return <KeyValueTable data={parsed} />;
   }
 
   if (Array.isArray(parsed)) {

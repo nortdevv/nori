@@ -13,8 +13,8 @@
 /* ── Modal ── */
 .diagram-modal {
   background-color: #fff;
-  border-radius: 14px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.19);
   display: flex;
   flex-direction: column;
   width: 1200px;
@@ -69,9 +69,10 @@
   background-color: #16a34a;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+.diagram-modal__tab--active {
+  background-color: #fff;
+  color: #1a1a1a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.09);
 }
 
 .diagram-modal__close {
@@ -170,8 +171,8 @@
   background-color: #fff;
   border-radius: 8px;
   border: 1px solid #e5e5e5;
-  padding: 3px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  padding: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.09);
 }
 
 .diagram-modal__zoom-btn {
@@ -342,8 +343,12 @@
   font-size: 11px;
   color: #1a1a1a;
   background-color: #fff;
-  cursor: pointer;
-  outline: none;
+  border-radius: 10px;
+  box-shadow: 0 3px 11px rgba(0, 0, 0, 0.16);
+  border: 1px solid #e5e5e5;
+  padding: 12px;
+  min-width: 180px;
+  transform: translate(-50%, 8px);
 }
 
 .diagram-modal__select:focus {
@@ -450,16 +455,7 @@
 
 .diagram-modal__color-option--active {
   border-color: #1a1a1a;
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a1a1a;
-}
-
-/* Node info (label + shape) */
-.diagram-modal__node-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
 }
 
 .diagram-modal__node-label {

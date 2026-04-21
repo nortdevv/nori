@@ -56,6 +56,9 @@ export interface ProjectDisplay extends Project {
 
 export type SortOption = "recent" | "name";
 
+/** How projects are shown on the home / library page */
+export type LibraryViewMode = "grid" | "list";
+
 // ============================================================================
 // Utility Functions
 // ============================================================================
@@ -73,7 +76,7 @@ export function toProjectDisplay(project: Project): ProjectDisplay {
   };
 }
 
-function getStatusLabel(status: string): string {
+export function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     'in_progress': 'En progreso',
     'completed': 'Completado',
@@ -88,9 +91,15 @@ function getRelativeTime(timestamp: string): string {
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return 'Hoy';
+  if (diffDays <= 0) return 'Hoy';
   if (diffDays === 1) return 'Ayer';
-  if (diffDays < 7) return `Hace ${diffDays} días`;
-  if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`;
-  return `Hace ${Math.floor(diffDays / 30)} meses`;
+  if (diffDays < 7) {
+    return `Hace ${diffDays} días`;
+  }
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return weeks === 1 ? 'Hace 1 semana' : `Hace ${weeks} semanas`;
+  }
+  const months = Math.floor(diffDays / 30);
+  return months === 1 ? 'Hace 1 mes' : `Hace ${months} meses`;
 }

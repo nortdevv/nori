@@ -55,17 +55,8 @@ function BreadcrumbProjects() {
 
   return (
     <Breadcrumb>
-      <div
-        style={{
-          backgroundColor: '#EBF0F2',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '15px 110px',
-          width: '100%',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        }}
-      >
-        <BreadcrumbList style={{ fontFamily: "'Gotham Medium', sans-serif", fontSize: '14px', color: '#323E48' }}>
+      <div className="breadcrumb-projects-strip">
+        <BreadcrumbList className="breadcrumb-projects-strip__list">
           <BreadcrumbItem>
             {pathSegments.length === 0 ? (
               <BreadcrumbPage className="font-semibold">Proyectos</BreadcrumbPage>

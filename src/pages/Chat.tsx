@@ -7,8 +7,8 @@ import DiagramModal from '../components/ui/DiagramModal';
 import DocPreviewModal from '../components/ui/DocPreviewModal';
 import DocSectionItem, { type DocSection } from '../components/ui/DocSectionItem';
 import Navbar from '../components/ui/Navbar';
-import SubNavbar from '../components/ui/SubNavbar';
 import { chatApi, documentApi } from '../services/api';
+import { calculateDocumentProgress } from '../utils/documentProgress';
 import './Chat.css';
 
 const INITIAL_SECTIONS = [
@@ -31,10 +31,9 @@ function getProgressColor(progress: number) {
 }
 
 function calculateProgress(sections: DocSection[]): number {
-  // Only count sections 1-10 (exclude section 0)
-  const relevantSections = sections.filter(s => s.id >= 1 && s.id <= 10);
-  const completedSections = relevantSections.filter(s => s.completed).length;
-  return Math.round((completedSections / relevantSections.length) * 100);
+  return calculateDocumentProgress(
+    sections.map((s) => ({ sectionNo: s.id, isComplete: s.completed })),
+  );
 }
 
 function ChatPanel({
@@ -450,7 +449,6 @@ function Chat() {
       <div className="chat-page">
         <div className="chat-nav">
           <Navbar />
-          <SubNavbar />
           <BreadcrumbProjects />
         </div>
         <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
@@ -466,7 +464,6 @@ function Chat() {
     <div className="chat-page">
       <div className="chat-nav">
         <Navbar />
-        <SubNavbar />
         <BreadcrumbProjects />
       </div>
 

@@ -1,5 +1,5 @@
-import { ChevronDown, Search } from "lucide-react";
-import type { SortOption } from "../../types/project";
+import { ChevronDown, LayoutGrid, List, Search } from "lucide-react";
+import type { LibraryViewMode, SortOption } from "../../types/project";
 
 type FilterValue = "Todos" | "in_progress" | "completed" | "draft";
 
@@ -10,6 +10,8 @@ type Props = {
   onFilterChange: (value: FilterValue) => void;
   sortBy: SortOption;
   onSortChange: (value: SortOption) => void;
+  viewMode: LibraryViewMode;
+  onViewModeChange: (value: LibraryViewMode) => void;
 };
 
 const filters: Array<{ label: string; value: FilterValue }> = [
@@ -26,6 +28,8 @@ function ProjectsToolbar({
   onFilterChange,
   sortBy,
   onSortChange,
+  viewMode,
+  onViewModeChange,
 }: Props) {
   return (
     <section className="dashboard-toolbar" aria-label="Filtros de proyectos">
@@ -40,13 +44,18 @@ function ProjectsToolbar({
       </label>
 
       <div className="dashboard-toolbar__controls">
-        <div className="dashboard-filters" role="tablist" aria-label="Estados">
+        <div
+          className="dashboard-filters"
+          role="group"
+          aria-label="Filtrar por estado"
+        >
           {filters.map((filter) => (
             <button
               key={filter.value}
               type="button"
               className={`dashboard-filter-pill${activeFilter === filter.value ? " is-active" : ""}`}
               onClick={() => onFilterChange(filter.value)}
+              aria-pressed={activeFilter === filter.value}
             >
               {filter.label}
             </button>
@@ -64,6 +73,31 @@ function ProjectsToolbar({
             <option value="name">Nombre A-Z</option>
           </select>
           <ChevronDown size={16} strokeWidth={2.2} />
+        </div>
+
+        <div
+          className="dashboard-view-toggle"
+          role="group"
+          aria-label="Vista de proyectos"
+        >
+          <button
+            type="button"
+            className={`dashboard-view-toggle__btn${viewMode === "grid" ? " is-active" : ""}`}
+            onClick={() => onViewModeChange("grid")}
+            aria-pressed={viewMode === "grid"}
+            title="Vista en cuadrícula"
+          >
+            <LayoutGrid size={18} strokeWidth={2.2} aria-hidden />
+          </button>
+          <button
+            type="button"
+            className={`dashboard-view-toggle__btn${viewMode === "list" ? " is-active" : ""}`}
+            onClick={() => onViewModeChange("list")}
+            aria-pressed={viewMode === "list"}
+            title="Vista en lista"
+          >
+            <List size={18} strokeWidth={2.2} aria-hidden />
+          </button>
         </div>
       </div>
     </section>
