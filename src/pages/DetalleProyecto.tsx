@@ -8,6 +8,7 @@ import type { ProjectDisplay } from "../types/project";
 import { toProjectDisplay } from "../types/project";
 import {
   ChevronLeft,
+  ChevronRight,
   Pencil,
   Copy,
   Trash2,
@@ -17,6 +18,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import "./DetalleProyecto.css";
+import { calculateDocumentProgress } from "../utils/documentProgress";
 
 function getStatusStyle(status: string) {
   if (status === "completed")
@@ -30,13 +32,6 @@ function getProgressColor(progress: number) {
   return "#ec0029";
 }
 
-function calculateProgress(sections: { is_complete: boolean; section_no: number }[]): number {
-  const relevant = sections.filter((s) => s.section_no >= 1 && s.section_no <= 10);
-  if (relevant.length === 0) return 0;
-  const completed = relevant.filter((s) => s.is_complete).length;
-  return Math.round((completed / relevant.length) * 100);
-}
-
 function DetalleProyecto() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -46,6 +41,10 @@ function DetalleProyecto() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [realProgress, setRealProgress] = useState<number | null>(null);
+  const [siblingNewerId, setSiblingNewerId] = useState<string | null>(null);
+  const [siblingOlderId, setSiblingOlderId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -67,6 +66,7 @@ function DetalleProyecto() {
     try {
       setIsLoading(true);
       setError(null);
+      setActionError(null);
 
       const { conversations } = await chatApi.getConversations();
       const found = conversations.find((p) => p.project_id === id);
@@ -76,12 +76,27 @@ function DetalleProyecto() {
         return;
       }
 
+      const listIdx = conversations.findIndex((p) => p.project_id === id);
+      setSiblingNewerId(listIdx > 0 ? conversations[listIdx - 1].project_id : null);
+      setSiblingOlderId(
+        listIdx >= 0 && listIdx < conversations.length - 1
+          ? conversations[listIdx + 1].project_id
+          : null,
+      );
+
       setProject(toProjectDisplay(found));
 
       // Fetch real progress from document sections (same logic as Chat page)
       try {
         const { sections } = await chatApi.getDocumentSections(id);
-        setRealProgress(calculateProgress(sections));
+        setRealProgress(
+          calculateDocumentProgress(
+            sections.map((s: { section_no: number; is_complete: boolean }) => ({
+              sectionNo: s.section_no,
+              isComplete: s.is_complete,
+            })),
+          ),
+        );
       } catch {
         // If sections fail, fall back to the stored value
         setRealProgress(found.progress_pct ?? 0);
@@ -118,6 +133,27 @@ function DetalleProyecto() {
       console.error("Error generating document:", err);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id || !project || isDeleting) return;
+    if (
+      !window.confirm(
+        `¿Eliminar el proyecto “${project.name}”? Se borrará la conversación, el documento y los archivos asociados. Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    setActionError(null);
+    try {
+      await chatApi.deleteConversation(id);
+      navigate("/", { replace: true });
+    } catch (err: any) {
+      setActionError(err.message || "No se pudo eliminar el proyecto");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -177,31 +213,69 @@ function DetalleProyecto() {
         <SubNavbar />
         <BreadcrumbProjects />
       </div>
-      <main className="dashboard-content">
-        <div className="detalle-toolbar">
-          <Link to="/" className="detalle-back-link">
-            <ChevronLeft size={18} strokeWidth={2.2} />
-            Volver a proyectos
-          </Link>
-
-          <div className="detalle-actions">
-            <button type="button" className="detalle-btn detalle-btn--edit">
-              <Pencil size={16} strokeWidth={2.2} />
-              Editar
-            </button>
-            <button
-              type="button"
-              className="detalle-btn detalle-btn--duplicate"
+      <main className="dashboard-content detalle-proyecto-main">
+        <nav className="detalle-sibling-rail" aria-label="Proyecto más reciente en la lista">
+          {siblingNewerId ? (
+            <Link
+              to={`/${siblingNewerId}`}
+              className="detalle-sibling-btn"
+              title="Proyecto más reciente (anterior en la lista)"
+              aria-label="Ir al proyecto más reciente en la lista"
             >
-              <Copy size={16} strokeWidth={2.2} />
-              Duplicar
-            </button>
-            <button type="button" className="detalle-btn detalle-btn--delete">
-              <Trash2 size={16} strokeWidth={2.2} />
-              Eliminar
-            </button>
+              <ChevronLeft size={22} strokeWidth={2.2} />
+            </Link>
+          ) : (
+            <span
+              className="detalle-sibling-btn detalle-sibling-btn--disabled"
+              title="No hay un proyecto más reciente"
+            >
+              <ChevronLeft size={22} strokeWidth={2.2} />
+            </span>
+          )}
+        </nav>
+
+        <div className="detalle-proyecto-inner">
+          {actionError && (
+            <div className="detalle-action-error" role="alert">
+              {actionError}
+            </div>
+          )}
+          <div className="detalle-toolbar">
+            <Link to="/" className="detalle-back-link">
+              <ChevronLeft size={18} strokeWidth={2.2} />
+              Volver a proyectos
+            </Link>
+
+            <div className="detalle-actions">
+              <Link
+                to={`/chat/${project.project_id}`}
+                className="detalle-btn detalle-btn--chat"
+              >
+                <Plus size={16} strokeWidth={2.5} />
+                Continuar chat
+              </Link>
+              <button type="button" className="detalle-btn detalle-btn--edit">
+                <Pencil size={16} strokeWidth={2.2} />
+                Editar
+              </button>
+              <button
+                type="button"
+                className="detalle-btn detalle-btn--duplicate"
+              >
+                <Copy size={16} strokeWidth={2.2} />
+                Duplicar
+              </button>
+              <button
+                type="button"
+                className="detalle-btn detalle-btn--delete"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                <Trash2 size={16} strokeWidth={2.2} />
+                {isDeleting ? "Eliminando…" : "Eliminar"}
+              </button>
+            </div>
           </div>
-        </div>
 
         <div className="detalle-cards">
           <div className="detalle-main-card">
@@ -297,10 +371,6 @@ function DetalleProyecto() {
         <div className="detalle-docs-card">
           <div className="detalle-docs-header">
             <h2 className="detalle-docs-title">Documentos</h2>
-            <Link to={`/chat/${project.project_id}`} className="detalle-docs-generate-btn">
-              <Plus size={16} strokeWidth={2.5} />
-              Continuar chat
-            </Link>
           </div>
 
           <div className="detalle-doc-item">
@@ -340,6 +410,27 @@ function DetalleProyecto() {
             </div>
           </div>
         </div>
+        </div>
+
+        <nav className="detalle-sibling-rail detalle-sibling-rail--right" aria-label="Proyecto más antiguo en la lista">
+          {siblingOlderId ? (
+            <Link
+              to={`/${siblingOlderId}`}
+              className="detalle-sibling-btn"
+              title="Proyecto más antiguo (siguiente en la lista)"
+              aria-label="Ir al siguiente proyecto en la lista"
+            >
+              <ChevronRight size={22} strokeWidth={2.2} />
+            </Link>
+          ) : (
+            <span
+              className="detalle-sibling-btn detalle-sibling-btn--disabled"
+              title="No hay un proyecto más antiguo"
+            >
+              <ChevronRight size={22} strokeWidth={2.2} />
+            </span>
+          )}
+        </nav>
       </main>
     </div>
   );
