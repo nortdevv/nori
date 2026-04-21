@@ -136,7 +136,7 @@ export default function Login() {
           padding: "1.5rem 2.5rem 2.75rem",
           width: "100%",
           maxWidth: "440px",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.10)",
+          boxShadow: "0 6px 29px rgba(0,0,0,0.11)",
         }}>
           {/* Banorte logo */}
           <div style={{ marginBottom: "0.25rem", display: "flex", justifyContent: "center" }}>

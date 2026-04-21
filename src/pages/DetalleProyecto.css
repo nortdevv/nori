@@ -1,5 +1,6 @@
-/* Layout: columnas con navegación entre proyectos */
+/* Layout: full-bleed row so sibling rails stay at viewport edges; gutters live on inner only */
 .detalle-proyecto-main {
+  --detalle-rail-width: 52px; /* ~8px padding + 44px btn — matches left/right rails */
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -7,13 +8,47 @@
   max-width: 100%;
   box-sizing: border-box;
   gap: 0;
-  /* Reintroduce top gap below breadcrumb (do not use padding: 0 top — it overrides .dashboard-content) */
-  padding: 24px 2px 32px 2px;
+}
+
+/* Override .dashboard-content horizontal padding (was killing Home-aligned gutters) */
+.dashboard-content.detalle-proyecto-main {
+  padding-top: 24px;
+  padding-bottom: 32px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .detalle-proyecto-inner {
+  box-sizing: border-box;
   flex: 1 1 auto;
   min-width: 0;
+  /* Align card column with projects Home: gutter minus rail width */
+  padding-left: max(1rem, calc(128px - var(--detalle-rail-width)));
+  padding-right: max(1rem, calc(128px - var(--detalle-rail-width)));
+}
+
+@media (max-width: 960px) {
+  .detalle-proyecto-inner {
+    padding-left: max(1rem, calc(96px - var(--detalle-rail-width)));
+    padding-right: max(1rem, calc(96px - var(--detalle-rail-width)));
+  }
+}
+
+@media (max-width: 640px) {
+  .detalle-proyecto-main {
+    --detalle-rail-width: 48px;
+  }
+
+  .detalle-proyecto-inner {
+    padding-left: max(0.75rem, calc(56px - var(--detalle-rail-width)));
+    padding-right: max(0.75rem, calc(56px - var(--detalle-rail-width)));
+  }
+}
+
+@media (max-width: 480px) {
+  .detalle-proyecto-main {
+    --detalle-rail-width: 46px;
+  }
 }
 
 .detalle-sibling-rail {
@@ -38,14 +73,19 @@
   background: #ffffff;
   border: 1.5px solid #d6dce5;
   text-decoration: none;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--nori-shadow-toggle-active);
   transition: color 0.15s, border-color 0.15s, background-color 0.15s;
 }
 
 .detalle-sibling-btn:hover:not(.detalle-sibling-btn--disabled) {
-  color: #ec0029;
-  border-color: #ec0029;
+  color: var(--nori-brand);
+  border-color: var(--nori-brand);
   background: #fff5f5;
+}
+
+.detalle-sibling-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fafafa, 0 0 0 4px var(--nori-brand);
 }
 
 .detalle-sibling-btn--disabled {
@@ -81,48 +121,69 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 24px;
 }
 
 .detalle-back-link {
-  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  text-decoration: none;
-  color: #334155;
-  font-size: 0.95rem;
-  font-weight: 500;
   background-color: #ffffff;
-  border: 1.5px solid #323e48;
-  border-radius: 10px;
-  padding: 10px 18px;
-  transition: background-color 0.15s ease;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--dashboard-radius-control, 10px);
+  box-shadow: var(--nori-shadow-toggle-active);
+  box-sizing: border-box;
+  color: #334155;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 500;
+  gap: 6px;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.detalle-back-link:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.detalle-back-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fafafa, 0 0 0 4px var(--nori-brand);
 }
 
 .detalle-actions {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
+  gap: 8px;
   justify-content: flex-end;
 }
 
+/* Same control height / type scale as dashboard toolbar (filters, sort, Crear) */
 .detalle-btn {
-  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.95rem;
-  font-weight: 600;
   background-color: #ffffff;
-  border-radius: 10px;
-  padding: 10px 18px;
+  border-radius: var(--dashboard-radius-control, 10px);
+  box-sizing: border-box;
   cursor: pointer;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  gap: 6px;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
   transition: background-color 0.15s ease;
 }
 
 .detalle-btn--edit {
-  color: #ec0029;
-  border: 1.5px solid #ec0029;
+  color: var(--nori-brand);
+  border: 1.5px solid var(--nori-brand);
 }
 
 .detalle-btn--duplicate {
@@ -131,7 +192,7 @@
 }
 
 .detalle-btn--delete {
-  color: #ec0029;
+  color: var(--nori-brand);
   border: 1.5px solid #d6dce5;
 }
 
@@ -141,32 +202,160 @@
 }
 
 .detalle-btn--chat {
-  color: #ffffff;
-  background-color: #ec0029;
-  border: 1.5px solid #ec0029;
+  color: var(--nori-brand-foreground);
+  background-color: var(--nori-brand);
+  border: 1.5px solid var(--nori-brand);
   text-decoration: none;
   box-sizing: border-box;
 }
 
 .detalle-btn--chat:hover {
-  background-color: #c8001f;
-  border-color: #c8001f;
+  background-color: var(--nori-brand-hover);
+  border-color: var(--nori-brand-hover);
 }
 
-/* ── Layout de las dos cards ── */
+.detalle-btn--edit-cancel {
+  color: #334155;
+  border: 1.5px solid #d6dce5;
+}
+
+.detalle-btn--edit-cancel:hover:not(:disabled) {
+  background-color: #f8fafc;
+}
+
+.detalle-btn--edit-save {
+  color: #ffffff;
+  background-color: #16a34a;
+  border: 1.5px solid #16a34a;
+}
+
+.detalle-btn--edit-save:hover:not(:disabled) {
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+.detalle-btn--edit-save:disabled,
+.detalle-btn--edit-cancel:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.detalle-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fafafa, 0 0 0 4px var(--nori-brand);
+}
+
+/* ── Edición de metadatos en card principal ── */
+.detalle-main-card--editing .detalle-badges {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.detalle-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  width: 100%;
+}
+
+.detalle-edit-field--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  width: auto;
+}
+
+.detalle-edit-field--block {
+  width: 100%;
+}
+
+.detalle-edit-field__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detalle-edit-field__input {
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #0f172a;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #ffffff;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  transition: border-color 0.15s ease;
+}
+
+.detalle-edit-field__input:focus {
+  outline: none;
+  border-color: var(--nori-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--nori-brand) 14%, transparent);
+}
+
+.detalle-edit-field__input--title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  max-width: 100%;
+  padding: 8px 12px;
+}
+
+.detalle-edit-field__input::placeholder {
+  color: #94a3b8;
+}
+
+.detalle-edit-field__hint {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.detalle-edit-field__select {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #0f172a;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 8px 36px 8px 14px;
+  background: #ffffff;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.detalle-edit-field__select:focus {
+  outline: none;
+  border-color: var(--nori-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--nori-brand) 14%, transparent);
+}
+
+/* ── Bloque info proyecto: 50% del ancho (espacio reservado a la derecha) ── */
 .detalle-cards {
   display: flex;
-  gap: 24px;
-  align-items: stretch;
+  width: 50%;
+  max-width: 50%;
+  box-sizing: border-box;
   margin-bottom: 24px;
 }
 
-/* ── Card principal (izquierda) ── */
+/* ── Card principal ── */
 .detalle-main-card {
-  flex: 2;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
   background-color: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
+  box-shadow: var(--nori-shadow-card);
   padding: 28px 32px 32px;
 }
 
@@ -184,16 +373,25 @@
 }
 
 .detalle-badges {
+  align-items: flex-start;
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 10px 10px;
   margin-bottom: 18px;
 }
 
 .detalle-badge {
   border-radius: 999px;
+  box-sizing: border-box;
+  flex: 0 1 auto;
   font-size: 0.85rem;
   font-weight: 600;
-  padding: 5px 14px;
+  line-height: 1.35;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: break-word;
+  padding: 6px 14px;
+  text-align: center;
 }
 
 .detalle-badge--category {
@@ -229,6 +427,25 @@
   margin-bottom: 22px;
 }
 
+.detalle-info-row--meta {
+  flex-wrap: wrap;
+  gap: 20px 40px;
+  margin-bottom: 20px;
+}
+
+.detalle-progress-section {
+  margin-top: 8px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 900px) {
+  .detalle-cards {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 .detalle-section-label--info {
   margin: 0 0 8px;
 }
@@ -243,8 +460,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #ec0029;
-  color: #ffffff;
+  background-color: var(--nori-brand);
+  color: var(--nori-brand-foreground);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,66 +491,6 @@
   font-size: 0.95rem;
   font-weight: 500;
   color: #0f172a;
-}
-
-/* ── Card lateral (derecha) ── */
-.detalle-side-card {
-  flex: 1;
-  flex-shrink: 0;
-  background-color: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  padding: 20px 20px 24px;
-}
-
-.detalle-side-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #94a3b8;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin: 0 0 6px;
-}
-
-.detalle-side-status-badge {
-  display: inline-block;
-  border-radius: 999px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  padding: 6px 16px;
-}
-
-.detalle-side-separator {
-  border: none;
-  border-top: 1px solid #e2e8f0;
-  margin: 14px 0;
-}
-
-.detalle-side-separator--progress {
-  margin: 20px 0;
-}
-
-.detalle-side-label--activity {
-  margin: 0 0 3px;
-}
-
-.detalle-side-value {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 16px;
-}
-
-.detalle-side-label--priority {
-  margin: 0 0 8px;
-}
-
-.detalle-side-priority-badge {
-  display: inline-block;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 4px 12px;
 }
 
 .detalle-progress-header {
@@ -376,6 +533,7 @@
   background-color: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
+  box-shadow: var(--nori-shadow-card);
   padding: 28px 32px 32px;
 }
 
@@ -394,22 +552,30 @@
 }
 
 .detalle-docs-generate-btn {
-  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  background-color: var(--nori-brand);
+  border: none;
+  border-radius: var(--dashboard-radius-control, 10px);
+  box-sizing: border-box;
+  color: var(--nori-brand-foreground);
+  cursor: pointer;
+  display: inline-flex;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff;
-  background-color: #ec0029;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
-  cursor: pointer;
+  gap: 8px;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
   transition: background-color 0.15s ease;
 }
 
 .detalle-docs-generate-btn:hover {
-  background-color: #c8001f;
+  background-color: var(--nori-brand-hover);
+}
+
+.detalle-docs-generate-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fafafa, 0 0 0 4px var(--nori-brand);
 }
 
 .detalle-doc-item {
@@ -423,7 +589,7 @@
 .detalle-doc-item__left-border {
   width: 4px;
   flex-shrink: 0;
-  background-color: #ec0029;
+  background-color: var(--nori-brand);
   border-radius: 4px 0 0 4px;
 }
 
@@ -443,6 +609,11 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
+}
+
+.detalle-doc-item__file-icon {
+  color: var(--nori-brand);
+  flex-shrink: 0;
 }
 
 .detalle-doc-item__name {
@@ -474,21 +645,25 @@
 }
 
 .detalle-doc-btn {
-  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 7px 14px;
+  border-radius: var(--dashboard-radius-control, 10px);
+  box-sizing: border-box;
   cursor: pointer;
+  display: inline-flex;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  gap: 6px;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 12px;
+  text-decoration: none;
   transition: background-color 0.15s ease;
 }
 
 .detalle-doc-btn--view {
-  color: #ec0029;
+  color: var(--nori-brand);
   background-color: #ffffff;
-  border: 1.5px solid #ec0029;
+  border: 1.5px solid var(--nori-brand);
 }
 
 .detalle-doc-btn--download {
@@ -515,4 +690,9 @@
 
 .detalle-doc-btn--regenerate:hover {
   background-color: #15803d;
+}
+
+.detalle-doc-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fafafa, 0 0 0 4px var(--nori-brand);
 }

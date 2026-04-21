@@ -4,9 +4,10 @@ import { Plus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import HomeHeader from "../components/ui/HomeHeader";
 import ProjectCard from "../components/ui/ProjectCard";
+import ProjectListRow from "../components/ui/ProjectListRow";
 import ProjectsToolbar from "../components/ui/ProjectsToolbar";
 import { chatApi } from "../services/api";
-import type { ProjectDisplay, SortOption } from "../types/project";
+import type { LibraryViewMode, ProjectDisplay, SortOption } from "../types/project";
 import { toProjectDisplay } from "../types/project";
 
 type FilterValue = "Todos" | "in_progress" | "completed" | "draft";
@@ -20,6 +21,7 @@ function Proyectos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterValue>("Todos");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
+  const [viewMode, setViewMode] = useState<LibraryViewMode>("grid");
 
   useEffect(() => {
     document.title = "Proyectos — Nori";
@@ -69,8 +71,18 @@ function Proyectos() {
       <div className="dashboard-page">
         <HomeHeader />
         <main className="dashboard-content">
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
-            <p style={{ fontSize: '1.125rem' }}>Cargando proyectos...</p>
+          <div
+            className="dashboard-loading-skeleton"
+            aria-busy="true"
+            aria-label="Cargando proyectos"
+          >
+            <div className="dashboard-loading-skeleton__hero" />
+            <div className="dashboard-loading-skeleton__toolbar" />
+            <div className="dashboard-loading-skeleton__grid">
+              <div className="dashboard-loading-skeleton__card" />
+              <div className="dashboard-loading-skeleton__card" />
+              <div className="dashboard-loading-skeleton__card" />
+            </div>
           </div>
         </main>
       </div>
@@ -82,20 +94,12 @@ function Proyectos() {
       <div className="dashboard-page">
         <HomeHeader />
         <main className="dashboard-content">
-          <div style={{ textAlign: 'center', padding: '4rem' }}>
-            <p style={{ color: '#dc2626', fontSize: '1.125rem', marginBottom: '1rem' }}>
-              Error: {error}
-            </p>
+          <div className="dashboard-error-panel" role="alert">
+            <p className="dashboard-error-panel__message">Error: {error}</p>
             <button
+              type="button"
+              className="dashboard-create-button"
               onClick={loadProjects}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.375rem',
-                cursor: 'pointer',
-              }}
             >
               Reintentar
             </button>
@@ -131,23 +135,62 @@ function Proyectos() {
           onFilterChange={setActiveFilter}
           sortBy={sortBy}
           onSortChange={setSortBy}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
         />
 
-        <section className="dashboard-grid" aria-label="Lista de proyectos">
-          {visibleProjects.map((project) => (
-            <ProjectCard key={project.project_id} project={project} />
-          ))}
-        </section>
-
-        {visibleProjects.length === 0 && (
-          <section className="dashboard-empty-state">
-            <h2>No encontramos proyectos</h2>
-            <p>
-              Ajusta los filtros o prueba con otra búsqueda para ver más
-              resultados.
-            </p>
+        {viewMode === "grid" ? (
+          <section className="dashboard-grid" aria-label="Proyectos en cuadrícula">
+            {visibleProjects.map((project) => (
+              <ProjectCard key={project.project_id} project={project} />
+            ))}
           </section>
-        )}
+        ) : visibleProjects.length > 0 ? (
+          <section className="dashboard-projects-list" aria-label="Proyectos en lista">
+            <div className="dashboard-projects-table-wrap">
+              <table className="projects-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Proyecto</th>
+                    <th scope="col">Categorías</th>
+                    <th scope="col">Progreso</th>
+                    <th scope="col">Actualización</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleProjects.map((project) => (
+                    <ProjectListRow key={project.project_id} project={project} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : null}
+
+        {visibleProjects.length === 0 &&
+          (projects.length === 0 ? (
+            <section className="dashboard-empty-state">
+              <h2>Aún no tienes proyectos</h2>
+              <p>
+                Crea tu primer proyecto para empezar a generar la documentación
+                de tu software.
+              </p>
+              <p className="dashboard-empty-state__cta">
+                <Link to="/crear" className="dashboard-create-button">
+                  <Plus size={18} strokeWidth={2.5} />
+                  <span>Crear Nuevo Proyecto</span>
+                </Link>
+              </p>
+            </section>
+          ) : (
+            <section className="dashboard-empty-state">
+              <h2>No encontramos proyectos</h2>
+              <p>
+                Ajusta los filtros o prueba con otra búsqueda para ver más
+                resultados.
+              </p>
+            </section>
+          ))}
       </main>
     </div>
   );

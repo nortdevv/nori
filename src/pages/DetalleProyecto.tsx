@@ -1,10 +1,9 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "../components/ui/Navbar";
-import SubNavbar from "../components/ui/SubNavbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { chatApi, documentApi } from "../services/api";
-import type { ProjectDisplay } from "../types/project";
+import type { ProjectDisplay, ProjectStatus } from "../types/project";
 import { toProjectDisplay } from "../types/project";
 import {
   ChevronLeft,
@@ -16,6 +15,8 @@ import {
   FileText,
   Download,
   RefreshCw,
+  Check,
+  X,
 } from "lucide-react";
 import "./DetalleProyecto.css";
 import { calculateDocumentProgress } from "../utils/documentProgress";
@@ -29,7 +30,25 @@ function getStatusStyle(status: string) {
 
 function getProgressColor(progress: number) {
   if (progress === 100) return "#16a34a";
-  return "#ec0029";
+  return "var(--nori-brand)";
+}
+
+const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
+  { value: "draft", label: "Borrador" },
+  { value: "in_progress", label: "En progreso" },
+  { value: "completed", label: "Completado" },
+];
+
+function parseTagsFromInput(input: string): string[] {
+  return input
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+function tagsAreSame(a: string[], b: string[]) {
+  if (a.length !== b.length) return false;
+  return a.every((t, i) => t === b[i]);
 }
 
 function DetalleProyecto() {
@@ -45,12 +64,18 @@ function DetalleProyecto() {
   const [siblingOlderId, setSiblingOlderId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [draftTagsInput, setDraftTagsInput] = useState("");
+  const [draftStatus, setDraftStatus] = useState<ProjectStatus>("in_progress");
+  const [isSavingDetails, setIsSavingDetails] = useState(false);
 
   useEffect(() => {
     if (!id) {
       navigate("/");
       return;
     }
+    setIsEditingDetails(false);
     loadProject();
   }, [id]);
 
@@ -136,6 +161,61 @@ function DetalleProyecto() {
     }
   };
 
+  const detailsDirty =
+    !!project &&
+    isEditingDetails &&
+    (draftName.trim() !== project.name ||
+      !tagsAreSame(parseTagsFromInput(draftTagsInput), project.tags || []) ||
+      draftStatus !== (project.status as ProjectStatus));
+
+  const startEditingDetails = () => {
+    if (!project) return;
+    setActionError(null);
+    setDraftName(project.name);
+    setDraftTagsInput((project.tags || []).join(", "));
+    setDraftStatus(
+      STATUS_OPTIONS.some((o) => o.value === project.status)
+        ? (project.status as ProjectStatus)
+        : "in_progress"
+    );
+    setIsEditingDetails(true);
+  };
+
+  const cancelEditingDetails = () => {
+    if (detailsDirty) {
+      if (!window.confirm("¿Descartar los cambios sin guardar?")) return;
+    }
+    setIsEditingDetails(false);
+    setActionError(null);
+  };
+
+  const saveEditingDetails = async () => {
+    if (!id || !project || !detailsDirty || isSavingDetails) return;
+    const name = draftName.trim();
+    if (!name) {
+      setActionError("El nombre no puede estar vacío");
+      return;
+    }
+    const tags = parseTagsFromInput(draftTagsInput);
+    setIsSavingDetails(true);
+    setActionError(null);
+    try {
+      const updated = await chatApi.updateConversation(id, {
+        name,
+        tags,
+        status: draftStatus,
+      });
+      setProject(toProjectDisplay(updated));
+      setIsEditingDetails(false);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo guardar el proyecto";
+      setActionError(message);
+    } finally {
+      setIsSavingDetails(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!id || !project || isDeleting) return;
     if (
@@ -160,14 +240,22 @@ function DetalleProyecto() {
   if (isLoading) {
     return (
       <div className="dashboard-page">
-        <div style={{ flexShrink: 0 }}>
+        <div className="dashboard-shell-header">
           <Navbar />
-          <SubNavbar />
           <BreadcrumbProjects />
         </div>
         <main className="dashboard-content">
-          <div style={{ textAlign: "center", padding: "4rem", color: "#64748b" }}>
-            <p style={{ fontSize: "1.125rem" }}>Cargando proyecto...</p>
+          <div
+            className="dashboard-loading-skeleton"
+            aria-busy="true"
+            aria-label="Cargando proyecto"
+          >
+            <div className="dashboard-loading-skeleton__hero" />
+            <div className="dashboard-loading-skeleton__toolbar" />
+            <div className="dashboard-loading-skeleton__grid">
+              <div className="dashboard-loading-skeleton__card" />
+              <div className="dashboard-loading-skeleton__card" />
+            </div>
           </div>
         </main>
       </div>
@@ -177,28 +265,21 @@ function DetalleProyecto() {
   if (error || !project) {
     return (
       <div className="dashboard-page">
-        <div style={{ flexShrink: 0 }}>
+        <div className="dashboard-shell-header">
           <Navbar />
-          <SubNavbar />
           <BreadcrumbProjects />
         </div>
         <main className="dashboard-content">
-          <div style={{ textAlign: "center", padding: "4rem" }}>
-            <p style={{ color: "#dc2626", fontSize: "1.125rem", marginBottom: "1rem" }}>
+          <div className="dashboard-error-panel" role="alert">
+            <p className="dashboard-error-panel__message">
               {error || "Proyecto no encontrado"}
             </p>
             <button
+              type="button"
+              className="dashboard-create-button"
               onClick={() => navigate("/")}
-              style={{
-                padding: "0.5rem 1rem",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "0.375rem",
-                cursor: "pointer",
-              }}
             >
-              Volver al Inicio
+              Volver al inicio
             </button>
           </div>
         </main>
@@ -208,9 +289,8 @@ function DetalleProyecto() {
 
   return (
     <div className="dashboard-page">
-      <div style={{ flexShrink: 0 }}>
+      <div className="dashboard-shell-header">
         <Navbar />
-        <SubNavbar />
         <BreadcrumbProjects />
       </div>
       <main className="dashboard-content detalle-proyecto-main">
@@ -254,10 +334,39 @@ function DetalleProyecto() {
                 <Plus size={16} strokeWidth={2.5} />
                 Continuar chat
               </Link>
-              <button type="button" className="detalle-btn detalle-btn--edit">
-                <Pencil size={16} strokeWidth={2.2} />
-                Editar
-              </button>
+              {!isEditingDetails ? (
+                <button
+                  type="button"
+                  className="detalle-btn detalle-btn--edit"
+                  onClick={startEditingDetails}
+                >
+                  <Pencil size={16} strokeWidth={2.2} />
+                  Editar
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="detalle-btn detalle-btn--edit-cancel"
+                    onClick={cancelEditingDetails}
+                    disabled={isSavingDetails}
+                  >
+                    <X size={16} strokeWidth={2.2} />
+                    Cancelar
+                  </button>
+                  {detailsDirty && (
+                    <button
+                      type="button"
+                      className="detalle-btn detalle-btn--edit-save"
+                      onClick={saveEditingDetails}
+                      disabled={isSavingDetails}
+                    >
+                      <Check size={16} strokeWidth={2.2} />
+                      {isSavingDetails ? "Guardando…" : "Confirmar"}
+                    </button>
+                  )}
+                </>
+              )}
               <button
                 type="button"
                 className="detalle-btn detalle-btn--duplicate"
@@ -278,30 +387,86 @@ function DetalleProyecto() {
           </div>
 
         <div className="detalle-cards">
-          <div className="detalle-main-card">
-            <h1 className="detalle-main-card__title">{project.name}</h1>
+          <div className={`detalle-main-card ${isEditingDetails ? "detalle-main-card--editing" : ""}`}>
+            {isEditingDetails ? (
+              <label className="detalle-edit-field">
+                <span className="detalle-edit-field__label">Nombre</span>
+                <input
+                  type="text"
+                  className="detalle-edit-field__input detalle-edit-field__input--title"
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  autoComplete="off"
+                  disabled={isSavingDetails}
+                  aria-label="Nombre del proyecto"
+                />
+              </label>
+            ) : (
+              <h1 className="detalle-main-card__title">{project.name}</h1>
+            )}
             <p className="detalle-main-card__subtitle">
               Creado el {new Date(project.date_created).toLocaleDateString('es-ES')}
             </p>
 
             <div className="detalle-badges">
-              <span
-                className="detalle-badge"
-                style={getStatusStyle(project.status)}
-              >
-                {project.statusLabel}
-              </span>
-              {project.tags && project.tags.map((tag) => (
+              {isEditingDetails ? (
+                <label className="detalle-edit-field detalle-edit-field--inline">
+                  <span className="detalle-edit-field__label">Estado</span>
+                  <select
+                    className="detalle-edit-field__select"
+                    value={draftStatus}
+                    onChange={(e) =>
+                      setDraftStatus(e.target.value as ProjectStatus)
+                    }
+                    disabled={isSavingDetails}
+                    aria-label="Estado del proyecto"
+                  >
+                    {STATUS_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
                 <span
-                  key={tag}
-                  className="detalle-badge detalle-badge--category"
+                  className="detalle-badge"
+                  style={getStatusStyle(project.status)}
                 >
-                  {tag}
+                  {project.statusLabel}
                 </span>
-              ))}
+              )}
+              {isEditingDetails ? (
+                <label className="detalle-edit-field detalle-edit-field--block">
+                  <span className="detalle-edit-field__label">Tags</span>
+                  <input
+                    type="text"
+                    className="detalle-edit-field__input"
+                    value={draftTagsInput}
+                    onChange={(e) => setDraftTagsInput(e.target.value)}
+                    placeholder="Ej: interno, cloud, prioridad"
+                    autoComplete="off"
+                    disabled={isSavingDetails}
+                    aria-label="Tags separados por comas"
+                  />
+                  <span className="detalle-edit-field__hint">
+                    Separados por comas
+                  </span>
+                </label>
+              ) : (
+                project.tags &&
+                project.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="detalle-badge detalle-badge--category"
+                  >
+                    {tag}
+                  </span>
+                ))
+              )}
             </div>
 
-            <div className="detalle-info-row">
+            <div className="detalle-info-row detalle-info-row--meta">
               <div>
                 <p className="detalle-section-label detalle-section-label--info">
                   Mensajes
@@ -313,57 +478,37 @@ function DetalleProyecto() {
 
               <div>
                 <p className="detalle-section-label detalle-section-label--info">
-                  ID del Proyecto
+                  Última actividad
                 </p>
-                <span className="detalle-department-value" style={{ fontSize: '0.75rem' }}>
-                  {project.project_id.slice(0, 8)}...
+                <span className="detalle-department-value">
+                  {project.lastUpdatedLabel}
                 </span>
               </div>
             </div>
-          </div>
 
-          <div className="detalle-side-card">
-            <p className="detalle-side-label">Estado del proyecto</p>
-            <span
-              className="detalle-side-status-badge"
-              style={getStatusStyle(project.status)}
-            >
-              {project.statusLabel}
-            </span>
-
-            <hr className="detalle-side-separator" />
-
-            <p className="detalle-side-label detalle-side-label--activity">
-              Ultima actividad
-            </p>
-            <p className="detalle-side-value">{project.lastUpdatedLabel}</p>
-
-            <p className="detalle-side-label detalle-side-label--activity">
-              Fecha de creacion
-            </p>
-            <p className="detalle-side-value">
-              {new Date(project.date_created).toLocaleDateString('es-ES')}
-            </p>
-
-            <hr className="detalle-side-separator detalle-side-separator--progress" />
-
-            <div className="detalle-progress-header">
-              <p className="detalle-progress-label">Progreso</p>
-              <span
-                className="detalle-progress-percent"
-                style={{ color: getProgressColor(realProgress ?? project.progress_pct) }}
-              >
-                {realProgress ?? project.progress_pct}%
-              </span>
-            </div>
-            <div className="detalle-progress-track">
-              <div
-                className="detalle-progress-bar"
-                style={{
-                  width: `${realProgress ?? project.progress_pct}%`,
-                  backgroundColor: getProgressColor(realProgress ?? project.progress_pct),
-                }}
-              />
+            <div className="detalle-progress-section">
+              <div className="detalle-progress-header">
+                <p className="detalle-progress-label">Progreso</p>
+                <span
+                  className="detalle-progress-percent"
+                  style={{
+                    color: getProgressColor(realProgress ?? project.progress_pct),
+                  }}
+                >
+                  {realProgress ?? project.progress_pct}%
+                </span>
+              </div>
+              <div className="detalle-progress-track">
+                <div
+                  className="detalle-progress-bar"
+                  style={{
+                    width: `${realProgress ?? project.progress_pct}%`,
+                    backgroundColor: getProgressColor(
+                      realProgress ?? project.progress_pct,
+                    ),
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -378,7 +523,12 @@ function DetalleProyecto() {
             <div className="detalle-doc-item__content">
               <div className="detalle-doc-item__header">
                 <div className="detalle-doc-item__info">
-                  <FileText size={20} color="#ec0029" strokeWidth={2} />
+                  <FileText
+                    size={20}
+                    strokeWidth={2}
+                    className="detalle-doc-item__file-icon"
+                    aria-hidden
+                  />
                   <div>
                     <p className="detalle-doc-item__name">
                       Documento de requerimientos

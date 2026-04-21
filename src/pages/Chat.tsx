@@ -7,7 +7,6 @@ import DiagramModal from '../components/ui/DiagramModal';
 import DocPreviewModal from '../components/ui/DocPreviewModal';
 import DocSectionItem, { type DocSection } from '../components/ui/DocSectionItem';
 import Navbar from '../components/ui/Navbar';
-import SubNavbar from '../components/ui/SubNavbar';
 import { chatApi, documentApi } from '../services/api';
 import { calculateDocumentProgress } from '../utils/documentProgress';
 import './Chat.css';
@@ -140,6 +139,8 @@ function DocumentPanel({
   onToggle,
   onGenerate,
   onGenerateDiagram,
+  onViewDiagram,
+  hasSavedDiagram,
   progress,
 }: {
   sections: DocSection[];
@@ -147,6 +148,8 @@ function DocumentPanel({
   onToggle: (id: number) => void;
   onGenerate: () => void;
   onGenerateDiagram: () => void;
+  onViewDiagram: () => void;
+  hasSavedDiagram: boolean;
   progress: number;
 }) {
   const [page, setPage] = useState(0);
@@ -190,10 +193,10 @@ function DocumentPanel({
           <button
             className="doc-panel__generate-btn"
             style={{ backgroundColor: '#1a1a1a' }}
-            onClick={onGenerateDiagram}
+            onClick={hasSavedDiagram ? onViewDiagram : onGenerateDiagram}
           >
             <GitBranch size={16} />
-            Generar Diagrama
+            {hasSavedDiagram ? 'Ver Diagrama' : 'Generar Diagrama'}
           </button>
         )}
         <button className="doc-panel__generate-btn" onClick={onGenerate}>
@@ -232,6 +235,7 @@ function Chat() {
   const [diagramSource, setDiagramSource] = useState<string | null>(null);
   const [isGeneratingDiagram, setIsGeneratingDiagram] = useState(false);
   const [diagramError, setDiagramError] = useState<string | null>(null);
+  const [hasSavedDiagram, setHasSavedDiagram] = useState(false);
 
   const handleGenerate = async () => {
     if (!id) return;
@@ -278,6 +282,7 @@ function Chat() {
     try {
       const result = await chatApi.generateDiagram(id);
       setDiagramSource(result.source);
+      setHasSavedDiagram(true);
     } catch (err: any) {
       console.error('Error generating diagram:', err);
       setDiagramError(err.message || 'Error al generar el diagrama');
@@ -286,8 +291,18 @@ function Chat() {
     }
   };
 
-  const handleSaveDiagramSource = (newSource: string) => {
+  const handleViewDiagram = () => {
+    setShowDiagram(true);
+  };
+
+  const handleSaveDiagram = async (newSource: string) => {
+    if (!id) return;
     setDiagramSource(newSource);
+    try {
+      await chatApi.updateDiagram(id, newSource);
+    } catch (err) {
+      console.error('Error saving diagram:', err);
+    }
   };
 
   useEffect(() => {
@@ -340,6 +355,20 @@ function Chat() {
         });
 
         setSections(mergedSections);
+
+        // Check if a saved diagram exists
+        const completedCount = mergedSections.filter((s: any) => s.completed).length;
+        if (completedCount === mergedSections.length) {
+          try {
+            const diagram = await chatApi.getDiagram(id);
+            if (diagram && diagram.source) {
+              setDiagramSource(diagram.source);
+              setHasSavedDiagram(true);
+            }
+          } catch {
+            // No saved diagram, that's fine
+          }
+        }
       } catch (sectionErr) {
         console.error('Error loading document sections:', sectionErr);
         // Keep default sections if loading fails
@@ -420,7 +449,6 @@ function Chat() {
       <div className="chat-page">
         <div className="chat-nav">
           <Navbar />
-          <SubNavbar />
           <BreadcrumbProjects />
         </div>
         <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
@@ -436,7 +464,6 @@ function Chat() {
     <div className="chat-page">
       <div className="chat-nav">
         <Navbar />
-        <SubNavbar />
         <BreadcrumbProjects />
       </div>
 
@@ -468,6 +495,8 @@ function Chat() {
           onToggle={(id) => setSections((prev) => prev.map((s) => (s.id === id ? { ...s, expanded: !s.expanded } : s)))}
           onGenerate={handleGenerate}
           onGenerateDiagram={handleGenerateDiagram}
+          onViewDiagram={handleViewDiagram}
+          hasSavedDiagram={hasSavedDiagram}
           progress={progress}
         />
       </div>
@@ -491,7 +520,7 @@ function Chat() {
           error={diagramError}
           onClose={() => setShowDiagram(false)}
           onRegenerate={handleGenerateDiagram}
-          onSaveSource={handleSaveDiagramSource}
+          onSave={handleSaveDiagram}
         />
       )}
     </div>
