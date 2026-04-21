@@ -1,11 +1,10 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "../components/ui/Navbar";
-import SubNavbar from "../components/ui/SubNavbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { chatApi, documentApi } from "../services/api";
 import type { ProjectDisplay, ProjectStatus } from "../types/project";
-import { toProjectDisplay, getStatusLabel } from "../types/project";
+import { toProjectDisplay } from "../types/project";
 import {
   ChevronLeft,
   ChevronRight,
@@ -243,7 +242,6 @@ function DetalleProyecto() {
       <div className="dashboard-page">
         <div style={{ flexShrink: 0 }}>
           <Navbar />
-          <SubNavbar />
           <BreadcrumbProjects />
         </div>
         <main className="dashboard-content">
@@ -260,7 +258,6 @@ function DetalleProyecto() {
       <div className="dashboard-page">
         <div style={{ flexShrink: 0 }}>
           <Navbar />
-          <SubNavbar />
           <BreadcrumbProjects />
         </div>
         <main className="dashboard-content">
@@ -291,7 +288,6 @@ function DetalleProyecto() {
     <div className="dashboard-page">
       <div style={{ flexShrink: 0 }}>
         <Navbar />
-        <SubNavbar />
         <BreadcrumbProjects />
       </div>
       <main className="dashboard-content detalle-proyecto-main">
@@ -467,7 +463,7 @@ function DetalleProyecto() {
               )}
             </div>
 
-            <div className="detalle-info-row">
+            <div className="detalle-info-row detalle-info-row--meta">
               <div>
                 <p className="detalle-section-label detalle-section-label--info">
                   Mensajes
@@ -479,61 +475,37 @@ function DetalleProyecto() {
 
               <div>
                 <p className="detalle-section-label detalle-section-label--info">
-                  ID del Proyecto
+                  Última actividad
                 </p>
-                <span className="detalle-department-value" style={{ fontSize: '0.75rem' }}>
-                  {project.project_id.slice(0, 8)}...
+                <span className="detalle-department-value">
+                  {project.lastUpdatedLabel}
                 </span>
               </div>
             </div>
-          </div>
 
-          <div className="detalle-side-card">
-            <p className="detalle-side-label">Estado del proyecto</p>
-            <span
-              className="detalle-side-status-badge"
-              style={getStatusStyle(
-                isEditingDetails ? draftStatus : project.status
-              )}
-            >
-              {isEditingDetails
-                ? getStatusLabel(draftStatus)
-                : project.statusLabel}
-            </span>
-
-            <hr className="detalle-side-separator" />
-
-            <p className="detalle-side-label detalle-side-label--activity">
-              Ultima actividad
-            </p>
-            <p className="detalle-side-value">{project.lastUpdatedLabel}</p>
-
-            <p className="detalle-side-label detalle-side-label--activity">
-              Fecha de creacion
-            </p>
-            <p className="detalle-side-value">
-              {new Date(project.date_created).toLocaleDateString('es-ES')}
-            </p>
-
-            <hr className="detalle-side-separator detalle-side-separator--progress" />
-
-            <div className="detalle-progress-header">
-              <p className="detalle-progress-label">Progreso</p>
-              <span
-                className="detalle-progress-percent"
-                style={{ color: getProgressColor(realProgress ?? project.progress_pct) }}
-              >
-                {realProgress ?? project.progress_pct}%
-              </span>
-            </div>
-            <div className="detalle-progress-track">
-              <div
-                className="detalle-progress-bar"
-                style={{
-                  width: `${realProgress ?? project.progress_pct}%`,
-                  backgroundColor: getProgressColor(realProgress ?? project.progress_pct),
-                }}
-              />
+            <div className="detalle-progress-section">
+              <div className="detalle-progress-header">
+                <p className="detalle-progress-label">Progreso</p>
+                <span
+                  className="detalle-progress-percent"
+                  style={{
+                    color: getProgressColor(realProgress ?? project.progress_pct),
+                  }}
+                >
+                  {realProgress ?? project.progress_pct}%
+                </span>
+              </div>
+              <div className="detalle-progress-track">
+                <div
+                  className="detalle-progress-bar"
+                  style={{
+                    width: `${realProgress ?? project.progress_pct}%`,
+                    backgroundColor: getProgressColor(
+                      realProgress ?? project.progress_pct,
+                    ),
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

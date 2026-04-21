@@ -272,17 +272,20 @@
   box-shadow: 0 0 0 3px rgba(236, 0, 41, 0.12);
 }
 
-/* ── Layout de las dos cards ── */
+/* ── Bloque info proyecto: 50% del ancho (espacio reservado a la derecha) ── */
 .detalle-cards {
   display: flex;
-  gap: 24px;
-  align-items: stretch;
+  width: 50%;
+  max-width: 50%;
+  box-sizing: border-box;
   margin-bottom: 24px;
 }
 
-/* ── Card principal (izquierda) ── */
+/* ── Card principal ── */
 .detalle-main-card {
-  flex: 2;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
   background-color: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
@@ -348,6 +351,25 @@
   margin-bottom: 22px;
 }
 
+.detalle-info-row--meta {
+  flex-wrap: wrap;
+  gap: 20px 40px;
+  margin-bottom: 20px;
+}
+
+.detalle-progress-section {
+  margin-top: 8px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 900px) {
+  .detalle-cards {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 .detalle-section-label--info {
   margin: 0 0 8px;
 }
@@ -393,66 +415,6 @@
   font-size: 0.95rem;
   font-weight: 500;
   color: #0f172a;
-}
-
-/* ── Card lateral (derecha) ── */
-.detalle-side-card {
-  flex: 1;
-  flex-shrink: 0;
-  background-color: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  padding: 20px 20px 24px;
-}
-
-.detalle-side-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #94a3b8;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin: 0 0 6px;
-}
-
-.detalle-side-status-badge {
-  display: inline-block;
-  border-radius: 999px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  padding: 6px 16px;
-}
-
-.detalle-side-separator {
-  border: none;
-  border-top: 1px solid #e2e8f0;
-  margin: 14px 0;
-}
-
-.detalle-side-separator--progress {
-  margin: 20px 0;
-}
-
-.detalle-side-label--activity {
-  margin: 0 0 3px;
-}
-
-.detalle-side-value {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 16px;
-}
-
-.detalle-side-label--priority {
-  margin: 0 0 8px;
-}
-
-.detalle-side-priority-badge {
-  display: inline-block;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 4px 12px;
 }
 
 .detalle-progress-header {

@@ -41,7 +41,7 @@ function Navbar() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '15px clamp(1rem, 5vw, 95px)',
+        padding: '10px clamp(1rem, 5vw, 95px)',
         width: '100%',
         boxSizing: 'border-box',
         boxShadow: '0 4px 4px rgba(0,0,0,0.1)',
@@ -50,7 +50,7 @@ function Navbar() {
       }}
     >
       {/* Logo */}
-      <img src={BanorteLogo} alt="Banorte" style={{ height: '33px' }} />
+      <img src={BanorteLogo} alt="Banorte" style={{ height: '28px' }} />
 
       {/* User dropdown */}
       <div ref={dropdownRef} style={{ position: 'relative' }}>
@@ -67,7 +67,7 @@ function Navbar() {
             background: 'rgba(255,255,255,0.15)',
             border: '1px solid rgba(255,255,255,0.3)',
             borderRadius: '999px',
-            padding: '5px 12px 5px 5px',
+            padding: '4px 10px 4px 4px',
             cursor: 'pointer',
             color: 'white',
             transition: 'background 0.2s',
@@ -77,17 +77,17 @@ function Navbar() {
         >
           {/* Avatar circle */}
           <div style={{
-            width: '28px', height: '28px', borderRadius: '50%',
+            width: '24px', height: '24px', borderRadius: '50%',
             background: 'white', color: '#EC0029',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.72rem', fontWeight: 700, flexShrink: 0,
+            fontSize: '0.68rem', fontWeight: 700, flexShrink: 0,
           }}>
             {initials}
           </div>
 
           {/* Name — hidden on very small screens */}
           <span style={{
-            fontSize: '0.85rem', fontWeight: 600,
+            fontSize: '0.8rem', fontWeight: 600,
             maxWidth: 'clamp(0px, 20vw, 140px)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
@@ -95,7 +95,7 @@ function Navbar() {
           </span>
 
           <ChevronDown
-            size={15}
+            size={14}
             style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }}
           />
         </button>

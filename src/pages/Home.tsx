@@ -165,15 +165,30 @@ function Proyectos() {
           </section>
         ) : null}
 
-        {visibleProjects.length === 0 && (
-          <section className="dashboard-empty-state">
-            <h2>No encontramos proyectos</h2>
-            <p>
-              Ajusta los filtros o prueba con otra búsqueda para ver más
-              resultados.
-            </p>
-          </section>
-        )}
+        {visibleProjects.length === 0 &&
+          (projects.length === 0 ? (
+            <section className="dashboard-empty-state">
+              <h2>Aún no tienes proyectos</h2>
+              <p>
+                Crea tu primer proyecto para empezar a generar la documentación
+                de tu software.
+              </p>
+              <p style={{ marginTop: "1rem", marginBottom: 0 }}>
+                <Link to="/crear" className="dashboard-create-button">
+                  <Plus size={18} strokeWidth={2.5} />
+                  <span>Crear Nuevo Proyecto</span>
+                </Link>
+              </p>
+            </section>
+          ) : (
+            <section className="dashboard-empty-state">
+              <h2>No encontramos proyectos</h2>
+              <p>
+                Ajusta los filtros o prueba con otra búsqueda para ver más
+                resultados.
+              </p>
+            </section>
+          ))}
       </main>
     </div>
   );

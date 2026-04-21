@@ -7,7 +7,6 @@ import DiagramModal from '../components/ui/DiagramModal';
 import DocPreviewModal from '../components/ui/DocPreviewModal';
 import DocSectionItem, { type DocSection } from '../components/ui/DocSectionItem';
 import Navbar from '../components/ui/Navbar';
-import SubNavbar from '../components/ui/SubNavbar';
 import { chatApi, documentApi } from '../services/api';
 import { calculateDocumentProgress } from '../utils/documentProgress';
 import './Chat.css';
@@ -420,7 +419,6 @@ function Chat() {
       <div className="chat-page">
         <div className="chat-nav">
           <Navbar />
-          <SubNavbar />
           <BreadcrumbProjects />
         </div>
         <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
@@ -436,7 +434,6 @@ function Chat() {
     <div className="chat-page">
       <div className="chat-nav">
         <Navbar />
-        <SubNavbar />
         <BreadcrumbProjects />
       </div>
 

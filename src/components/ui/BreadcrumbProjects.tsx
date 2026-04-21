@@ -62,7 +62,6 @@ function BreadcrumbProjects() {
           alignItems: 'center',
           padding: '15px 110px',
           width: '100%',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
         }}
       >
         <BreadcrumbList style={{ fontFamily: "'Gotham Medium', sans-serif", fontSize: '14px', color: '#323E48' }}>

@@ -4,6 +4,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background-color: #fafafa;
 }
 
 .chat-nav {
@@ -17,7 +18,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
-  background-color: #f0f4f6;
+  background-color: #fafafa;
 }
 
 /* ── Step Indicator ── */

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/ui/Navbar";
-import SubNavbar from "../components/ui/SubNavbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { chatApi } from "../services/api";
 
@@ -90,10 +89,9 @@ function CrearProyecto() {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <div style={{ flexShrink: 0 }}>
         <Navbar />
-        <SubNavbar />
         <BreadcrumbProjects />
       </div>
-      <div style={{ flex: 1, overflowY: "auto", backgroundColor: "#f8fafc", padding: "3rem 1rem" }}>
+      <div style={{ flex: 1, overflowY: "auto", backgroundColor: "#fafafa", padding: "3rem 1rem" }}>
         <div style={{ maxWidth: "48rem", margin: "0 auto" }}>
           <div style={{ backgroundColor: "white", borderRadius: "0.5rem", boxShadow: "0 1px 3px rgba(0,0,0,0.1)", padding: "2rem" }}>
             <h1 style={{ fontSize: "1.875rem", fontWeight: "bold", color: "#1a1a1a", marginBottom: "1.5rem" }}>

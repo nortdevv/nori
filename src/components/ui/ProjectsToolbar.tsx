@@ -44,13 +44,18 @@ function ProjectsToolbar({
       </label>
 
       <div className="dashboard-toolbar__controls">
-        <div className="dashboard-filters" role="tablist" aria-label="Estados">
+        <div
+          className="dashboard-filters"
+          role="group"
+          aria-label="Filtrar por estado"
+        >
           {filters.map((filter) => (
             <button
               key={filter.value}
               type="button"
               className={`dashboard-filter-pill${activeFilter === filter.value ? " is-active" : ""}`}
               onClick={() => onFilterChange(filter.value)}
+              aria-pressed={activeFilter === filter.value}
             >
               {filter.label}
             </button>
