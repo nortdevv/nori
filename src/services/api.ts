@@ -95,6 +95,31 @@ export const chatApi = {
     ),
 
   /**
+   * Update project metadata (name, tags, status)
+   */
+  updateConversation: (
+    projectId: string,
+    data: { name: string; tags: string[]; status: string }
+  ) =>
+    apiFetch<{
+      project_id: string;
+      name: string;
+      tags: string[];
+      status: string;
+      progress_pct: number;
+      date_created: string;
+      last_updated: string;
+      message_count?: number;
+    }>(
+      API_CONFIG.chatService,
+      `/api/chat/conversations/${encodeURIComponent(projectId)}/update`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ ...data, userId: STATIC_USER_ID }),
+      }
+    ),
+
+  /**
    * Create a new conversation/project
    */
   createConversation: (data: {

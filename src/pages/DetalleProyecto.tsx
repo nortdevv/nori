@@ -4,8 +4,8 @@ import Navbar from "../components/ui/Navbar";
 import SubNavbar from "../components/ui/SubNavbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { chatApi, documentApi } from "../services/api";
-import type { ProjectDisplay } from "../types/project";
-import { toProjectDisplay } from "../types/project";
+import type { ProjectDisplay, ProjectStatus } from "../types/project";
+import { toProjectDisplay, getStatusLabel } from "../types/project";
 import {
   ChevronLeft,
   ChevronRight,
@@ -16,6 +16,8 @@ import {
   FileText,
   Download,
   RefreshCw,
+  Check,
+  X,
 } from "lucide-react";
 import "./DetalleProyecto.css";
 import { calculateDocumentProgress } from "../utils/documentProgress";
@@ -32,6 +34,24 @@ function getProgressColor(progress: number) {
   return "#ec0029";
 }
 
+const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
+  { value: "draft", label: "Borrador" },
+  { value: "in_progress", label: "En progreso" },
+  { value: "completed", label: "Completado" },
+];
+
+function parseTagsFromInput(input: string): string[] {
+  return input
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+function tagsAreSame(a: string[], b: string[]) {
+  if (a.length !== b.length) return false;
+  return a.every((t, i) => t === b[i]);
+}
+
 function DetalleProyecto() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -45,12 +65,18 @@ function DetalleProyecto() {
   const [siblingOlderId, setSiblingOlderId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [draftTagsInput, setDraftTagsInput] = useState("");
+  const [draftStatus, setDraftStatus] = useState<ProjectStatus>("in_progress");
+  const [isSavingDetails, setIsSavingDetails] = useState(false);
 
   useEffect(() => {
     if (!id) {
       navigate("/");
       return;
     }
+    setIsEditingDetails(false);
     loadProject();
   }, [id]);
 
@@ -133,6 +159,61 @@ function DetalleProyecto() {
       console.error("Error generating document:", err);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const detailsDirty =
+    !!project &&
+    isEditingDetails &&
+    (draftName.trim() !== project.name ||
+      !tagsAreSame(parseTagsFromInput(draftTagsInput), project.tags || []) ||
+      draftStatus !== (project.status as ProjectStatus));
+
+  const startEditingDetails = () => {
+    if (!project) return;
+    setActionError(null);
+    setDraftName(project.name);
+    setDraftTagsInput((project.tags || []).join(", "));
+    setDraftStatus(
+      STATUS_OPTIONS.some((o) => o.value === project.status)
+        ? (project.status as ProjectStatus)
+        : "in_progress"
+    );
+    setIsEditingDetails(true);
+  };
+
+  const cancelEditingDetails = () => {
+    if (detailsDirty) {
+      if (!window.confirm("¿Descartar los cambios sin guardar?")) return;
+    }
+    setIsEditingDetails(false);
+    setActionError(null);
+  };
+
+  const saveEditingDetails = async () => {
+    if (!id || !project || !detailsDirty || isSavingDetails) return;
+    const name = draftName.trim();
+    if (!name) {
+      setActionError("El nombre no puede estar vacío");
+      return;
+    }
+    const tags = parseTagsFromInput(draftTagsInput);
+    setIsSavingDetails(true);
+    setActionError(null);
+    try {
+      const updated = await chatApi.updateConversation(id, {
+        name,
+        tags,
+        status: draftStatus,
+      });
+      setProject(toProjectDisplay(updated));
+      setIsEditingDetails(false);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo guardar el proyecto";
+      setActionError(message);
+    } finally {
+      setIsSavingDetails(false);
     }
   };
 
@@ -254,10 +335,39 @@ function DetalleProyecto() {
                 <Plus size={16} strokeWidth={2.5} />
                 Continuar chat
               </Link>
-              <button type="button" className="detalle-btn detalle-btn--edit">
-                <Pencil size={16} strokeWidth={2.2} />
-                Editar
-              </button>
+              {!isEditingDetails ? (
+                <button
+                  type="button"
+                  className="detalle-btn detalle-btn--edit"
+                  onClick={startEditingDetails}
+                >
+                  <Pencil size={16} strokeWidth={2.2} />
+                  Editar
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="detalle-btn detalle-btn--edit-cancel"
+                    onClick={cancelEditingDetails}
+                    disabled={isSavingDetails}
+                  >
+                    <X size={16} strokeWidth={2.2} />
+                    Cancelar
+                  </button>
+                  {detailsDirty && (
+                    <button
+                      type="button"
+                      className="detalle-btn detalle-btn--edit-save"
+                      onClick={saveEditingDetails}
+                      disabled={isSavingDetails}
+                    >
+                      <Check size={16} strokeWidth={2.2} />
+                      {isSavingDetails ? "Guardando…" : "Confirmar"}
+                    </button>
+                  )}
+                </>
+              )}
               <button
                 type="button"
                 className="detalle-btn detalle-btn--duplicate"
@@ -278,27 +388,83 @@ function DetalleProyecto() {
           </div>
 
         <div className="detalle-cards">
-          <div className="detalle-main-card">
-            <h1 className="detalle-main-card__title">{project.name}</h1>
+          <div className={`detalle-main-card ${isEditingDetails ? "detalle-main-card--editing" : ""}`}>
+            {isEditingDetails ? (
+              <label className="detalle-edit-field">
+                <span className="detalle-edit-field__label">Nombre</span>
+                <input
+                  type="text"
+                  className="detalle-edit-field__input detalle-edit-field__input--title"
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  autoComplete="off"
+                  disabled={isSavingDetails}
+                  aria-label="Nombre del proyecto"
+                />
+              </label>
+            ) : (
+              <h1 className="detalle-main-card__title">{project.name}</h1>
+            )}
             <p className="detalle-main-card__subtitle">
               Creado el {new Date(project.date_created).toLocaleDateString('es-ES')}
             </p>
 
             <div className="detalle-badges">
-              <span
-                className="detalle-badge"
-                style={getStatusStyle(project.status)}
-              >
-                {project.statusLabel}
-              </span>
-              {project.tags && project.tags.map((tag) => (
+              {isEditingDetails ? (
+                <label className="detalle-edit-field detalle-edit-field--inline">
+                  <span className="detalle-edit-field__label">Estado</span>
+                  <select
+                    className="detalle-edit-field__select"
+                    value={draftStatus}
+                    onChange={(e) =>
+                      setDraftStatus(e.target.value as ProjectStatus)
+                    }
+                    disabled={isSavingDetails}
+                    aria-label="Estado del proyecto"
+                  >
+                    {STATUS_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
                 <span
-                  key={tag}
-                  className="detalle-badge detalle-badge--category"
+                  className="detalle-badge"
+                  style={getStatusStyle(project.status)}
                 >
-                  {tag}
+                  {project.statusLabel}
                 </span>
-              ))}
+              )}
+              {isEditingDetails ? (
+                <label className="detalle-edit-field detalle-edit-field--block">
+                  <span className="detalle-edit-field__label">Tags</span>
+                  <input
+                    type="text"
+                    className="detalle-edit-field__input"
+                    value={draftTagsInput}
+                    onChange={(e) => setDraftTagsInput(e.target.value)}
+                    placeholder="Ej: interno, cloud, prioridad"
+                    autoComplete="off"
+                    disabled={isSavingDetails}
+                    aria-label="Tags separados por comas"
+                  />
+                  <span className="detalle-edit-field__hint">
+                    Separados por comas
+                  </span>
+                </label>
+              ) : (
+                project.tags &&
+                project.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="detalle-badge detalle-badge--category"
+                  >
+                    {tag}
+                  </span>
+                ))
+              )}
             </div>
 
             <div className="detalle-info-row">
@@ -326,9 +492,13 @@ function DetalleProyecto() {
             <p className="detalle-side-label">Estado del proyecto</p>
             <span
               className="detalle-side-status-badge"
-              style={getStatusStyle(project.status)}
+              style={getStatusStyle(
+                isEditingDetails ? draftStatus : project.status
+              )}
             >
-              {project.statusLabel}
+              {isEditingDetails
+                ? getStatusLabel(draftStatus)
+                : project.statusLabel}
             </span>
 
             <hr className="detalle-side-separator" />

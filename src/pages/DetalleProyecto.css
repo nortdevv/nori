@@ -153,6 +153,125 @@
   border-color: #c8001f;
 }
 
+.detalle-btn--edit-cancel {
+  color: #334155;
+  border: 1.5px solid #d6dce5;
+}
+
+.detalle-btn--edit-cancel:hover:not(:disabled) {
+  background-color: #f8fafc;
+}
+
+.detalle-btn--edit-save {
+  color: #ffffff;
+  background-color: #16a34a;
+  border: 1.5px solid #16a34a;
+}
+
+.detalle-btn--edit-save:hover:not(:disabled) {
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+.detalle-btn--edit-save:disabled,
+.detalle-btn--edit-cancel:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ── Edición de metadatos en card principal ── */
+.detalle-main-card--editing .detalle-badges {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.detalle-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  width: 100%;
+}
+
+.detalle-edit-field--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  width: auto;
+}
+
+.detalle-edit-field--block {
+  width: 100%;
+}
+
+.detalle-edit-field__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detalle-edit-field__input {
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #0f172a;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #ffffff;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  transition: border-color 0.15s ease;
+}
+
+.detalle-edit-field__input:focus {
+  outline: none;
+  border-color: #ec0029;
+  box-shadow: 0 0 0 3px rgba(236, 0, 41, 0.12);
+}
+
+.detalle-edit-field__input--title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  max-width: 100%;
+  padding: 8px 12px;
+}
+
+.detalle-edit-field__input::placeholder {
+  color: #94a3b8;
+}
+
+.detalle-edit-field__hint {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.detalle-edit-field__select {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #0f172a;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 8px 36px 8px 14px;
+  background: #ffffff;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.detalle-edit-field__select:focus {
+  outline: none;
+  border-color: #ec0029;
+  box-shadow: 0 0 0 3px rgba(236, 0, 41, 0.12);
+}
+
 /* ── Layout de las dos cards ── */
 .detalle-cards {
   display: flex;

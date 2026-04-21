@@ -76,7 +76,7 @@ export function toProjectDisplay(project: Project): ProjectDisplay {
   };
 }
 
-function getStatusLabel(status: string): string {
+export function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     'in_progress': 'En progreso',
     'completed': 'Completado',
