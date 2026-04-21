@@ -26,6 +26,7 @@
 - [🧠 Características Principales](#características-principales)
 - [🛠️ Tecnologías Utilizadas](#tecnologías-utilizadas)
 - [🚀 Instalación y Configuración](#instalación-y-configuración)
+- [🧪 Pruebas E2E (Playwright)](#pruebas-e2e-playwright)
 - [👥 Equipo NortDev](#equipo-nortdev)
 
 ---
@@ -103,6 +104,36 @@ _(Tecnologías concretas pueden variar según implementación final.)_
 - Python 3.11+ (para servicio de documentos y tareas de IA opcionales)
 - PostgreSQL 14+
 - Cuenta / API Key del proveedor de LLM (p. ej. Gemini / OpenAI)
+
+### Pruebas E2E (Playwright)
+
+Las pruebas de extremo a extremo viven en `e2e/` y usan [Playwright](https://playwright.dev/). El comando `test:e2e` levanta Vite automáticamente (`webServer` en `playwright.config.ts`).
+
+**Primera vez (clonar el repo, sin `node_modules`):**
+
+```bash
+cd nori
+npm install
+npm run test:e2e:install
+npm run test:e2e
+```
+
+- `npm install` — dependencias de la app y de Playwright.
+- `test:e2e:install` — descarga Chromium para Playwright (una vez por máquina o tras actualizar Playwright).
+- `test:e2e` — ejecuta las pruebas (Vite en `http://localhost:5173`).
+
+**Cuando ya tienes dependencias instaladas:**
+
+```bash
+cd nori
+npm run test:e2e
+```
+
+Vuelve a ejecutar `npm run test:e2e:install` si Playwright se actualizó o aparece el error de navegadores faltantes.
+
+**Opcional:** `npm run test:e2e:ui` abre la UI interactiva de Playwright.
+
+> Las pruebas actuales de humo solo cargan la pantalla de login y **no requieren** levantar los servicios de `nori-demo`. Las pruebas que llamen a auth, chat u otros APIs necesitarán el stack backend y las variables `VITE_*` correspondientes.
 
 ---
 

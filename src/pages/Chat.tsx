@@ -229,8 +229,7 @@ function Chat() {
 
   // Diagram state
   const [showDiagram, setShowDiagram] = useState(false);
-  const [diagramImageUrl, setDiagramImageUrl] = useState<string | null>(null);
-  const [diagramSvgUrl, setDiagramSvgUrl] = useState<string | null>(null);
+  const [diagramSource, setDiagramSource] = useState<string | null>(null);
   const [isGeneratingDiagram, setIsGeneratingDiagram] = useState(false);
   const [diagramError, setDiagramError] = useState<string | null>(null);
 
@@ -271,22 +270,24 @@ function Chat() {
   const handleGenerateDiagram = async () => {
     if (!id) return;
 
-    setDiagramImageUrl(null);
-    setDiagramSvgUrl(null);
+    setDiagramSource(null);
     setDiagramError(null);
     setIsGeneratingDiagram(true);
     setShowDiagram(true);
 
     try {
       const result = await chatApi.generateDiagram(id);
-      setDiagramImageUrl(result.imageUrl);
-      setDiagramSvgUrl(result.svgUrl);
+      setDiagramSource(result.source);
     } catch (err: any) {
       console.error('Error generating diagram:', err);
       setDiagramError(err.message || 'Error al generar el diagrama');
     } finally {
       setIsGeneratingDiagram(false);
     }
+  };
+
+  const handleSaveDiagramSource = (newSource: string) => {
+    setDiagramSource(newSource);
   };
 
   useEffect(() => {
@@ -485,12 +486,12 @@ function Chat() {
 
       {showDiagram && (
         <DiagramModal
-          imageUrl={diagramImageUrl}
-          svgUrl={diagramSvgUrl}
+          source={diagramSource}
           isGenerating={isGeneratingDiagram}
           error={diagramError}
           onClose={() => setShowDiagram(false)}
           onRegenerate={handleGenerateDiagram}
+          onSaveSource={handleSaveDiagramSource}
         />
       )}
     </div>
