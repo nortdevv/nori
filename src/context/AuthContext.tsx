@@ -5,6 +5,7 @@ interface AuthUser {
   id: string;
   email: string;
   name: string | null;
+  role: 'user' | 'admin';
 }
 
 interface AuthContextType {
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     [AUTH_KEY, TOKEN_KEY, USER_KEY].forEach((k) => localStorage.removeItem(k));
+    document.title = "Nori";
     setIsAuthenticated(false);
     setUser(null);
   };

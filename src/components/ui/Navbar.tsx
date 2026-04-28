@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, ChevronDown } from 'lucide-react';
+import { LogOut, ChevronDown, UserCog } from 'lucide-react';
 import BanorteLogo from '../../assets/images/BanorteLogo.png';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
@@ -25,6 +25,11 @@ function Navbar() {
     setOpen(false);
     logout();
     navigate('/login', { replace: true });
+  };
+
+  const handleProfile = () => {
+    setOpen(false);
+    navigate('/perfil');
   };
 
   const initials = user?.name
@@ -70,6 +75,17 @@ function Navbar() {
                 <p className="navbar-app__dropdown-email">{user?.email}</p>
               </div>
             </div>
+
+            <button
+              id="profile-button"
+              type="button"
+              className="navbar-app__profile-link"
+              onClick={handleProfile}
+              role="menuitem"
+            >
+              <UserCog size={16} aria-hidden />
+              Mi Perfil
+            </button>
 
             <button
               id="logout-button"

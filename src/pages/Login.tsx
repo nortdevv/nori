@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, MessageSquare, FileText, FolderOpen } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -19,6 +19,10 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = "Iniciar sesión — Nori";
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +96,7 @@ export default function Login() {
           lineHeight: 1.65,
           maxWidth: "340px",
         }}>
-          Levanta requerimientos de software de manera inteligente con inteligencia artificial
+          Levanta requerimientos de software con inteligencia artificial
         </p>
 
         {/* Feature list */}
