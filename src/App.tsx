@@ -7,6 +7,7 @@ import Logout from "./pages/Logout";
 import Home from "./pages/Home";
 import CrearProyecto from "./pages/CrearProyecto";
 import DetalleProyecto from "./pages/DetalleProyecto";
+import Perfil from "./pages/Perfil";
 import Chat from "./pages/Chat";
 
 function App() {
@@ -24,6 +25,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute>
+                <Perfil />
               </ProtectedRoute>
             }
           />
