@@ -19,6 +19,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (isLoading) return null;
 
   if (!isAuthenticated) {
+    document.title = "Nori";
     return <Navigate to="/login" replace />;
   }
 

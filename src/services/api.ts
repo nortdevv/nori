@@ -58,7 +58,7 @@ export const authApi = {
    * Login with email and password. Returns a JWT token and user info.
    */
   login: (email: string, password: string) =>
-    apiFetch<{ token: string; user: { id: string; email: string; name: string } }>(
+    apiFetch<{ token: string; user: { id: string; email: string; name: string; role: 'user' | 'admin' } }>(
       API_CONFIG.authService,
       '/api/auth/login',
       { method: 'POST', body: JSON.stringify({ email, password }) }
