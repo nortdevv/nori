@@ -60,6 +60,28 @@ export type SortOption = "recent" | "name";
 export type LibraryViewMode = "grid" | "list";
 
 // ============================================================================
+// Document Versioning Types
+// ============================================================================
+
+export interface DocumentVersion {
+  version_id: string;
+  version_number: number;
+  label: string;
+  generated_at: string;
+  is_current: boolean;
+}
+
+export interface VersionSection {
+  section_no: number;
+  content: any;
+}
+
+export interface VersionDetail extends DocumentVersion {
+  sections: VersionSection[];
+  project_name?: string;
+}
+
+// ============================================================================
 // Utility Functions
 // ============================================================================
 
