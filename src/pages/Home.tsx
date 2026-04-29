@@ -33,7 +33,13 @@ function Proyectos() {
       setIsLoading(true);
       setError(null);
       const { conversations } = await chatApi.getConversations();
-      const displayProjects = conversations.map(toProjectDisplay);
+      const seen = new Set<string>();
+      const unique = conversations.filter((p: any) => {
+        if (seen.has(p.project_id)) return false;
+        seen.add(p.project_id);
+        return true;
+      });
+      const displayProjects = unique.map(toProjectDisplay);
       setProjects(displayProjects);
     } catch (err: any) {
       setError(err.message || 'Failed to load projects');
