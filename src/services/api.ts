@@ -59,7 +59,7 @@ export const authApi = {
    * Login with email and password. Returns a JWT token and user info.
    */
   login: (email: string, password: string) =>
-    apiFetch<{ token: string; user: { id: string; email: string; name: string } }>(
+    apiFetch<{ token: string; user: { id: string; email: string; name: string; role: 'user' | 'admin' } }>(
       API_CONFIG.authService,
       '/api/auth/login',
       { method: 'POST', body: JSON.stringify({ email, password }) }
@@ -346,5 +346,18 @@ export const documentApi = {
       API_CONFIG.documentService,
       `/api/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}`,
       { method: 'DELETE' }
+      ),
+
+   /**
+   * Send the project document via email with Banorte-branded template and DOCX attachment
+   */
+  sendDocumentEmail: (projectId: string, to: string, customMessage?: string) =>
+    apiFetch<{ message: string; to: string; filename: string }>(
+      API_CONFIG.documentService,
+      `/api/documents/${projectId}/send-email`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ to, customMessage }),
+      }
     ),
 };

@@ -7,6 +7,7 @@ import DiagramModal from '../components/ui/DiagramModal';
 import DocPreviewModal from '../components/ui/DocPreviewModal';
 import DocSectionItem, { type DocSection } from '../components/ui/DocSectionItem';
 import Navbar from '../components/ui/Navbar';
+import SendEmailModal from '../components/ui/SendEmailModal';
 import { chatApi, documentApi } from '../services/api';
 import { calculateDocumentProgress } from '../utils/documentProgress';
 import './Chat.css';
@@ -230,6 +231,9 @@ function Chat() {
   const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
   const [docError, setDocError] = useState<string | null>(null);
 
+  // Email modal state
+  const [showEmailModal, setShowEmailModal] = useState(false);
+
   // Diagram state
   const [showDiagram, setShowDiagram] = useState(false);
   const [diagramSource, setDiagramSource] = useState<string | null>(null);
@@ -275,6 +279,11 @@ function Chat() {
     a.download = `${projectName}.docx`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleSendEmail = async (to: string, customMessage: string) => {
+    if (!id) throw new Error('Proyecto no identificado');
+    await documentApi.sendDocumentEmail(id, to, customMessage);
   };
 
   const handleGenerateDiagram = async () => {
@@ -516,6 +525,15 @@ function Chat() {
           onClose={() => { setShowPreview(false); setPreviewBlob(null); setDocError(null); }}
           onDownload={handleDownload}
           onRegenerate={handleRegenerate}
+          onSendEmail={() => setShowEmailModal(true)}
+        />
+      )}
+
+      {showEmailModal && (
+        <SendEmailModal
+          projectName={projectName}
+          onClose={() => setShowEmailModal(false)}
+          onSend={handleSendEmail}
         />
       )}
 
