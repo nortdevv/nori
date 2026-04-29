@@ -255,6 +255,12 @@ function Chat() {
     } finally {
       setIsGeneratingDoc(false);
     }
+
+    try {
+      await documentApi.createVersion(id);
+    } catch (err: any) {
+      console.error('Error al guardar versión:', err);
+    }
   };
 
   const handleRegenerate = () => {

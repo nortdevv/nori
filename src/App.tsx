@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import CrearProyecto from "./pages/CrearProyecto";
 import DetalleProyecto from "./pages/DetalleProyecto";
 import Chat from "./pages/Chat";
+import DocumentVersionView from "./pages/DocumentVersionView";
 
 function App() {
   return (
@@ -48,6 +49,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Chat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doc/:projectId/:versionId"
+            element={
+              <ProtectedRoute>
+                <DocumentVersionView />
               </ProtectedRoute>
             }
           />

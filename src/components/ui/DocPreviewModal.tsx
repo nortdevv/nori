@@ -99,12 +99,13 @@ function DocPreviewModal({
             </div>
           )}
 
-          {/* DOCX rendered preview */}
-          {!isGenerating && !error && (
-            <div className="doc-preview-modal__docx-scroll">
-              <div ref={containerRef} className="doc-preview-modal__docx-container" />
-            </div>
-          )}
+          {/* DOCX rendered preview — always mounted so ref is available when blob arrives */}
+          <div
+            className="doc-preview-modal__docx-scroll"
+            style={{ display: isGenerating || !!error ? 'none' : undefined }}
+          >
+            <div ref={containerRef} className="doc-preview-modal__docx-container" />
+          </div>
         </div>
 
         {/* ── Footer ── */}

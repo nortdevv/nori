@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/ui/Navbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { chatApi, documentApi } from "../services/api";
-import type { ProjectDisplay, ProjectStatus } from "../types/project";
+import type { ProjectDisplay, ProjectStatus, DocumentVersion } from "../types/project";
 import { toProjectDisplay } from "../types/project";
 import {
   ChevronLeft,
@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Check,
   X,
+  Eye,
 } from "lucide-react";
 import "./DetalleProyecto.css";
 import { calculateDocumentProgress } from "../utils/documentProgress";
@@ -69,6 +70,11 @@ function DetalleProyecto() {
   const [draftTagsInput, setDraftTagsInput] = useState("");
   const [draftStatus, setDraftStatus] = useState<ProjectStatus>("in_progress");
   const [isSavingDetails, setIsSavingDetails] = useState(false);
+  const [versions, setVersions] = useState<DocumentVersion[]>([]);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(false);
+  const [isCreatingVersion, setIsCreatingVersion] = useState(false);
+  const [isDeletingVersionId, setIsDeletingVersionId] = useState<string | null>(null);
+  const [versionError, setVersionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -77,7 +83,58 @@ function DetalleProyecto() {
     }
     setIsEditingDetails(false);
     loadProject();
+    loadVersions();
   }, [id]);
+
+  const loadVersions = async () => {
+    if (!id) return;
+    setIsLoadingVersions(true);
+    setVersionError(null);
+    try {
+      const result = await documentApi.getVersions(id);
+      setVersions(Array.isArray(result) ? result : []);
+    } catch (err: any) {
+      setVersionError(err.message || "No se pudieron cargar las versiones");
+    } finally {
+      setIsLoadingVersions(false);
+    }
+  };
+
+  const handleDeleteVersion = async (versionId: string) => {
+    if (!id || isDeletingVersionId) return;
+    const target = versions.find((v) => v.version_id === versionId);
+    if (!target) return;
+    if (
+      !window.confirm(
+        `¿Eliminar la versión ${target.version_number}? Esta acción no se puede deshacer.`
+      )
+    )
+      return;
+    setIsDeletingVersionId(versionId);
+    setVersionError(null);
+    try {
+      await documentApi.deleteVersion(id, versionId);
+      setVersions((prev) => prev.filter((v) => v.version_id !== versionId));
+    } catch (err: any) {
+      setVersionError(err.message || "No se pudo eliminar la versión");
+    } finally {
+      setIsDeletingVersionId(null);
+    }
+  };
+
+  const handleCreateVersion = async () => {
+    if (!id || isCreatingVersion) return;
+    setIsCreatingVersion(true);
+    setVersionError(null);
+    try {
+      await documentApi.createVersion(id);
+      await loadVersions();
+    } catch (err: any) {
+      setVersionError(err.message || "No se pudo crear la nueva versión");
+    } finally {
+      setIsCreatingVersion(false);
+    }
+  };
 
   useEffect(() => {
     document.title = project
@@ -94,18 +151,24 @@ function DetalleProyecto() {
       setActionError(null);
 
       const { conversations } = await chatApi.getConversations();
-      const found = conversations.find((p) => p.project_id === id);
+      const seen = new Set<string>();
+      const unique = conversations.filter((p: any) => {
+        if (seen.has(p.project_id)) return false;
+        seen.add(p.project_id);
+        return true;
+      });
+      const found = unique.find((p) => p.project_id === id);
 
       if (!found) {
         setError("Proyecto no encontrado");
         return;
       }
 
-      const listIdx = conversations.findIndex((p) => p.project_id === id);
-      setSiblingNewerId(listIdx > 0 ? conversations[listIdx - 1].project_id : null);
+      const listIdx = unique.findIndex((p) => p.project_id === id);
+      setSiblingNewerId(listIdx > 0 ? unique[listIdx - 1].project_id : null);
       setSiblingOlderId(
-        listIdx >= 0 && listIdx < conversations.length - 1
-          ? conversations[listIdx + 1].project_id
+        listIdx >= 0 && listIdx < unique.length - 1
+          ? unique[listIdx + 1].project_id
           : null,
       );
 
@@ -518,47 +581,86 @@ function DetalleProyecto() {
             <h2 className="detalle-docs-title">Documentos</h2>
           </div>
 
-          <div className="detalle-doc-item">
-            <div className="detalle-doc-item__left-border" />
-            <div className="detalle-doc-item__content">
-              <div className="detalle-doc-item__header">
-                <div className="detalle-doc-item__info">
-                  <FileText
-                    size={20}
-                    strokeWidth={2}
-                    className="detalle-doc-item__file-icon"
-                    aria-hidden
-                  />
-                  <div>
-                    <p className="detalle-doc-item__name">
-                      Documento de requerimientos
-                    </p>
-                    <p className="detalle-doc-item__meta">
-                      Proyecto: {project.name}
-                    </p>
+          {versionError && (
+            <div className="detalle-action-error" role="alert">
+              {versionError}
+            </div>
+          )}
+
+          {isLoadingVersions ? (
+            <p className="detalle-versions-loading">Cargando documentos…</p>
+          ) : (versions ?? []).length === 0 ? (
+            <p className="detalle-versions-empty">
+              Aún no hay versiones guardadas. Ve al chat y usa "Generar Documento" para crear la primera versión.
+            </p>
+          ) : (
+            <div className="detalle-versions-list">
+              {versions.map((version) => (
+                <div key={version.version_id} className="detalle-doc-item">
+                  <div className="detalle-doc-item__left-border" />
+                  <div className="detalle-doc-item__content">
+                    <div className="detalle-doc-item__header">
+                      <div className="detalle-doc-item__info">
+                        <FileText
+                          size={20}
+                          strokeWidth={2}
+                          className="detalle-doc-item__file-icon"
+                          aria-hidden
+                        />
+                        <div>
+                          <p className="detalle-doc-item__name">
+                            Documento de requerimientos
+                          </p>
+                          <p className="detalle-doc-item__meta">
+                            Proyecto: {project.name}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="detalle-doc-delete-btn"
+                        onClick={() => handleDeleteVersion(version.version_id)}
+                        disabled={isDeletingVersionId === version.version_id}
+                        title={`Eliminar versión ${version.version_number}`}
+                        aria-label={`Eliminar versión ${version.version_number}`}
+                      >
+                        <Trash2 size={15} strokeWidth={2} />
+                      </button>
+                    </div>
+                    <div className="detalle-doc-item__actions">
+                      <button
+                        type="button"
+                        className="detalle-doc-btn detalle-doc-btn--download"
+                        onClick={handleGenerateDocument}
+                        disabled={isGenerating}
+                      >
+                        <Download size={15} strokeWidth={2.2} />
+                        {isGenerating ? "Generando…" : "Descargar .docx"}
+                      </button>
+                      <Link
+                        to={`/doc/${project.project_id}/${version.version_id}`}
+                        className="detalle-doc-btn detalle-doc-btn--view"
+                      >
+                        <Eye size={15} strokeWidth={2.2} />
+                        Ver contenido
+                      </Link>
+                      {version.is_current && (
+                        <button
+                          type="button"
+                          className="detalle-doc-btn detalle-doc-btn--regenerate"
+                          onClick={handleCreateVersion}
+                          disabled={isCreatingVersion}
+                        >
+                          <RefreshCw size={15} strokeWidth={2.2} />
+                          {isCreatingVersion ? "Actualizando…" : "Actualizar contenido"}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="detalle-doc-item__actions">
-                <button
-                  type="button"
-                  className="detalle-doc-btn detalle-doc-btn--download"
-                  onClick={handleGenerateDocument}
-                  disabled={isGenerating}
-                >
-                  <Download size={15} strokeWidth={2.2} />
-                  {isGenerating ? 'Generando...' : 'Descargar .docx'}
-                </button>
-                <Link
-                  to={`/chat/${project.project_id}`}
-                  className="detalle-doc-btn detalle-doc-btn--regenerate"
-                >
-                  <RefreshCw size={15} strokeWidth={2.2} />
-                  Actualizar contenido
-                </Link>
-              </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
         </div>
 

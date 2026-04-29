@@ -1,4 +1,5 @@
 import { API_CONFIG, STATIC_USER_ID } from '../config/api';
+import type { DocumentVersion, VersionDetail } from '../types/project';
 
 function joinServiceUrl(base: string, path: string): string {
   const b = base.replace(/\/$/, '');
@@ -305,5 +306,45 @@ export const documentApi = {
         method: 'PATCH',
         body: JSON.stringify({ content }),
       }
+    ),
+
+  /**
+   * List all saved versions for a project
+   */
+  getVersions: (projectId: string) =>
+    apiFetch<DocumentVersion[]>(
+      API_CONFIG.documentService,
+      `/api/projects/${encodeURIComponent(projectId)}/versions`,
+      { method: 'GET', cache: 'no-store' }
+    ),
+
+  /**
+   * Get a specific version with its Document_Section snapshots
+   */
+  getVersion: (projectId: string, versionId: string) =>
+    apiFetch<VersionDetail>(
+      API_CONFIG.documentService,
+      `/api/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}`,
+      { method: 'GET' }
+    ),
+
+  /**
+   * Snapshot the current working draft as a new version
+   */
+  createVersion: (projectId: string) =>
+    apiFetch<DocumentVersion>(
+      API_CONFIG.documentService,
+      `/api/projects/${encodeURIComponent(projectId)}/versions`,
+      { method: 'POST' }
+    ),
+
+  /**
+   * Permanently delete a specific version snapshot
+   */
+  deleteVersion: (projectId: string, versionId: string) =>
+    apiFetch<void>(
+      API_CONFIG.documentService,
+      `/api/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}`,
+      { method: 'DELETE' }
     ),
 };
