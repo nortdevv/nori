@@ -306,4 +306,17 @@ export const documentApi = {
         body: JSON.stringify({ content }),
       }
     ),
+
+  /**
+   * Send the project document via email with Banorte-branded template and DOCX attachment
+   */
+  sendDocumentEmail: (projectId: string, to: string, customMessage?: string) =>
+    apiFetch<{ message: string; to: string; filename: string }>(
+      API_CONFIG.documentService,
+      `/api/documents/${projectId}/send-email`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ to, customMessage }),
+      }
+    ),
 };

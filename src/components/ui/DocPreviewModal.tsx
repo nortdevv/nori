@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { X, Download, FileText, AlertTriangle } from 'lucide-react';
+import { X, Download, FileText, AlertTriangle, Mail } from 'lucide-react';
 import { renderAsync } from 'docx-preview';
 import './DocPreviewModal.css';
 
@@ -10,6 +10,7 @@ interface DocPreviewModalProps {
   onClose: () => void;
   onDownload: () => void;
   onRegenerate: () => void;
+  onSendEmail?: () => void;
   projectName?: string;
 }
 
@@ -24,6 +25,7 @@ function DocPreviewModal({
   onClose,
   onDownload,
   onRegenerate,
+  onSendEmail,
   projectName,
 }: DocPreviewModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -119,6 +121,17 @@ function DocPreviewModal({
           >
             Regenerar
           </button>
+          {onSendEmail && (
+            <button
+              className="doc-preview-modal__cancel-btn"
+              onClick={onSendEmail}
+              disabled={!docxBlob || isGenerating}
+              title="Enviar documento por correo"
+            >
+              <Mail size={15} style={{ marginRight: 6 }} />
+              Enviar por Correo
+            </button>
+          )}
           <button
             className="doc-preview-modal__download-btn"
             onClick={onDownload}
