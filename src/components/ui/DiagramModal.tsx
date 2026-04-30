@@ -148,7 +148,10 @@ function DiagramModal({
       const data = parseMermaidCode(source);
       setNodes(data.nodes);
       setEdges(data.edges);
-      renderDiagram(source);
+      // Serializar de inmediato para que el render inicial coincida con la estructura de edición.
+      // Esto evita que el layout se rompa o se resetee de golpe en la primera edición de color.
+      const initialCode = serializeMermaidCode(data);
+      renderDiagram(initialCode);
       setHasChanges(false);
     }
   }, [source, renderDiagram]);
