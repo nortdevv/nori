@@ -343,12 +343,6 @@
   font-size: 11px;
   color: #1a1a1a;
   background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 3px 11px rgba(0, 0, 0, 0.16);
-  border: 1px solid #e5e5e5;
-  padding: 12px;
-  min-width: 180px;
-  transform: translate(-50%, 8px);
 }
 
 .diagram-modal__select:focus {
