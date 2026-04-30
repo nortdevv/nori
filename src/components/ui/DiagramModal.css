@@ -337,6 +337,7 @@
 
 .diagram-modal__select {
   flex: 1;
+  min-width: 0;
   padding: 7px 8px;
   border: 1px solid #ddd;
   border-radius: 6px;
