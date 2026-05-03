@@ -1,5 +1,14 @@
 import { API_CONFIG, STATIC_USER_ID } from '../config/api';
-import type { DocumentVersion, VersionDetail } from '../types/project';
+import type {
+  DocumentVersion,
+  VersionDetail,
+  Project,
+  Message,
+  DocumentSection,
+  DocumentSectionUpdated,
+  DocumentProjectMeta,
+  JsonValue,
+} from '../types/project';
 
 function joinServiceUrl(base: string, path: string): string {
   const b = base.replace(/\/$/, '');
@@ -41,7 +50,7 @@ async function apiFetch<T>(
       return undefined as T;
     }
     return JSON.parse(raw) as T;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle network errors (backend unavailable, CORS, etc.)
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new Error('Servicio Backend no disponible. Checa tu conexión o inténtalo de nuevo más tarde.');
@@ -59,7 +68,7 @@ export const authApi = {
    * Login with email and password. Returns a JWT token and user info.
    */
   login: (email: string, password: string) =>
-    apiFetch<{ token: string; user: { id: string; email: string; name: string; role: 'user' | 'admin' } }>(
+    apiFetch<{ token: string; user: { id: string; email: string; name: string | null; role: 'user' | 'admin' } }>(
       API_CONFIG.authService,
       '/api/auth/login',
       { method: 'POST', body: JSON.stringify({ email, password }) }
@@ -75,7 +84,7 @@ export const chatApi = {
    * Get all conversations for the static user
    */
   getConversations: () =>
-    apiFetch<{ conversations: any[] }>(
+    apiFetch<{ conversations: Project[] }>(
       API_CONFIG.chatService,
       `/api/chat/conversations?userId=${STATIC_USER_ID}`,
       { method: 'GET' }
@@ -95,6 +104,34 @@ export const chatApi = {
       }
     ),
 
+  duplicateConversation: async (
+    projectId: string,
+  ): Promise<{ projectId: string; userId: string }> => {
+    const payload = JSON.stringify({ userId: STATIC_USER_ID });
+    const payloadWithId = JSON.stringify({
+      userId: STATIC_USER_ID,
+      projectId,
+    });
+
+    try {
+      return await apiFetch<{ projectId: string; userId: string }>(
+        API_CONFIG.chatService,
+        `/api/chat/conversations/${encodeURIComponent(projectId)}/duplicate`,
+        { method: 'POST', body: payload },
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      const looksLikeMissingRoute = /\b404\b|Not Found/i.test(msg);
+      if (!looksLikeMissingRoute) throw err;
+
+      return apiFetch<{ projectId: string; userId: string }>(
+        API_CONFIG.chatService,
+        '/api/chat/duplicate-project',
+        { method: 'POST', body: payloadWithId },
+      );
+    }
+  },
+
   /**
    * Update project metadata (name, tags, status)
    */
@@ -102,16 +139,7 @@ export const chatApi = {
     projectId: string,
     data: { name: string; tags: string[]; status: string }
   ) =>
-    apiFetch<{
-      project_id: string;
-      name: string;
-      tags: string[];
-      status: string;
-      progress_pct: number;
-      date_created: string;
-      last_updated: string;
-      message_count?: number;
-    }>(
+    apiFetch<Project>(
       API_CONFIG.chatService,
       `/api/chat/conversations/${encodeURIComponent(projectId)}/update`,
       {
@@ -146,7 +174,7 @@ export const chatApi = {
    * Get conversation history for a project
    */
   getHistory: (projectId: string) =>
-    apiFetch<{ projectId: string; messages: any[] }>(
+    apiFetch<{ projectId: string; messages: Message[] }>(
       API_CONFIG.chatService,
       `/api/chat/history/${projectId}`,
       { method: 'GET' }
@@ -177,7 +205,7 @@ export const chatApi = {
    * Get document sections for a project
    */
   getDocumentSections: (projectId: string) =>
-    apiFetch<{ projectId: string; sections: any[] }>(
+    apiFetch<{ projectId: string; sections: DocumentSection[] }>(
       API_CONFIG.chatService,
       `/api/chat/document-sections/${projectId}`,
       { method: 'GET' }
@@ -270,7 +298,7 @@ export const documentApi = {
       }
 
       return response.blob();
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle network errors
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Servicio de documentos no disponible. Checa tu conexión o inténtalo de nuevo más tarde.');
@@ -289,7 +317,7 @@ export const documentApi = {
    * Get project metadata from document service
    */
   getProject: (projectId: string) =>
-    apiFetch<any>(
+    apiFetch<DocumentProjectMeta>(
       API_CONFIG.documentService,
       `/api/documents/${projectId}`,
       { method: 'GET' }
@@ -298,8 +326,8 @@ export const documentApi = {
   /**
    * Update a document section content
    */
-  patchSection: (projectId: string, sectionNo: number, content: any) =>
-    apiFetch<any>(
+  patchSection: (projectId: string, sectionNo: number, content: JsonValue) =>
+    apiFetch<DocumentSectionUpdated>(
       API_CONFIG.documentService,
       `/api/documents/projects/${projectId}/sections/${sectionNo}`,
       {

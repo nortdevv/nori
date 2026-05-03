@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, MessageSquare, FileText, FolderOpen } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { getErrorMessage } from "../lib/utils";
 import "./Login.css";
 
 export default function Login() {
@@ -31,8 +32,8 @@ export default function Login() {
     try {
       await login(email, password);
       navigate("/", { replace: true });
-    } catch (err: any) {
-      setError(err.message || "Credenciales incorrectas. Intenta de nuevo.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Credenciales incorrectas. Intenta de nuevo."));
     } finally {
       setIsSubmitting(false);
     }

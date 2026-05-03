@@ -10,6 +10,8 @@ import Navbar from '../components/ui/Navbar';
 import SendEmailModal from '../components/ui/SendEmailModal';
 import { chatApi, documentApi } from '../services/api';
 import { calculateDocumentProgress } from '../utils/documentProgress';
+import type { DocumentSection } from '../types/project';
+import { getErrorMessage } from '../lib/utils';
 import './Chat.css';
 
 const INITIAL_SECTIONS = [
@@ -253,16 +255,16 @@ function Chat() {
     try {
       const blob = await documentApi.generateDocument(id);
       setPreviewBlob(blob);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error al generar el documento:', err);
-      setDocError(err.message || 'Error al generar el documento');
+      setDocError(getErrorMessage(err, 'Error al generar el documento'));
     } finally {
       setIsGeneratingDoc(false);
     }
 
     try {
       await documentApi.createVersion(id);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error al guardar versión:', err);
     }
   };
@@ -298,9 +300,9 @@ function Chat() {
       const result = await chatApi.generateDiagram(id);
       setDiagramSource(result.source);
       setHasSavedDiagram(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error generating diagram:', err);
-      setDiagramError(err.message || 'Error al generar el diagrama');
+      setDiagramError(getErrorMessage(err, 'Error al generar el diagrama'));
     } finally {
       setIsGeneratingDiagram(false);
     }
@@ -359,7 +361,7 @@ function Chat() {
 
         // Merge backend sections with INITIAL_SECTIONS
         const mergedSections = INITIAL_SECTIONS.map((initialSection) => {
-          const backendSection = backendSections.find((bs: any) => bs.section_no === initialSection.id);
+          const backendSection = backendSections.find((bs: DocumentSection) => bs.section_no === initialSection.id);
 
           return {
             ...initialSection,
@@ -372,7 +374,7 @@ function Chat() {
         setSections(mergedSections);
 
         // Check if a saved diagram exists
-        const completedCount = mergedSections.filter((s: any) => s.completed).length;
+        const completedCount = mergedSections.filter((s) => s.completed).length;
         if (completedCount === mergedSections.length) {
           try {
             const diagram = await chatApi.getDiagram(id);
@@ -388,8 +390,8 @@ function Chat() {
         console.error('Error loading document sections:', sectionErr);
         // Keep default sections if loading fails
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to load chat history');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to load chat history'));
       console.error('Error loading history:', err);
     } finally {
       setIsLoading(false);
@@ -432,7 +434,7 @@ function Chat() {
 
           setSections((prev) =>
             prev.map((section) => {
-              const backendSection = backendSections.find((bs: any) => bs.section_no === section.id);
+              const backendSection = backendSections.find((bs: DocumentSection) => bs.section_no === section.id);
 
               return {
                 ...section,
@@ -449,8 +451,8 @@ function Chat() {
           );
         }
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to send message');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to send message'));
       console.error('Error sending message:', err);
       // Remove optimistic message on error
       setMessages((prev) => prev.slice(0, -1));

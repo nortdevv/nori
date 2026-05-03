@@ -30,6 +30,7 @@ import {
   type DiagramEdge,
   type NodeShape,
 } from "../../utils/diagramParser";
+import { getErrorMessage } from "../../lib/utils";
 import "./DiagramModal.css";
 
 mermaid.initialize({
@@ -133,9 +134,9 @@ function DiagramModal({
         if (oldEl) oldEl.remove();
         const { svg } = await mermaid.render(renderId, code);
         setSvgHtml(svg);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Mermaid render error:", err);
-        setRenderError(err?.message || "Error de sintaxis en el diagrama");
+        setRenderError(getErrorMessage(err, "Error de sintaxis en el diagrama"));
       }
     },
     [uniqueId]

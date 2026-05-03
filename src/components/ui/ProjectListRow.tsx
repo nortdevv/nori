@@ -4,9 +4,17 @@ import type { ProjectDisplay } from "../../types/project";
 
 type Props = {
   project: ProjectDisplay;
+  selectionMode?: boolean;
+  selected?: boolean;
+  onToggleSelected?: () => void;
 };
 
-function ProjectListRow({ project }: Props) {
+function ProjectListRow({
+  project,
+  selectionMode = false,
+  selected = false,
+  onToggleSelected,
+}: Props) {
   const navigate = useNavigate();
   const to = `/${project.project_id}`;
 
@@ -14,17 +22,40 @@ function ProjectListRow({ project }: Props) {
 
   return (
     <tr
-      className="project-list-row"
-      tabIndex={0}
-      onClick={go}
+      className={`project-list-row${selectionMode ? " project-list-row--selectable" : ""}`}
+      tabIndex={selectionMode ? -1 : 0}
+      onClick={(e) => {
+        if (selectionMode) {
+          if ((e.target as HTMLElement).closest('input[type="checkbox"]')) return;
+          onToggleSelected?.();
+          return;
+        }
+        go();
+      }}
       onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
+        if (!selectionMode && (event.key === "Enter" || event.key === " ")) {
           event.preventDefault();
           go();
         }
       }}
-      aria-label={`Abrir proyecto ${project.name}`}
+      aria-label={
+        selectionMode
+          ? `Seleccionar o anular proyecto ${project.name}`
+          : `Abrir proyecto ${project.name}`
+      }
     >
+      {selectionMode ? (
+        <td className="project-list-row__cell project-list-row__cell--select">
+          <input
+            type="checkbox"
+            className="project-select-checkbox project-select-checkbox--circle"
+            checked={selected}
+            onChange={() => onToggleSelected?.()}
+            aria-label={`Seleccionar proyecto ${project.name}`}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </td>
+      ) : null}
       <td className="project-list-row__cell project-list-row__cell--title">
         <span className="project-list-row__title">{project.name}</span>
       </td>

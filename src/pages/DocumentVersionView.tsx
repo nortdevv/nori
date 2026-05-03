@@ -4,6 +4,7 @@ import Navbar from "../components/ui/Navbar";
 import { documentApi } from "../services/api";
 import SectionContent from "../components/ui/SectionContent";
 import type { DocumentVersion, VersionDetail } from "../types/project";
+import { getErrorMessage } from "../lib/utils";
 import {
   FileText,
   Download,
@@ -84,8 +85,8 @@ function DocumentVersionView() {
       ]);
       setVersion(detail);
       setAllVersions(Array.isArray(versionsResult) ? versionsResult : []);
-    } catch (err: any) {
-      setError(err.message || "No se pudo cargar el documento");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "No se pudo cargar el documento"));
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +105,7 @@ function DocumentVersionView() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error al descargar:", err);
     } finally {
       setIsDownloading(false);
@@ -134,8 +135,8 @@ function DocumentVersionView() {
           navigate(`/${projectId}`, { replace: true });
         }
       }
-    } catch (err: any) {
-      window.alert(err.message || "No se pudo eliminar la versión");
+    } catch (err: unknown) {
+      window.alert(getErrorMessage(err, "No se pudo eliminar la versión"));
     } finally {
       setIsDeletingVersionId(null);
     }

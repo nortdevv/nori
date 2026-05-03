@@ -1,13 +1,15 @@
 import { useState, useCallback } from "react";
 import { documentApi } from "../services/api";
+import type { JsonValue } from "../types/project";
+import { getErrorMessage } from "../lib/utils";
 
 export type EditStatus = "idle" | "editing" | "saving" | "saved";
 
 interface UseSectionEditResult {
   status: EditStatus;
-  draft: any;
+  draft: JsonValue | null;
   errorMessage: string | null;
-  setDraft: (draft: any) => void;
+  setDraft: (draft: JsonValue | null) => void;
   startEdit: () => void;
   cancelEdit: () => void;
   save: () => Promise<void>;
@@ -16,21 +18,22 @@ interface UseSectionEditResult {
 export function useSectionEdit(
   projectId: string,
   sectionId: number,
-  content: any,
-  onSaved: (updatedContent: any) => void,
+  content: JsonValue | string | undefined,
+  onSaved: (updatedContent: JsonValue) => void,
 ): UseSectionEditResult {
   const [status, setStatus] = useState<EditStatus>("idle");
-  const [draft, setDraft] = useState<any>(null);
+  const [draft, setDraft] = useState<JsonValue | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   //
   const startEdit = useCallback(() => {
-    let parsed = content;
+    let parsed: JsonValue | null =
+      content === undefined ? null : (content as JsonValue);
     if (typeof content === "string") {
       const trimmed = content.trim();
       if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
         try {
-          parsed = JSON.parse(trimmed);
+          parsed = JSON.parse(trimmed) as JsonValue;
         } catch {
           parsed = content;
         }
@@ -56,11 +59,11 @@ export function useSectionEdit(
         sectionId,
         draft,
       );
-      onSaved(result?.content ?? draft);
+      onSaved((result?.content ?? draft) as JsonValue);
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 2000);
-    } catch (err: any) {
-      setErrorMessage(err.message ?? "Error al guardar. Inténtalo de nuevo.");
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err, "Error al guardar. Inténtalo de nuevo."));
       setStatus("editing");
     }
   }, [projectId, sectionId, draft, onSaved]);

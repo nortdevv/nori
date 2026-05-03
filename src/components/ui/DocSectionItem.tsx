@@ -4,13 +4,14 @@ import "../../pages/Chat.css";
 import SectionContent from "./SectionContent";
 import SectionEditForm from "./SectionEditForm";
 import { useSectionEdit } from "../../hooks/useSectionEdit";
+import type { JsonValue } from "../../types/project";
 
 export interface DocSection {
   id: number;
   title: string;
   completed: boolean;
   expanded: boolean;
-  content?: any; // Document section content from backend
+  content?: JsonValue;
 }
 
 function DocSectionItem({

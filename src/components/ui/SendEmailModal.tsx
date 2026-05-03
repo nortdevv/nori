@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Mail, Send, CheckCircle, AlertTriangle } from 'lucide-react';
 import './SendEmailModal.css';
+import { getErrorMessage } from '../../lib/utils';
 
 interface SendEmailModalProps {
   projectName: string;
@@ -28,8 +29,8 @@ function SendEmailModal({ projectName, onClose, onSend }: SendEmailModalProps) {
     try {
       await onSend(trimmed, customMessage.trim());
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'No se pudo enviar el correo. Intenta de nuevo.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'No se pudo enviar el correo. Intenta de nuevo.'));
     } finally {
       setIsSending(false);
     }

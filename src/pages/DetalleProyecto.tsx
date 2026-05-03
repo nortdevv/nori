@@ -3,7 +3,13 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/ui/Navbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { chatApi, documentApi } from "../services/api";
-import type { ProjectDisplay, ProjectStatus, DocumentVersion } from "../types/project";
+import type {
+  ProjectDisplay,
+  ProjectStatus,
+  DocumentVersion,
+  Project,
+  DocumentSection,
+} from "../types/project";
 import { toProjectDisplay } from "../types/project";
 import {
   ChevronLeft,
@@ -21,6 +27,7 @@ import {
 } from "lucide-react";
 import "./DetalleProyecto.css";
 import { calculateDocumentProgress } from "../utils/documentProgress";
+import { getErrorMessage } from "../lib/utils";
 
 function getStatusStyle(status: string) {
   if (status === "completed")
@@ -64,6 +71,7 @@ function DetalleProyecto() {
   const [siblingNewerId, setSiblingNewerId] = useState<string | null>(null);
   const [siblingOlderId, setSiblingOlderId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [draftName, setDraftName] = useState("");
@@ -93,8 +101,8 @@ function DetalleProyecto() {
     try {
       const result = await documentApi.getVersions(id);
       setVersions(Array.isArray(result) ? result : []);
-    } catch (err: any) {
-      setVersionError(err.message || "No se pudieron cargar las versiones");
+    } catch (err: unknown) {
+      setVersionError(getErrorMessage(err, "No se pudieron cargar las versiones"));
     } finally {
       setIsLoadingVersions(false);
     }
@@ -115,8 +123,8 @@ function DetalleProyecto() {
     try {
       await documentApi.deleteVersion(id, versionId);
       setVersions((prev) => prev.filter((v) => v.version_id !== versionId));
-    } catch (err: any) {
-      setVersionError(err.message || "No se pudo eliminar la versión");
+    } catch (err: unknown) {
+      setVersionError(getErrorMessage(err, "No se pudo eliminar la versión"));
     } finally {
       setIsDeletingVersionId(null);
     }
@@ -129,8 +137,8 @@ function DetalleProyecto() {
     try {
       await documentApi.createVersion(id);
       await loadVersions();
-    } catch (err: any) {
-      setVersionError(err.message || "No se pudo crear la nueva versión");
+    } catch (err: unknown) {
+      setVersionError(getErrorMessage(err, "No se pudo crear la nueva versión"));
     } finally {
       setIsCreatingVersion(false);
     }
@@ -152,7 +160,7 @@ function DetalleProyecto() {
 
       const { conversations } = await chatApi.getConversations();
       const seen = new Set<string>();
-      const unique = conversations.filter((p: any) => {
+      const unique = conversations.filter((p: Project) => {
         if (seen.has(p.project_id)) return false;
         seen.add(p.project_id);
         return true;
@@ -179,7 +187,7 @@ function DetalleProyecto() {
         const { sections } = await chatApi.getDocumentSections(id);
         setRealProgress(
           calculateDocumentProgress(
-            sections.map((s: { section_no: number; is_complete: boolean }) => ({
+            sections.map((s: DocumentSection) => ({
               sectionNo: s.section_no,
               isComplete: s.is_complete,
             })),
@@ -189,8 +197,8 @@ function DetalleProyecto() {
         // If sections fail, fall back to the stored value
         setRealProgress(found.progress_pct ?? 0);
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to load project");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to load project"));
       console.error("Error loading project:", err);
     } finally {
       setIsLoading(false);
@@ -216,8 +224,8 @@ function DetalleProyecto() {
       // Cleanup
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err: any) {
-      setError(err.message || "Failed to generate document");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to generate document"));
       console.error("Error generating document:", err);
     } finally {
       setIsGenerating(false);
@@ -279,6 +287,20 @@ function DetalleProyecto() {
     }
   };
 
+  const handleDuplicate = async () => {
+    if (!id || !project || isDuplicating) return;
+    setIsDuplicating(true);
+    setActionError(null);
+    try {
+      const { projectId: newProjectId } = await chatApi.duplicateConversation(id);
+      navigate(`/${newProjectId}`);
+    } catch (err: unknown) {
+      setActionError(getErrorMessage(err, "No se pudo duplicar el proyecto"));
+    } finally {
+      setIsDuplicating(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!id || !project || isDeleting) return;
     if (
@@ -293,8 +315,8 @@ function DetalleProyecto() {
     try {
       await chatApi.deleteConversation(id);
       navigate("/", { replace: true });
-    } catch (err: any) {
-      setActionError(err.message || "No se pudo eliminar el proyecto");
+    } catch (err: unknown) {
+      setActionError(getErrorMessage(err, "No se pudo eliminar el proyecto"));
     } finally {
       setIsDeleting(false);
     }
@@ -433,9 +455,11 @@ function DetalleProyecto() {
               <button
                 type="button"
                 className="detalle-btn detalle-btn--duplicate"
+                onClick={handleDuplicate}
+                disabled={isDuplicating || isDeleting || isSavingDetails || isGenerating}
               >
                 <Copy size={16} strokeWidth={2.2} />
-                Duplicar
+                {isDuplicating ? "Duplicando…" : "Duplicar"}
               </button>
               <button
                 type="button"

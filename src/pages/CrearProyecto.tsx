@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/ui/Navbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { chatApi } from "../services/api";
+import { getErrorMessage } from "../lib/utils";
 
 const PREDEFINED_TAGS = [
   "Cumplimiento Regulatorio",
@@ -77,8 +78,8 @@ function CrearProyecto() {
       });
 
       navigate(`/chat/${projectId}`);
-    } catch (err: any) {
-      setError(err.message || "Failed to create project");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to create project"));
       console.error("Error creating project:", err);
     } finally {
       setIsCreating(false);
