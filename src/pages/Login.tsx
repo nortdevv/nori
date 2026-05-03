@@ -183,7 +183,7 @@ export default function Login() {
                   style={{
                     width: "100%",
                     padding: "0.7rem 1rem 0.7rem 2.5rem",
-                    border: "1.5px solid #e5e7eb",
+                    border: "1.5px solid var(--line-border-muted)",
                     borderRadius: "10px",
                     fontSize: "0.9rem",
                     color: "#111",
@@ -193,7 +193,7 @@ export default function Login() {
                     transition: "border-color 0.2s",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#E5192D"}
-                  onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--line-border-muted)")}
                 />
               </div>
             </div>
@@ -215,7 +215,7 @@ export default function Login() {
                   style={{
                     width: "100%",
                     padding: "0.7rem 2.75rem 0.7rem 2.5rem",
-                    border: "1.5px solid #e5e7eb",
+                    border: "1.5px solid var(--line-border-muted)",
                     borderRadius: "10px",
                     fontSize: "0.9rem",
                     color: "#111",
@@ -225,7 +225,7 @@ export default function Login() {
                     transition: "border-color 0.2s",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#E5192D"}
-                  onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--line-border-muted)")}
                 />
                 <button
                   id="toggle-password"

@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, FileText, GitBranch, RefreshCw, Send } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BreadcrumbProjects from '../components/ui/BreadcrumbProjects';
 import ChatBubble, { type Message as ChatBubbleMessage } from '../components/ui/ChatBubble';
@@ -27,6 +27,8 @@ const INITIAL_SECTIONS = [
   { id: 9, title: '9. Supuestos' },
   { id: 10, title: '10. Restricciones' },
 ];
+
+const CHAT_INPUT_MAX_HEIGHT_PX = 200;
 
 function getProgressColor(progress: number) {
   if (progress === 100) return '#16a34a';
@@ -56,24 +58,51 @@ function ChatPanel({
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const [messagesScrollable, setMessagesScrollable] = useState(false);
+  const [inputScrollable, setInputScrollable] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = messagesRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setMessagesScrollable(el.scrollHeight > el.clientHeight);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [messages, isSending]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
+  useLayoutEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+
+    const syncHeight = () => {
+      ta.style.height = 'auto';
+      const full = ta.scrollHeight;
+      ta.style.height = `${Math.min(full, CHAT_INPUT_MAX_HEIGHT_PX)}px`;
+      setInputScrollable(full > CHAT_INPUT_MAX_HEIGHT_PX);
+    };
+
+    syncHeight();
+    const ro = new ResizeObserver(syncHeight);
+    ro.observe(ta);
+    return () => ro.disconnect();
   }, [inputValue]);
 
   return (
     <div className="chat-panel">
       <div className="chat-panel__header">
-        <div>
-          <div className="chat-panel__title">Asistente Conversacional</div>
-          <div className="chat-panel__subtitle">Responde las preguntas de Nori</div>
+        <div className="chat-panel__title-row">
+          <span className="chat-panel__title-icon" aria-hidden />
+          <div className="chat-panel__title">Nori - Asistente Conversacional</div>
         </div>
         <div className="chat-panel__progress">
           <span className="chat-panel__progress-label">Progreso</span>
@@ -92,7 +121,10 @@ function ChatPanel({
         </div>
       </div>
 
-      <div className="chat-panel__messages">
+      <div
+        ref={messagesRef}
+        className={`chat-panel__messages${messagesScrollable ? ' chat-panel__messages--scrollable' : ''}`}
+      >
         {messages.map((msg, idx) => (
           <ChatBubble key={`${msg.from}-${idx}`} message={msg} />
         ))}
@@ -102,18 +134,10 @@ function ChatPanel({
         <div ref={bottomRef} />
       </div>
 
-      <div className="chat-panel__quick-actions">
-        {['Continuar', 'Agregar más detalles'].map((label) => (
-          <button key={label} className="chat-panel__quick-btn" onClick={() => onInputChange(label)}>
-            {label}
-          </button>
-        ))}
-      </div>
-
       <div className="chat-panel__input-row">
         <textarea
           ref={textareaRef}
-          className="chat-panel__input"
+          className={`chat-panel__input${inputScrollable ? ' chat-panel__input--scrollable' : ''}`}
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={(e) => {
@@ -126,8 +150,14 @@ function ChatPanel({
           disabled={isSending}
           rows={1}
         />
-        <button className="chat-panel__send-btn" onClick={onSend} disabled={isSending}>
-          <Send size={16} color="#fff" />
+        <button
+          className="chat-panel__send-btn"
+          type="button"
+          onClick={onSend}
+          disabled={isSending}
+          aria-label="Enviar mensaje"
+        >
+          <Send size={22} strokeWidth={2} aria-hidden />
         </button>
       </div>
     </div>
@@ -166,29 +196,30 @@ function DocumentPanel({
           <FileText size={18} color="#1A1A1A" />
           <span>Documento de Requerimientos</span>
         </div>
-        <RefreshCw size={18} color="#EC0029" className="doc-panel__refresh" />
+        <div className="doc-panel__header-right">
+          <div className="doc-panel__pagination">
+            <button className="doc-panel__page-btn" onClick={() => setPage((p) => p - 1)} disabled={page === 0}>
+              <ChevronLeft size={16} />
+            </button>
+            <span className="doc-panel__page-label">
+              {page + 1} / {totalPages}
+            </span>
+            <button
+              className="doc-panel__page-btn"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page === totalPages - 1}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+          <RefreshCw size={18} color="#EC0029" className="doc-panel__refresh" />
+        </div>
       </div>
 
       <div className="doc-panel__sections">
         {visible.map((section) => (
           <DocSectionItem key={section.id} section={section} projectId={projectId} onToggle={onToggle} />
         ))}
-      </div>
-
-      <div className="doc-panel__pagination">
-        <button className="doc-panel__page-btn" onClick={() => setPage((p) => p - 1)} disabled={page === 0}>
-          <ChevronLeft size={16} />
-        </button>
-        <span className="doc-panel__page-label">
-          {page + 1} / {totalPages}
-        </span>
-        <button
-          className="doc-panel__page-btn"
-          onClick={() => setPage((p) => p + 1)}
-          disabled={page === totalPages - 1}
-        >
-          <ChevronRight size={16} />
-        </button>
       </div>
 
       <div className="doc-panel__footer">

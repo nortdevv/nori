@@ -98,7 +98,7 @@ function CrearProyecto() {
             style={{
               backgroundColor: "white",
               borderRadius: "12px",
-              border: "1px solid #e2e8f0",
+              border: "1px solid var(--line-border)",
               boxShadow: "var(--nori-shadow-card)",
               padding: "2rem",
             }}
@@ -145,7 +145,7 @@ function CrearProyecto() {
                           fontWeight: "500",
                           border: isSelected
                             ? "1.5px solid var(--nori-brand)"
-                            : "1.5px solid #d1d5db",
+                            : "1.5px solid var(--line-border-muted)",
                           backgroundColor: isSelected ? "#fef2f2" : "white",
                           color: isSelected ? "var(--nori-brand)" : "#4b5563",
                           cursor: "pointer",
@@ -250,7 +250,7 @@ function CrearProyecto() {
                             fontWeight: "500",
                             border: isSelected
                               ? "1.5px solid var(--nori-brand)"
-                              : "1.5px solid #d1d5db",
+                              : "1.5px solid var(--line-border-muted)",
                             backgroundColor: isSelected ? "#fef2f2" : "white",
                             color: isSelected ? "var(--nori-brand)" : "#4b5563",
                             cursor: "pointer",
@@ -342,7 +342,7 @@ const labelStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "0.5rem 1rem",
-  border: "1px solid #d1d5db",
+  border: "1px solid var(--line-border-muted)",
   borderRadius: "0.375rem",
   fontSize: "1rem",
   boxSizing: "border-box",

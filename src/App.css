@@ -1,6 +1,6 @@
 /* Dashboard library: one border, two radii (shell vs control), shared neutrals */
 .dashboard-page {
-	--dashboard-border: #e2e8f0;
+	--dashboard-border: var(--line-border);
 	--dashboard-radius-shell: 12px;
 	--dashboard-radius-control: 10px;
 	--dashboard-surface-subtle: #f1f5f9;
@@ -518,7 +518,7 @@
 	align-self: start;
 	aspect-ratio: 1;
 	background-color: #ffffff;
-	border: 2px solid #cbd5e1;
+	border: 2px solid var(--line-border-muted);
 	border-radius: 50%;
 	box-sizing: border-box;
 	flex-shrink: 0;
@@ -556,7 +556,7 @@
 
 .project-list-row {
 	background: #ffffff;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--line-border);
 	border-radius: 12px;
 	box-shadow: var(--nori-shadow-list-row);
 	cursor: pointer;
@@ -584,8 +584,8 @@
 }
 
 .project-list-row__cell {
-	border-bottom: 1px solid #e2e8f0;
-	border-top: 1px solid #e2e8f0;
+	border-bottom: 1px solid var(--line-border);
+	border-top: 1px solid var(--line-border);
 	padding: 8px 12px;
 	vertical-align: middle;
 }
@@ -601,11 +601,11 @@
 }
 
 .project-list-row__cell:first-child {
-	border-left: 1px solid #e2e8f0;
+	border-left: 1px solid var(--line-border);
 }
 
 .project-list-row__cell:last-child {
-	border-right: 1px solid #e2e8f0;
+	border-right: 1px solid var(--line-border);
 }
 
 .project-list-row__cell--title {
@@ -750,7 +750,7 @@
 
 .project-card {
 	background: #ffffff;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--line-border);
 	border-radius: 14px;
 	box-shadow: var(--nori-shadow-card);
 	cursor: pointer;
@@ -769,7 +769,7 @@
 }
 
 .project-card__body {
-	border-bottom: 1px solid #edf2f7;
+	border-bottom: 1px solid var(--line-border);
 	flex: 1;
 	padding: 18px 18px 16px;
 }
@@ -806,7 +806,7 @@
 
 .project-card__tag {
 	background-color: #f1f5f9;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--line-border);
 	border-radius: 9999px;
 	color: #475569;
 	font-size: 0.6875rem;
@@ -855,7 +855,7 @@
 
 .dashboard-empty-state {
 	background: #ffffff;
-	border: 1px dashed #cbd5e1;
+	border: 1px dashed var(--line-border-muted);
 	border-radius: 14px;
 	margin-top: 18px;
 	padding: 28px;

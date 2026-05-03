@@ -30,7 +30,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--line-border-muted);
   flex-shrink: 0;
 }
 
@@ -79,7 +79,7 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   background-color: #fff;
   display: flex;
   align-items: center;
@@ -108,7 +108,7 @@
   min-width: 0;
   position: relative;
   background-color: #f8f8f8;
-  border-right: 1px solid #e5e5e5;
+  border-right: 1px solid var(--line-border-muted);
   display: flex;
   flex-direction: column;
 }
@@ -170,7 +170,7 @@
   z-index: 10;
   background-color: #fff;
   border-radius: 8px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   padding: 4px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.09);
 }
@@ -207,7 +207,7 @@
 .diagram-modal__zoom-divider {
   width: 1px;
   height: 20px;
-  background-color: #e5e5e5;
+  background-color: var(--line-border-muted);
   margin: 0 2px;
 }
 
@@ -216,7 +216,7 @@
   position: absolute;
   z-index: 30;
   background-color: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   border-radius: 12px;
   padding: 10px 12px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
@@ -254,7 +254,7 @@
 }
 
 .diagram-modal__section {
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--line-border-muted);
 }
 
 .diagram-modal__section-header {
@@ -263,7 +263,7 @@
   justify-content: space-between;
   padding: 12px 16px;
   background-color: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--line-border-muted);
   position: sticky;
   top: 0;
   z-index: 2;
@@ -281,7 +281,7 @@
   width: 26px;
   height: 26px;
   border-radius: 6px;
-  border: 1.5px dashed #ccc;
+  border: 1.5px dashed var(--line-border-muted);
   background: transparent;
   color: #999;
   display: flex;
@@ -306,7 +306,7 @@
 .diagram-modal__add-form {
   padding: 12px 16px;
   background-color: #f9fafb;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--line-border-muted);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -316,7 +316,7 @@
 .diagram-modal__input {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--line-border-muted);
   border-radius: 6px;
   font-size: 12px;
   color: #1a1a1a;
@@ -339,7 +339,7 @@
   flex: 1;
   min-width: 0;
   padding: 7px 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--line-border-muted);
   border-radius: 6px;
   font-size: 11px;
   color: #1a1a1a;
@@ -386,7 +386,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--line-border-muted);
   transition: background-color 0.1s;
 }
 
@@ -423,7 +423,7 @@
   left: -4px;
   z-index: 20;
   background-color: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   border-radius: 10px;
   padding: 8px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
@@ -489,7 +489,7 @@
 
 .diagram-modal__shape-select {
   padding: 1px 4px;
-  border: 1px solid #eee;
+  border: 1px solid var(--line-border-muted);
   border-radius: 4px;
   font-size: 10px;
   color: #999;
@@ -534,7 +534,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 7px 16px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--line-border-muted);
   transition: background-color 0.1s;
 }
 
@@ -612,7 +612,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 3px solid #e5e5e5;
+  border: 3px solid var(--line-border-muted);
   border-top-color: #ec0029;
   animation: diagram-spin 0.7s linear infinite;
 }
@@ -639,7 +639,7 @@
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 20px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid var(--line-border-muted);
   flex-shrink: 0;
 }
 
@@ -656,7 +656,7 @@
 }
 
 .diagram-modal__btn--cancel {
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   background-color: #fff;
   color: #4a4a4a;
 }

@@ -31,7 +31,7 @@ test.describe("E01 E04–E08 (autenticado)", () => {
         new RegExp(`/chat/${projectId}`, "i"),
         { timeout: 60_000 },
       );
-      await expect(page.getByText("Asistente Conversacional")).toBeVisible({
+      await expect(page.getByText("Nori - Asistente Conversacional")).toBeVisible({
         timeout: 30_000,
       });
     } finally {
@@ -57,7 +57,7 @@ test.describe("E01 E04–E08 (autenticado)", () => {
       await expect(page).not.toHaveURL(/\/login/);
       await page.getByRole("link", { name: /Continuar chat/i }).click();
       await expect(page).toHaveURL(/\/chat\//);
-      await expect(page.getByText("Asistente Conversacional")).toBeVisible();
+      await expect(page.getByText("Nori - Asistente Conversacional")).toBeVisible();
       await expect(
         page.getByText("Documento de Requerimientos"),
       ).toBeVisible();
