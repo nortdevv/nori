@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { ChevronLeft, ChevronRight, FileText, GitBranch, RefreshCw, Send } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -30,6 +31,106 @@ const INITIAL_SECTIONS = [
 
 const CHAT_INPUT_MAX_HEIGHT_PX = 200;
 
+function randomRange(lo: number, hi: number): number {
+  return lo + Math.random() * (hi - lo);
+}
+
+function randomInt(lo: number, hi: number): number {
+  return Math.floor(lo + Math.random() * (hi - lo + 1));
+}
+
+/**
+ * Larger “instant” jumps that try not to chop common Latin words awkwardly mid-token.
+ */
+function burstTargetIndex(fullText: string, pos: number): number {
+  const len = fullText.length;
+  const remainder = len - pos;
+  if (remainder <= 1) return len;
+
+  const hiLeap = Math.min(72, remainder);
+  const minLeap =
+    remainder <= Math.min(10, hiLeap)
+      ? remainder
+      : randomInt(Math.min(10, hiLeap), hiLeap);
+
+  let end = Math.min(len, pos + minLeap);
+
+  if (end < len && /[\w\u00c0-\u024f]/i.test(fullText[end])) {
+    let cut = fullText.lastIndexOf(' ', end - 1);
+    if (cut <= pos + 6) cut = fullText.lastIndexOf('\n', end - 1);
+    if (cut > pos + 8) end = cut + 1;
+  }
+
+  return Math.min(len, Math.max(pos + 1, end));
+}
+
+/**
+ * Reveal assistant reply in uneven bursts (small dribbles vs larger instant chunks + random gaps).
+ */
+function revealNoriReply(
+  aiMessageId: number,
+  fullText: string,
+  setMessages: Dispatch<SetStateAction<ChatBubbleMessage[]>>,
+  revealToken: number,
+  revealRunRef: { current: number },
+  onDone: () => void,
+): void {
+  const doneIfValid = (): void => {
+    if (revealRunRef.current === revealToken) onDone();
+  };
+
+  const len = fullText.length;
+  if (len === 0 || revealRunRef.current !== revealToken) {
+    doneIfValid();
+    return;
+  }
+
+  let pos = 0;
+
+  const step = (): void => {
+    if (revealRunRef.current !== revealToken) return;
+    const left = len - pos;
+    if (left <= 0) {
+      doneIfValid();
+      return;
+    }
+
+    let add: number;
+    const r = Math.random();
+
+    if (left <= 4) add = left;
+    else if (r < 0.12) add = burstTargetIndex(fullText, pos) - pos;
+    else if (r < 0.35) add = Math.min(left, randomInt(5, 18));
+    else add = Math.min(left, randomInt(1, 6));
+
+    add = Math.max(1, Math.min(add, left));
+    pos += add;
+
+    setMessages((prev) =>
+      prev.map((m) => (m.id === aiMessageId ? { ...m, text: fullText.slice(0, pos) } : m)),
+    );
+
+    if (pos >= len) {
+      doneIfValid();
+      return;
+    }
+
+    const baseMs =
+      add >= 28 ? randomRange(6, 24) :
+      add >= 10 ? randomRange(4, 18) :
+      randomRange(2, 12);
+
+    const microPauseRoll = Math.random();
+    const extraPause = microPauseRoll < 0.08 ? randomRange(42, 95) :
+      microPauseRoll < 0.18 ? randomRange(16, 36) :
+      0;
+
+    window.setTimeout(step, baseMs + extraPause);
+  };
+
+  window.setTimeout(step, randomRange(8, 32));
+}
+
 function getProgressColor(progress: number) {
   if (progress === 100) return '#16a34a';
   return '#ec0029';
@@ -48,6 +149,7 @@ function ChatPanel({
   onSend,
   progress,
   isSending,
+  showTypingLine,
 }: {
   messages: ChatBubbleMessage[];
   inputValue: string;
@@ -55,6 +157,7 @@ function ChatPanel({
   onSend: () => void;
   progress: number;
   isSending: boolean;
+  showTypingLine: boolean;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -78,7 +181,7 @@ function ChatPanel({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, showTypingLine]);
 
   useLayoutEffect(() => {
     const ta = textareaRef.current;
@@ -128,8 +231,10 @@ function ChatPanel({
         {messages.map((msg, idx) => (
           <ChatBubble key={`${msg.from}-${idx}`} message={msg} />
         ))}
-        {isSending && (
-          <div style={{ padding: '1rem', color: '#64748b', fontSize: '0.875rem' }}>Nori está escribiendo...</div>
+        {showTypingLine && (
+          <div className="chat-panel__thinking" aria-busy="true" aria-live="polite">
+            <span className="chat-panel__thinking-label">Nori está pensando…</span>
+          </div>
         )}
         <div ref={bottomRef} />
       </div>
@@ -273,6 +378,14 @@ function Chat() {
   const [isGeneratingDiagram, setIsGeneratingDiagram] = useState(false);
   const [diagramError, setDiagramError] = useState<string | null>(null);
   const [hasSavedDiagram, setHasSavedDiagram] = useState(false);
+
+  const revealRunRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      revealRunRef.current += 1;
+    };
+  }, []);
 
   const handleGenerate = async () => {
     if (!id) return;
@@ -444,19 +557,24 @@ function Chat() {
     };
     setMessages((prev) => [...prev, userMessage]);
 
+    revealRunRef.current += 1;
+    const revealToken = revealRunRef.current;
+
     try {
       const response = await chatApi.sendMessage({
         projectId: id,
         message: messageText,
       });
 
-      // Add AI response
-      const aiMessage: ChatBubbleMessage = {
-        id: messages.length + 2,
-        from: 'nori',
-        text: response.reply,
+      let aiMessageId = 0;
+      setMessages((prev) => {
+        aiMessageId = prev.reduce((max, x) => Math.max(max, x.id), 0) + 1;
+        return [...prev, { id: aiMessageId, from: 'nori', text: '' }];
+      });
+
+      const finishSending = (): void => {
+        if (revealRunRef.current === revealToken) setIsSending(false);
       };
-      setMessages((prev) => [...prev, aiMessage]);
 
       // If a document section was updated, reload all sections to get latest content
       if (response.documentSectionUpdated !== null) {
@@ -482,12 +600,21 @@ function Chat() {
           );
         }
       }
+
+      revealNoriReply(
+        aiMessageId,
+        response.reply,
+        setMessages,
+        revealToken,
+        revealRunRef,
+        finishSending,
+      );
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to send message'));
       console.error('Error sending message:', err);
+      revealRunRef.current += 1;
       // Remove optimistic message on error
       setMessages((prev) => prev.slice(0, -1));
-    } finally {
       setIsSending(false);
     }
   };
@@ -507,6 +634,14 @@ function Chat() {
   }
 
   const progress = calculateProgress(sections);
+
+  const lastMsg = messages.length > 0 ? messages[messages.length - 1] : undefined;
+  const showTypingLine =
+    isSending &&
+    (messages.length === 0 ||
+      !lastMsg ||
+      lastMsg.from === 'user' ||
+      (lastMsg.from === 'nori' && lastMsg.text === ''));
 
   return (
     <div className="chat-page">
@@ -536,6 +671,7 @@ function Chat() {
           onSend={handleSend}
           progress={progress}
           isSending={isSending}
+          showTypingLine={showTypingLine}
         />
         <DocumentPanel
           sections={sections}

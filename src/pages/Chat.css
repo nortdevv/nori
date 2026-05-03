@@ -201,6 +201,55 @@
   gap: 16px;
 }
 
+.chat-panel__thinking {
+  padding: 0 4px;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+}
+
+/**
+ * Skeleton-style shimmer across the phrase (looks like unloaded / still generating).
+ */
+.chat-panel__thinking-label {
+  font-weight: 500;
+  display: inline-block;
+  background: linear-gradient(
+    110deg,
+    #94a3b8 0%,
+    #94a3b8 38%,
+    #cbd5e1 43%,
+    #f8fafc 50%,
+    #cbd5e1 56%,
+    #94a3b8 64%,
+    #94a3b8 100%
+  );
+  background-size: 240% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: chat-panel-thinking-shimmer 1.45s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes chat-panel-thinking-shimmer {
+  0% {
+    background-position: 100% center;
+  }
+  100% {
+    background-position: 0% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-panel__thinking-label {
+    animation: none;
+    background: none;
+    color: #64748b;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+  }
+}
+
 .chat-panel__messages--scrollable {
   overflow-y: auto;
 }
