@@ -235,6 +235,55 @@ export const chatApi = {
         body: JSON.stringify({ source }),
       }
     ),
+
+  /**
+   * Generate a Gantt chart for a project
+   */
+  generateGantt: (projectId: string) =>
+    apiFetch<{
+      projectId: string;
+      diagramId: string;
+      source: string;
+    }>(
+      API_CONFIG.chatService,
+      '/api/chat/generate-gantt',
+      {
+        method: 'POST',
+        body: JSON.stringify({ projectId }),
+      }
+    ),
+
+  /**
+   * Get existing Gantt chart for a project
+   */
+  getGantt: (projectId: string) =>
+    apiFetch<{
+      projectId: string;
+      diagramId: string;
+      source: string;
+      lastUpdated: string;
+    }>(
+      API_CONFIG.chatService,
+      `/api/chat/gantt/${projectId}`,
+      { method: 'GET' }
+    ),
+
+  /**
+   * Update an existing Gantt chart's source code
+   */
+  updateGantt: (projectId: string, source: string) =>
+    apiFetch<{
+      projectId: string;
+      diagramId: string;
+      source: string;
+    }>(
+      API_CONFIG.chatService,
+      `/api/chat/gantt/${projectId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ source }),
+      }
+    ),
 };
 
 // ============================================================================
