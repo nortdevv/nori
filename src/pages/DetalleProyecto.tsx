@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "../components/ui/Navbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
+import { useAuth } from "../context/AuthContext";
 import { chatApi, documentApi } from "../services/api";
 import type {
   ProjectDisplay,
@@ -24,7 +25,9 @@ import {
   Check,
   X,
   Eye,
+  Link2,
 } from "lucide-react";
+import ShareProjectModal from "../components/ui/ShareProjectModal";
 import "./DetalleProyecto.css";
 import { calculateDocumentProgress } from "../utils/documentProgress";
 import { getErrorMessage } from "../lib/utils";
@@ -62,6 +65,7 @@ function tagsAreSame(a: string[], b: string[]) {
 function DetalleProyecto() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [project, setProject] = useState<ProjectDisplay | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,6 +87,7 @@ function DetalleProyecto() {
   const [isCreatingVersion, setIsCreatingVersion] = useState(false);
   const [isDeletingVersionId, setIsDeletingVersionId] = useState<string | null>(null);
   const [versionError, setVersionError] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -90,9 +95,10 @@ function DetalleProyecto() {
       return;
     }
     setIsEditingDetails(false);
+    if (!user?.id) return;
     loadProject();
     loadVersions();
-  }, [id]);
+  }, [id, user?.id]);
 
   const loadVersions = async () => {
     if (!id) return;
@@ -158,6 +164,14 @@ function DetalleProyecto() {
       setError(null);
       setActionError(null);
 
+      let found: Project | undefined;
+      try {
+        const { conversation } = await chatApi.getConversation(id);
+        found = conversation;
+      } catch {
+        // Fallback for older backends: resolve from list
+      }
+
       const { conversations } = await chatApi.getConversations();
       const seen = new Set<string>();
       const unique = conversations.filter((p: Project) => {
@@ -165,7 +179,9 @@ function DetalleProyecto() {
         seen.add(p.project_id);
         return true;
       });
-      const found = unique.find((p) => p.project_id === id);
+      if (!found) {
+        found = unique.find((p) => p.project_id === id);
+      }
 
       if (!found) {
         setError("Proyecto no encontrado");
@@ -454,6 +470,15 @@ function DetalleProyecto() {
               )}
               <button
                 type="button"
+                className="detalle-btn detalle-btn--share"
+                onClick={() => setShowShareModal(true)}
+                disabled={isDuplicating || isDeleting || isSavingDetails || isGenerating}
+              >
+                <Link2 size={16} strokeWidth={2.2} />
+                Compartir
+              </button>
+              <button
+                type="button"
                 className="detalle-btn detalle-btn--duplicate"
                 onClick={handleDuplicate}
                 disabled={isDuplicating || isDeleting || isSavingDetails || isGenerating}
@@ -708,6 +733,15 @@ function DetalleProyecto() {
           )}
         </nav>
       </main>
+
+      {showShareModal && project && id && (
+        <ShareProjectModal
+          projectId={id}
+          projectName={project.name}
+          versions={versions}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </div>
   );
 }

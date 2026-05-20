@@ -769,7 +769,7 @@
 }
 
 .project-card__body {
-	border-bottom: 1px solid var(--line-border);
+	border-bottom: 1px solid var(--line-border-muted);
 	flex: 1;
 	padding: 18px 18px 16px;
 }
@@ -806,7 +806,7 @@
 
 .project-card__tag {
 	background-color: #f1f5f9;
-	border: 1px solid var(--line-border);
+	border: 1px solid var(--line-border-muted);
 	border-radius: 9999px;
 	color: #475569;
 	font-size: 0.6875rem;

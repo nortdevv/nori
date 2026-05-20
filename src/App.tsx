@@ -10,6 +10,7 @@ import DetalleProyecto from "./pages/DetalleProyecto";
 import Perfil from "./pages/Perfil";
 import Chat from "./pages/Chat";
 import DocumentVersionView from "./pages/DocumentVersionView";
+import ShareProjectPage from "./pages/ShareProjectPage";
 
 function App() {
   return (
@@ -58,6 +59,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Chat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/share/:shareId"
+            element={
+              <ProtectedRoute>
+                <ShareProjectPage />
               </ProtectedRoute>
             }
           />

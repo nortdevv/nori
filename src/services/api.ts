@@ -1,4 +1,4 @@
-import { API_CONFIG, STATIC_USER_ID } from '../config/api';
+import { API_CONFIG } from '../config/api';
 import type {
   DocumentVersion,
   VersionDetail,
@@ -8,12 +8,34 @@ import type {
   DocumentSectionUpdated,
   DocumentProjectMeta,
   JsonValue,
+  ProjectShare,
+  ProjectSharePreview,
 } from '../types/project';
+
+function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('nori_token');
+}
+
+function authHeaders(): HeadersInit {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 function joinServiceUrl(base: string, path: string): string {
   const b = base.replace(/\/$/, '');
   const p = path.startsWith('/') ? path : `/${path}`;
   return `${b}${p}`;
+}
+
+function withAuth(options: RequestInit = {}): RequestInit {
+  return {
+    ...options,
+    headers: {
+      ...authHeaders(),
+      ...(options.headers as Record<string, string> | undefined),
+    },
+  };
 }
 
 // Generic fetch wrapper
@@ -81,13 +103,20 @@ export const authApi = {
 
 export const chatApi = {
   /**
-   * Get all conversations for the static user
+   * Get all conversations for the logged-in user (JWT)
    */
   getConversations: () =>
     apiFetch<{ conversations: Project[] }>(
       API_CONFIG.chatService,
-      `/api/chat/conversations?userId=${STATIC_USER_ID}`,
-      { method: 'GET' }
+      '/api/chat/conversations',
+      withAuth({ method: 'GET' }),
+    ),
+
+  getConversation: (projectId: string) =>
+    apiFetch<{ conversation: Project }>(
+      API_CONFIG.chatService,
+      `/api/chat/conversations/${encodeURIComponent(projectId)}`,
+      withAuth({ method: 'GET' }),
     ),
 
   /**
@@ -98,26 +127,19 @@ export const chatApi = {
     apiFetch<{ success: boolean; projectId: string }>(
       API_CONFIG.chatService,
       `/api/chat/conversations/${encodeURIComponent(projectId)}/delete`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ userId: STATIC_USER_ID }),
-      }
+      withAuth({ method: 'POST', body: JSON.stringify({}) }),
     ),
 
   duplicateConversation: async (
     projectId: string,
   ): Promise<{ projectId: string; userId: string }> => {
-    const payload = JSON.stringify({ userId: STATIC_USER_ID });
-    const payloadWithId = JSON.stringify({
-      userId: STATIC_USER_ID,
-      projectId,
-    });
+    const payload = JSON.stringify({ projectId });
 
     try {
       return await apiFetch<{ projectId: string; userId: string }>(
         API_CONFIG.chatService,
         `/api/chat/conversations/${encodeURIComponent(projectId)}/duplicate`,
-        { method: 'POST', body: payload },
+        withAuth({ method: 'POST', body: '{}' }),
       );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '';
@@ -127,7 +149,7 @@ export const chatApi = {
       return apiFetch<{ projectId: string; userId: string }>(
         API_CONFIG.chatService,
         '/api/chat/duplicate-project',
-        { method: 'POST', body: payloadWithId },
+        withAuth({ method: 'POST', body: payload }),
       );
     }
   },
@@ -142,10 +164,10 @@ export const chatApi = {
     apiFetch<Project>(
       API_CONFIG.chatService,
       `/api/chat/conversations/${encodeURIComponent(projectId)}/update`,
-      {
+      withAuth({
         method: 'POST',
-        body: JSON.stringify({ ...data, userId: STATIC_USER_ID }),
-      }
+        body: JSON.stringify(data),
+      }),
     ),
 
   /**
@@ -161,13 +183,10 @@ export const chatApi = {
     apiFetch<{ projectId: string; userId: string }>(
       API_CONFIG.chatService,
       '/api/chat/conversations',
-      {
+      withAuth({
         method: 'POST',
-        body: JSON.stringify({
-          ...data,
-          userId: STATIC_USER_ID,
-        }),
-      }
+        body: JSON.stringify(data),
+      }),
     ),
 
   /**
@@ -177,7 +196,7 @@ export const chatApi = {
     apiFetch<{ projectId: string; messages: Message[] }>(
       API_CONFIG.chatService,
       `/api/chat/history/${projectId}`,
-      { method: 'GET' }
+      withAuth({ method: 'GET' }),
     ),
 
   /**
@@ -192,13 +211,10 @@ export const chatApi = {
     }>(
       API_CONFIG.chatService,
       '/api/chat/send',
-      {
+      withAuth({
         method: 'POST',
-        body: JSON.stringify({
-          ...data,
-          userId: STATIC_USER_ID,
-        }),
-      }
+        body: JSON.stringify(data),
+      }),
     ),
 
   /**
@@ -208,7 +224,7 @@ export const chatApi = {
     apiFetch<{ projectId: string; sections: DocumentSection[] }>(
       API_CONFIG.chatService,
       `/api/chat/document-sections/${projectId}`,
-      { method: 'GET' }
+      withAuth({ method: 'GET' }),
     ),
 
   /**
@@ -224,10 +240,10 @@ export const chatApi = {
     }>(
       API_CONFIG.chatService,
       '/api/chat/generate-diagram',
-      {
+      withAuth({
         method: 'POST',
         body: JSON.stringify({ projectId }),
-      }
+      }),
     ),
 
   /**
@@ -244,7 +260,7 @@ export const chatApi = {
     }>(
       API_CONFIG.chatService,
       `/api/chat/diagram/${projectId}`,
-      { method: 'GET' }
+      withAuth({ method: 'GET' }),
     ),
 
   /**
@@ -258,10 +274,64 @@ export const chatApi = {
     }>(
       API_CONFIG.chatService,
       `/api/chat/diagram/${projectId}`,
-      {
+      withAuth({
         method: 'PUT',
         body: JSON.stringify({ source }),
-      }
+      }),
+    ),
+};
+
+// ============================================================================
+// Share API (requires JWT)
+// ============================================================================
+
+export const shareApi = {
+  create: (
+    projectId: string,
+    options?: { documentVersionId?: string | null; expiresInDays?: number | null },
+  ) =>
+    apiFetch<{ shareId: string; url: string; expiresAt?: string | null }>(
+      API_CONFIG.chatService,
+      `/api/chat/conversations/${encodeURIComponent(projectId)}/shares`,
+      withAuth({
+        method: 'POST',
+        body: JSON.stringify({
+          ...(options?.documentVersionId
+            ? { documentVersionId: options.documentVersionId }
+            : {}),
+          ...(options?.expiresInDays != null
+            ? { expiresInDays: options.expiresInDays }
+            : {}),
+        }),
+      }),
+    ),
+
+  listForProject: (projectId: string) =>
+    apiFetch<{ shares: ProjectShare[] }>(
+      API_CONFIG.chatService,
+      `/api/chat/conversations/${encodeURIComponent(projectId)}/shares`,
+      withAuth({ method: 'GET' }),
+    ),
+
+  revoke: (shareId: string) =>
+    apiFetch<void>(
+      API_CONFIG.chatService,
+      `/api/chat/shares/${encodeURIComponent(shareId)}`,
+      withAuth({ method: 'DELETE' }),
+    ),
+
+  get: (shareId: string) =>
+    apiFetch<ProjectSharePreview>(
+      API_CONFIG.chatService,
+      `/api/share/${encodeURIComponent(shareId)}`,
+      withAuth({ method: 'GET' }),
+    ),
+
+  copy: (shareId: string) =>
+    apiFetch<{ projectId: string; shareId: string }>(
+      API_CONFIG.chatService,
+      `/api/share/${encodeURIComponent(shareId)}/copy`,
+      withAuth({ method: 'POST' }),
     ),
 };
 
@@ -282,6 +352,7 @@ export const documentApi = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...(authHeaders() as Record<string, string>),
           },
           body: JSON.stringify({
             projectId,
@@ -320,7 +391,7 @@ export const documentApi = {
     apiFetch<DocumentProjectMeta>(
       API_CONFIG.documentService,
       `/api/documents/${projectId}`,
-      { method: 'GET' }
+      withAuth({ method: 'GET' }),
     ),
 
   /**
@@ -330,10 +401,10 @@ export const documentApi = {
     apiFetch<DocumentSectionUpdated>(
       API_CONFIG.documentService,
       `/api/documents/projects/${projectId}/sections/${sectionNo}`,
-      {
+      withAuth({
         method: 'PATCH',
         body: JSON.stringify({ content }),
-      }
+      }),
     ),
 
   /**
@@ -343,7 +414,7 @@ export const documentApi = {
     apiFetch<DocumentVersion[]>(
       API_CONFIG.documentService,
       `/api/projects/${encodeURIComponent(projectId)}/versions`,
-      { method: 'GET', cache: 'no-store' }
+      withAuth({ method: 'GET', cache: 'no-store' }),
     ),
 
   /**
@@ -353,7 +424,7 @@ export const documentApi = {
     apiFetch<VersionDetail>(
       API_CONFIG.documentService,
       `/api/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}`,
-      { method: 'GET' }
+      withAuth({ method: 'GET' }),
     ),
 
   /**
@@ -363,7 +434,7 @@ export const documentApi = {
     apiFetch<DocumentVersion>(
       API_CONFIG.documentService,
       `/api/projects/${encodeURIComponent(projectId)}/versions`,
-      { method: 'POST' }
+      withAuth({ method: 'POST' }),
     ),
 
   /**
@@ -373,8 +444,8 @@ export const documentApi = {
     apiFetch<void>(
       API_CONFIG.documentService,
       `/api/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}`,
-      { method: 'DELETE' }
-      ),
+      withAuth({ method: 'DELETE' }),
+    ),
 
    /**
    * Send the project document via email with Banorte-branded template and DOCX attachment
@@ -383,9 +454,9 @@ export const documentApi = {
     apiFetch<{ message: string; to: string; filename: string }>(
       API_CONFIG.documentService,
       `/api/documents/${projectId}/send-email`,
-      {
+      withAuth({
         method: 'POST',
         body: JSON.stringify({ to, customMessage }),
-      }
+      }),
     ),
 };
