@@ -28,8 +28,6 @@ import {
   generateTaskId,
   type GanttData,
   type GanttTask,
-  type GanttSection,
-  type TaskStatus,
 } from "../../utils/ganttParser";
 import "./GanttModal.css";
 
