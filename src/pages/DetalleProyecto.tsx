@@ -148,19 +148,37 @@ function DetalleProyecto() {
     }
     setIsEditingDetails(false);
     if (!user?.id) return;
-    loadProject();
+    loadProject().then((lastUpdated) => {
+      if (lastUpdated) loadProjectSummary(lastUpdated);
+    });
     loadVersions();
-    loadProjectSummary();
   }, [id, user?.id]);
 
-  const loadProjectSummary = async () => {
+  const loadProjectSummary = async (lastUpdated: string) => {
     if (!id) return;
+
+    const cacheKey = `summary_${id}_${lastUpdated}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        setSummary(JSON.parse(cached));
+        return;
+      } catch {
+        localStorage.removeItem(cacheKey);
+      }
+    }
+
     setIsLoadingSummary(true);
     setSummaryError(null);
 
     try {
       const result = await chatApi.getProjectSummary(id, 900);
       setSummary(result);
+      // Evict any previous cache entries for this project before storing the new one
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith(`summary_${id}_`) && k !== cacheKey)
+        .forEach((k) => localStorage.removeItem(k));
+      localStorage.setItem(cacheKey, JSON.stringify(result));
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "No se pudo generar el resumen";
@@ -256,7 +274,7 @@ function DetalleProyecto() {
 
       if (!found) {
         setError("Proyecto no encontrado");
-        return;
+        return null;
       }
 
       const listIdx = unique.findIndex((p) => p.project_id === id);
@@ -284,9 +302,12 @@ function DetalleProyecto() {
         // If sections fail, fall back to the stored value
         setRealProgress(found.progress_pct ?? 0);
       }
+
+      return found.last_updated ?? null;
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to load project"));
       console.error("Error loading project:", err);
+      return null;
     } finally {
       setIsLoading(false);
     }
