@@ -235,7 +235,7 @@ export const chatApi = {
     apiFetch<ProjectSummary>(
       API_CONFIG.chatService,
       `/api/chat/projects/${encodeURIComponent(projectId)}/summary?maxChars=${encodeURIComponent(String(maxChars))}`,
-      { method: 'GET' }
+      withAuth({ method: 'GET' })
     ),
 
   /**
