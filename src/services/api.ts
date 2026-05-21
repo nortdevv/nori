@@ -1,5 +1,5 @@
 import { API_CONFIG, STATIC_USER_ID } from '../config/api';
-import type { DocumentVersion, VersionDetail } from '../types/project';
+import type { DocumentVersion, ProjectSummary, VersionDetail } from '../types/project';
 
 function joinServiceUrl(base: string, path: string): string {
   const b = base.replace(/\/$/, '');
@@ -180,6 +180,16 @@ export const chatApi = {
     apiFetch<{ projectId: string; sections: any[] }>(
       API_CONFIG.chatService,
       `/api/chat/document-sections/${projectId}`,
+      { method: 'GET' }
+    ),
+
+  /**
+   * Get AI-generated contextual summary for a project
+   */
+  getProjectSummary: (projectId: string, maxChars = 900) =>
+    apiFetch<ProjectSummary>(
+      API_CONFIG.chatService,
+      `/api/chat/projects/${encodeURIComponent(projectId)}/summary?maxChars=${encodeURIComponent(String(maxChars))}`,
       { method: 'GET' }
     ),
 
