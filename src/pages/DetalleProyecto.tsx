@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Navbar from "../components/ui/Navbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { useAuth } from "../context/AuthContext";
@@ -8,6 +8,7 @@ import type {
   ProjectDisplay,
   ProjectStatus,
   DocumentVersion,
+  ProjectSummary,
   Project,
   DocumentSection,
 } from "../types/project";
@@ -62,6 +63,54 @@ function tagsAreSame(a: string[], b: string[]) {
   return a.every((t, i) => t === b[i]);
 }
 
+function renderInlineMarkdown(text: string, keyPrefix: string): ReactNode[] {
+  const result: ReactNode[] = [];
+  const tokenRegex = /(\*\*[^*]+\*\*|_[^_]+_)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = tokenRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      result.push(text.slice(lastIndex, match.index));
+    }
+
+    const token = match[0];
+    if (token.startsWith("**") && token.endsWith("**")) {
+      result.push(
+        <strong key={`${keyPrefix}-b-${match.index}`}>
+          {token.slice(2, -2)}
+        </strong>,
+      );
+    } else if (token.startsWith("_") && token.endsWith("_")) {
+      result.push(
+        <em key={`${keyPrefix}-i-${match.index}`}>{token.slice(1, -1)}</em>,
+      );
+    } else {
+      result.push(token);
+    }
+
+    lastIndex = tokenRegex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    result.push(text.slice(lastIndex));
+  }
+
+  return result;
+}
+
+function renderSummaryMarkdown(summary: string): ReactNode[] {
+  return summary
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph, index) => (
+      <p key={`summary-paragraph-${index}`} className="detalle-summary-paragraph">
+        {renderInlineMarkdown(paragraph, `summary-${index}`)}
+      </p>
+    ));
+}
+
 function DetalleProyecto() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -87,6 +136,9 @@ function DetalleProyecto() {
   const [isCreatingVersion, setIsCreatingVersion] = useState(false);
   const [isDeletingVersionId, setIsDeletingVersionId] = useState<string | null>(null);
   const [versionError, setVersionError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<ProjectSummary | null>(null);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
@@ -98,7 +150,26 @@ function DetalleProyecto() {
     if (!user?.id) return;
     loadProject();
     loadVersions();
+    loadProjectSummary();
   }, [id, user?.id]);
+
+  const loadProjectSummary = async () => {
+    if (!id) return;
+    setIsLoadingSummary(true);
+    setSummaryError(null);
+
+    try {
+      const result = await chatApi.getProjectSummary(id, 900);
+      setSummary(result);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo generar el resumen";
+      setSummaryError(message);
+      setSummary(null);
+    } finally {
+      setIsLoadingSummary(false);
+    }
+  };
 
   const loadVersions = async () => {
     if (!id) return;
@@ -293,6 +364,7 @@ function DetalleProyecto() {
         status: draftStatus,
       });
       setProject(toProjectDisplay(updated));
+      await loadProjectSummary();
       setIsEditingDetails(false);
     } catch (err: unknown) {
       const message =
@@ -623,6 +695,35 @@ function DetalleProyecto() {
               </div>
             </div>
           </div>
+
+          <section className="detalle-summary-card" aria-live="polite">
+            <header className="detalle-summary-card__header">
+              <h2 className="detalle-summary-card__title">Resumen del proyecto</h2>
+              {summary?.status && (
+                <span className="detalle-summary-card__status">
+                  {summary.status === "draft"
+                    ? "Borrador"
+                    : summary.status === "completed"
+                      ? "Completado"
+                      : "En progreso"}
+                </span>
+              )}
+            </header>
+
+            {isLoadingSummary ? (
+              <p className="detalle-summary-card__message">Generando resumen…</p>
+            ) : summaryError ? (
+              <p className="detalle-summary-card__error">{summaryError}</p>
+            ) : summary?.summary ? (
+              <div className="detalle-summary-card__content">
+                {renderSummaryMarkdown(summary.summary)}
+              </div>
+            ) : (
+              <p className="detalle-summary-card__message">
+                Aún no hay suficiente contexto para mostrar un resumen.
+              </p>
+            )}
+          </section>
         </div>
 
         <div className="detalle-docs-card">

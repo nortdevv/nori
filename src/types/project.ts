@@ -105,6 +105,20 @@ export interface VersionDetail extends DocumentVersion {
   project_name?: string;
 }
 
+export interface ProjectSummary {
+  projectId: string;
+  status: ProjectStatus;
+  summary: string;
+  meta: {
+    sectionsComplete: number;
+    sectionsTotal: number;
+    messageCount: number;
+    truncated: boolean;
+    format: 'markdown';
+    maxCharsApplied: number;
+  };
+}
+
 export interface ProjectShare {
   share_id: string;
   document_version_id: string | null;

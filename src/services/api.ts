@@ -10,6 +10,7 @@ import type {
   JsonValue,
   ProjectShare,
   ProjectSharePreview,
+  ProjectSummary,
 } from '../types/project';
 
 function getAuthToken(): string | null {
@@ -225,6 +226,16 @@ export const chatApi = {
       API_CONFIG.chatService,
       `/api/chat/document-sections/${projectId}`,
       withAuth({ method: 'GET' }),
+    ),
+
+  /**
+   * Get AI-generated contextual summary for a project
+   */
+  getProjectSummary: (projectId: string, maxChars = 900) =>
+    apiFetch<ProjectSummary>(
+      API_CONFIG.chatService,
+      `/api/chat/projects/${encodeURIComponent(projectId)}/summary?maxChars=${encodeURIComponent(String(maxChars))}`,
+      { method: 'GET' }
     ),
 
   /**
