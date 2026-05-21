@@ -44,8 +44,9 @@ function Proyectos() {
 
   useEffect(() => {
     document.title = "Proyectos — Nori";
+    if (!user?.id) return;
     loadProjects(true);
-  }, []);
+  }, [user?.id]);
 
   const loadProjects = async (showLoadingIndicator = false) => {
     try {

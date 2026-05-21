@@ -27,8 +27,9 @@ function Perfil() {
 
   useEffect(() => {
     document.title = 'Mi Perfil — Nori';
+    if (!user?.id) return;
     loadProjects();
-  }, []);
+  }, [user?.id]);
 
   const loadProjects = async () => {
     try {
