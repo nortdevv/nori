@@ -385,7 +385,7 @@ function DetalleProyecto() {
         status: draftStatus,
       });
       setProject(toProjectDisplay(updated));
-      await loadProjectSummary();
+      await loadProjectSummary(updated.last_updated);
       setIsEditingDetails(false);
     } catch (err: unknown) {
       const message =
