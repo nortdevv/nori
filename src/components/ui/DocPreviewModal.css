@@ -28,7 +28,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--line-border-muted);
   flex-shrink: 0;
 }
 
@@ -44,7 +44,7 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   background-color: #fff;
   display: flex;
   align-items: center;
@@ -83,7 +83,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 3px solid #e5e5e5;
+  border: 3px solid var(--line-border-muted);
   border-top-color: #ec0029;
   animation: doc-spin 0.7s linear infinite;
 }
@@ -162,13 +162,13 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid var(--line-border-muted);
   flex-shrink: 0;
 }
 
 .doc-preview-modal__cancel-btn {
   padding: 10px 20px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   border-radius: 8px;
   background-color: #fff;
   font-size: 14px;

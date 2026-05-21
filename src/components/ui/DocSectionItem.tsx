@@ -4,13 +4,14 @@ import "../../pages/Chat.css";
 import SectionContent from "./SectionContent";
 import SectionEditForm from "./SectionEditForm";
 import { useSectionEdit } from "../../hooks/useSectionEdit";
+import type { JsonValue } from "../../types/project";
 
 export interface DocSection {
   id: number;
   title: string;
   completed: boolean;
   expanded: boolean;
-  content?: any; // Document section content from backend
+  content?: JsonValue;
 }
 
 function DocSectionItem({
@@ -32,7 +33,7 @@ function DocSectionItem({
 
   return (
     <div
-      className={`doc-section ${!section.expanded ? "doc-section--collapsed" : ""}`}
+      className="doc-section"
     >
       <div className="doc-section__header" onClick={() => onToggle(section.id)}>
         <div className="doc-section__label-row">
@@ -45,8 +46,8 @@ function DocSectionItem({
         </div>
 
         {section.completed && (
-          <div className="doc-section__check">
-            <Check size={12} color="#00A859" />
+          <div className="doc-section__check" aria-hidden>
+            <Check size={13} strokeWidth={2.5} />
           </div>
         )}
       </div>

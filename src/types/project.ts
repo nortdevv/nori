@@ -2,6 +2,10 @@
 // Backend Database Schema Types
 // ============================================================================
 
+/** JSON-serializable value (PostgreSQL JSONB / API payloads) */
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+
 /**
  * Project from backend (matches listConversations response)
  */
@@ -31,9 +35,29 @@ export interface Message {
  */
 export interface DocumentSection {
   section_no: number;           // 0-10
-  content: any;                 // JSONB data (varies by section)
+  content: JsonValue;           // JSONB data (varies by section)
   is_complete: boolean;
   last_updated: string;         // ISO timestamp
+}
+
+/** Row returned by PATCH `/api/documents/projects/.../sections/...` */
+export interface DocumentSectionUpdated {
+  project_id: string;
+  section_no: number;
+  content: JsonValue;
+  is_complete: boolean;
+  last_updated: string;
+  version_id: string | null;
+}
+
+/** Project row from document service `GET /api/documents/:id` */
+export interface DocumentProjectMeta {
+  project_id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  date_created: string;
+  last_updated: string;
 }
 
 // ============================================================================
@@ -73,7 +97,7 @@ export interface DocumentVersion {
 
 export interface VersionSection {
   section_no: number;
-  content: any;
+  content: JsonValue;
 }
 
 export interface VersionDetail extends DocumentVersion {

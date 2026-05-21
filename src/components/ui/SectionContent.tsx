@@ -1,5 +1,6 @@
 import React from "react";
 import "../../pages/Chat.css";
+import type { JsonValue } from "../../types/project";
 
 const LABEL_MAP: Record<string, string> = {
   cr: "CR",
@@ -51,7 +52,7 @@ function formatLabel(key: string): string {
   return LABEL_MAP[key] ?? fallback.charAt(0).toUpperCase() + fallback.slice(1);
 }
 
-function isTableArray(value: any): value is Record<string, any>[] {
+function isTableArray(value: unknown): value is Record<string, JsonValue>[] {
   return (
     Array.isArray(value) &&
     value.length > 0 &&
@@ -60,7 +61,7 @@ function isTableArray(value: any): value is Record<string, any>[] {
   );
 }
 // Render a table from an array of objects
-function TableFromArray({ rows }: { rows: Record<string, any>[] }) {
+function TableFromArray({ rows }: { rows: Record<string, JsonValue>[] }) {
   const columns = Object.keys(rows[0]);
   return (
     <table className="sc-table">
@@ -85,7 +86,7 @@ function TableFromArray({ rows }: { rows: Record<string, any>[] }) {
 }
 
 //2 column table
-function KeyValueTable({ data }: { data: Record<string, any> }) {
+function KeyValueTable({ data }: { data: Record<string, JsonValue> }) {
   return (
     <table className="sc-kv-table">
       <tbody>
@@ -101,7 +102,7 @@ function KeyValueTable({ data }: { data: Record<string, any> }) {
 }
 
 //different render if value is array, object or text
-function FieldBlock({ fieldKey, value }: { fieldKey: string; value: any }) {
+function FieldBlock({ fieldKey, value }: { fieldKey: string; value: JsonValue }) {
   if (isTableArray(value)) {
     return (
       <div className="sc-field">
@@ -144,19 +145,19 @@ function FieldBlock({ fieldKey, value }: { fieldKey: string; value: any }) {
 }
 
 interface SectionContentProps {
-  content: any;
+  content: JsonValue | string | undefined;
 }
 
 // Main component to render section content based on its type
 export default function SectionContent({ content }: SectionContentProps) {
   if (!content) return null;
 
-  let parsed: any = content;
+  let parsed: JsonValue | null = content as JsonValue;
   if (typeof content === "string") {
     const trimmed = content.trim();
     if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
       try {
-        parsed = JSON.parse(trimmed);
+        parsed = JSON.parse(trimmed) as JsonValue;
       } catch {
         parsed = null;
       }
@@ -164,7 +165,7 @@ export default function SectionContent({ content }: SectionContentProps) {
   }
 
   if (!parsed) {
-    return <p className="sc-plain">{content}</p>;
+    return <p className="sc-plain">{typeof content === "string" ? content : JSON.stringify(content)}</p>;
   }
 
   if (Array.isArray(parsed)) {

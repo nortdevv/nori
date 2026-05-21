@@ -17,6 +17,8 @@
 
 > **Nori** es una aplicación web que utiliza **inteligencia artificial** para apoyar a Grupo Financiero **Banorte** en el **levantamiento estructurado de requerimientos de software**, generando documentación formal lista para usarse en análisis, diseño y arquitectura.
 
+Este directorio (`nori/`) es el **frontend**: React 19, TypeScript, Vite 7, React Router 7 y Tailwind CSS 4. Los microservicios (auth, chat, documentos, RAG, etc.) viven en el proyecto complementario **`nori-demo`**.
+
 ---
 
 ## 🔎 Tabla de Contenidos
@@ -27,6 +29,7 @@
 - [🛠️ Tecnologías Utilizadas](#tecnologías-utilizadas)
 - [🚀 Instalación y Configuración](#instalación-y-configuración)
 - [🧪 Pruebas E2E (Playwright)](#pruebas-e2e-playwright)
+- [📚 Documentación para contribuidores](#documentación-para-contribuidores)
 - [👥 Equipo NortDev](#equipo-nortdev)
 
 ---
@@ -71,45 +74,65 @@ Una **aplicación web interna** para Banorte que:
 - 🏢 Integración con **base de conocimiento RAG**: departamentos, tecnologías actuales y planeadas, estándares internos.
 - 📝 **Editor de documento** con sugerencias de mejora generadas por IA y edición sección por sección.
 - 📦 Exportación a **.docx** siguiendo el formato `NombreCortoIniciativaYYYY-MM-DD.docx` sin pop-ups.
-- 🔐 Sesiones seguras sobre **HTTPS/TLS**, expiración a los 30 minutos con guardado automático del progreso.
+- 🔐 **Login** contra el servicio de auth (JWT); rutas principales protegidas. _(La capa HTTP del cliente aún puede evolucionar para enviar el Bearer en todas las llamadas cuando el backend lo exija de forma uniforme; ver [AGENTS.md](./AGENTS.md).)_
 
 ---
 
 ## 🛠️ Tecnologías Utilizadas
 
-| Categoría                | Tecnología                        | Propósito                                       |
-| ------------------------ | --------------------------------- | ----------------------------------------------- |
-| **Frontend**             | React / Next.js                   | Interfaz web responsiva                         |
-| **Estilos**              | TailwindCSS                       | UI alineada a la Guía de Estilos Banorte        |
-| **Backend**              | Node.js / Express                 | API REST y orquestación de servicios            |
-| **Base de Datos**        | PostgreSQL                        | Proyectos, usuarios, conversaciones, documentos |
-| **IA/LLM**               | Gemini / OpenAI API               | Generación y análisis de texto                  |
-| **RAG**                  | Vector Store (pgvector / similar) | Búsqueda semántica sobre conocimiento Banorte   |
-| **Docs**                 | python-docx / similar             | Generación de archivos .docx                    |
-| **Auth**                 | OAuth 2.0 / SSO                   | Autenticación corporativa                       |
-| **Control de versiones** | Git & GitHub                      | Colaboración del equipo NortDev                 |
+| Categoría                | Tecnología                                      | Propósito                                            |
+| ------------------------ | ----------------------------------------------- | ---------------------------------------------------- |
+| **Frontend (este repo)** | React, TypeScript, Vite, React Router, Tailwind | SPA y UI responsiva                                  |
+| **Backend**              | Node.js / Express (`nori-demo`)                 | APIs REST por microservicio                          |
+| **Base de Datos**        | PostgreSQL                                      | Proyectos, usuarios, conversaciones, documentos      |
+| **IA/LLM**               | Gemini / OpenAI API (`nori-demo`)               | Generación y análisis de texto                       |
+| **RAG**                  | Vector Store (p. ej. pgvector)                  | Búsqueda semántica sobre conocimiento                |
+| **Docs**                 | Generación DOCX / HTML preview (servicio docs)  | Salida formal y previsualización                    |
+| **Auth**                 | JWT vía servicio dedicado                      | Login email/contraseña y sesión en cliente           |
+| **Control de versiones** | Git & GitHub                                    | Colaboración del equipo NortDev                      |
 
-_(Tecnologías concretas pueden variar según implementación final.)_
+_(Los detalles de despliegue y versiones concretas pueden variar; el frontend prioriza las variables `VITE_*` descritas abajo.)_
 
 ---
 
 ## 🚀 Instalación y Configuración
 
-> Nota: Este proyecto está pensado como **prototipo interno** para Banorte. Los pasos de instalación pueden ajustarse a la infraestructura objetivo (on-premise / nube).
+> **Frontend:** este proyecto. **APIs y BD:** aloja el stack en **`nori-demo`** (puertos y README de ese repo).
 
-### Requisitos Previos
+### Requisitos previos (frontend)
 
 - Node.js 20+
-- npm o pnpm
-- Python 3.11+ (para servicio de documentos y tareas de IA opcionales)
-- PostgreSQL 14+
-- Cuenta / API Key del proveedor de LLM (p. ej. Gemini / OpenAI)
+- npm (o pnpm)
 
-### Pruebas E2E (Playwright)
+Para ejecutar el **producto completo** (chat, documentos, auth), también necesitas el entorno de `nori-demo` (Node, PostgreSQL, claves de LLM, etc.), según su documentación.
 
-Las pruebas de extremo a extremo viven en `e2e/` y usan [Playwright](https://playwright.dev/). El comando `test:e2e` levanta Vite automáticamente (`webServer` en `playwright.config.ts`).
+### Arranque rápido — solo UI
 
-**Primera vez (clonar el repo, sin `node_modules`):**
+```bash
+cd nori
+npm install
+npm run dev
+```
+
+Vite sirve la app (por defecto `http://localhost:5173`).
+
+### Variables de entorno
+
+Crea `nori/.env.local` si los servicios no están en los valores por defecto de `src/config/api.ts`:
+
+```
+VITE_AUTH_SERVICE_URL=http://localhost:3003
+VITE_CHAT_SERVICE_URL=http://localhost:3001
+VITE_DOCUMENT_SERVICE_URL=http://localhost:3004
+```
+
+---
+
+## 🧪 Pruebas E2E (Playwright)
+
+Las pruebas viven en `e2e/`. El comando `test:e2e` puede levantar Vite automáticamente (`webServer` en `playwright.config.ts`).
+
+**Primera vez (sin `node_modules`):**
 
 ```bash
 cd nori
@@ -120,7 +143,7 @@ npm run test:e2e
 
 - `npm install` — dependencias de la app y de Playwright.
 - `test:e2e:install` — descarga Chromium para Playwright (una vez por máquina o tras actualizar Playwright).
-- `test:e2e` — ejecuta las pruebas (Vite en `http://localhost:5173`).
+- `test:e2e` — ejecuta las pruebas.
 
 **Cuando ya tienes dependencias instaladas:**
 
@@ -129,15 +152,21 @@ cd nori
 npm run test:e2e
 ```
 
-Vuelve a ejecutar `npm run test:e2e:install` si Playwright se actualizó o aparece el error de navegadores faltantes.
+Vuelve a ejecutar `npm run test:e2e:install` si Playwright se actualizó o falta el navegador.
 
 **Opcional:** `npm run test:e2e:ui` abre la UI interactiva de Playwright.
 
-> Las pruebas actuales de humo solo cargan la pantalla de login y **no requieren** levantar los servicios de `nori-demo`. Las pruebas que llamen a auth, chat u otros APIs necesitarán el stack backend y las variables `VITE_*` correspondientes.
+Las pruebas de humo que solo cargan login **no requieren** levantar todo `nori-demo`. Escenarios que llamen a auth, chat u otros APIs necesitan los servicios en marcha y las `VITE_*` acordes.
 
 ---
 
-## 🧑‍💻 Equipo NortDev
+## 📚 Documentación para contribuidores
+
+- **[AGENTS.md](./AGENTS.md)** — rutas, clientes API (`authApi`, `chatApi`, `documentApi`), flujo de documento/chat, notas de autenticación y patrones de UI.
+
+---
+
+## 👥 Equipo NortDev
 
 <div align="center">
 
@@ -187,4 +216,3 @@ Vuelve a ejecutar `npm run test:e2e:install` si Playwright se actualizó o apare
 </table>
 
 </div>
-
