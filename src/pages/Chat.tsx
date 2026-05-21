@@ -210,14 +210,17 @@ function DocumentPanel({
         {progress === 100 && (
           <button
             className="doc-panel__generate-btn"
-            style={{ backgroundColor: '#6b21a8' }}
+            style={{ backgroundColor: '#1a1a1a' }}
             onClick={hasSavedGantt ? onViewGantt : onGenerateGantt}
           >
             <CalendarDays size={16} />
             {hasSavedGantt ? 'Ver Gantt' : 'Generar Gantt'}
           </button>
         )}
-        <button className="doc-panel__generate-btn" onClick={onGenerate}>
+        <button
+          className="doc-panel__generate-btn doc-panel__generate-btn--full"
+          onClick={onGenerate}
+        >
           <FileText size={16} />
           Generar Documento
         </button>

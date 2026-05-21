@@ -433,6 +433,14 @@
   padding: 16px;
   border-top: 1px solid #e2e8f0;
   flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Last button (Generar Documento) spans the full width below the diagram/gantt pair */
+.doc-panel__footer > .doc-panel__generate-btn--full {
+  grid-column: 1 / -1;
 }
 
 /* ── Doc Section Item ── */
