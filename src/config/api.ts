@@ -5,7 +5,7 @@ export const API_CONFIG = {
   documentService: import.meta.env.VITE_DOCUMENT_SERVICE_URL || 'http://localhost:3004',
 } as const;
 
-// Static user ID (no auth for now)
+/** Demo seed user (Jorge Banorte). Used by E2E only — app APIs use the logged-in user from session. */
 export const STATIC_USER_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 // Check if backend is likely configured (not localhost and not placeholder)

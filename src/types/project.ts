@@ -119,6 +119,59 @@ export interface ProjectSummary {
   };
 }
 
+export interface ProjectShare {
+  share_id: string;
+  document_version_id: string | null;
+  snapshot_name: string;
+  is_active: boolean;
+  created_at: string;
+  revoked_at: string | null;
+  expires_at: string | null;
+  version_number: number | null;
+  version_label: string | null;
+  message_count: number;
+  copy_count: number;
+  diagram_count?: number;
+}
+
+export interface SharePreviewMessage {
+  messageNo: number;
+  role: 'user' | 'model';
+  content: string;
+}
+
+export interface SharePreviewSection {
+  sectionNo: number;
+  name: string;
+  isComplete: boolean;
+  hasContent: boolean;
+}
+
+export interface ProjectSharePreview {
+  shareId: string;
+  sourceProjectId?: string;
+  name: string;
+  description: string | null;
+  type: string | null;
+  status: string | null;
+  progressPct: number | null;
+  createdAt: string;
+  expiresAt: string | null;
+  documentVersionId: string | null;
+  documentVersionNumber: number | null;
+  documentVersionLabel: string;
+  messageCount: number;
+  sectionCount: number;
+  diagramCount: number;
+  sharedByName: string;
+  sharedByEmail: string;
+  isOwnShare: boolean;
+  existingCopyProjectId: string | null;
+  existingCopyProjectName: string | null;
+  previewMessages: SharePreviewMessage[];
+  previewSections: SharePreviewSection[];
+}
+
 // ============================================================================
 // Utility Functions
 // ============================================================================

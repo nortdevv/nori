@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { chatApi } from '../../services/api';
 import type { ProjectDisplay } from '../../types/project';
 import { toProjectDisplay } from '../../types/project';
@@ -26,12 +27,14 @@ const routeNames: Record<string, string> = {
 };
 
 function BreadcrumbProjects() {
+  const { user } = useAuth();
   const location = useLocation();
   const raw = location.pathname.split('/').filter(Boolean);
   const pathSegments = raw[0] === 'chat' && raw[1] ? [raw[1], raw[0]] : raw;
   const [projects, setProjects] = useState<ProjectDisplay[]>([]);
 
   useEffect(() => {
+    if (!user?.id) return;
     const loadProjects = async () => {
       try {
         const { conversations } = await chatApi.getConversations();
@@ -42,7 +45,7 @@ function BreadcrumbProjects() {
       }
     };
     loadProjects();
-  }, []);
+  }, [user?.id]);
 
   function getSegmentName(segment: string) {
     if (routeNames[segment]) return routeNames[segment];

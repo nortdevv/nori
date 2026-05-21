@@ -186,6 +186,11 @@
   border: 1.5px solid var(--nori-brand);
 }
 
+.detalle-btn--share {
+  color: #334155;
+  border: 1.5px solid var(--line-border-muted);
+}
+
 .detalle-btn--duplicate {
   color: #334155;
   border: 1.5px solid var(--line-border-muted);

@@ -60,8 +60,8 @@
   --nori-shadow-dropdown: 0 6px 22px rgba(0, 0, 0, 0.16);
 
   /* Thin UI lines — shared with Chat, dashboard, profile, document views */
-  --line-border: #bcc8d4;
-  --line-border-muted: #cfd6df;
+  --line-border: #d1dae3;
+  --line-border-muted: #e2e8f0;
 
   /* Dashboard typography (rem) — shell may render outside .dashboard-page (e.g. Crear) */
   --dashboard-font-hero: 1.5rem;

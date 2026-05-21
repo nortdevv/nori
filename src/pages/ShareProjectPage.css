@@ -1,0 +1,260 @@
+.share-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.share-page__header {
+  flex-shrink: 0;
+}
+
+.share-page__main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  box-sizing: border-box;
+}
+
+.share-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.share-page__status {
+  color: #64748b;
+  font-size: 15px;
+}
+
+.share-page__error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 14px;
+}
+
+.share-page__error--inline {
+  margin-top: 8px;
+}
+
+.share-page__card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+}
+
+.share-page__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff3e7;
+  color: #d97706;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.share-page__title {
+  font-size: 28px;
+  margin: 0 0 8px;
+  color: #0f172a;
+}
+
+.share-page__description {
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.share-page__meta-grid {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.share-page__meta-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  color: #475569;
+}
+
+.share-page__meta-label {
+  font-size: 12px;
+  margin: 0;
+  color: #94a3b8;
+}
+
+.share-page__meta-value {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 2px 0 0;
+  color: #1e293b;
+}
+
+.share-page__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  background: var(--nori-brand, #ec0029);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 18px;
+  cursor: pointer;
+}
+
+.share-page__copy-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.share-page__hint {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.share-page__notice {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0 0 16px;
+}
+
+.share-page__expiry {
+  font-size: 13px;
+  color: #b45309;
+  margin: 0 0 16px;
+}
+
+.share-page__preview {
+  margin-bottom: 20px;
+  padding-top: 4px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.share-page__preview-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #334155;
+  margin: 16px 0 10px;
+}
+
+.share-page__section-list,
+.share-page__message-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.share-page__section-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.share-page__section-name {
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.share-page__section-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.share-page__section-badge--done {
+  color: #15803d;
+}
+
+.share-page__message {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.share-page__message--user {
+  background: #f1f5f9;
+  margin-left: 0;
+  margin-right: 24px;
+}
+
+.share-page__message--model {
+  background: #fff7ed;
+  margin-left: 24px;
+  margin-right: 0;
+}
+
+.share-page__message-role {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.share-page__message-text {
+  margin: 0;
+  color: #334155;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.share-page__preview-more {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 8px 0 0;
+}
+
+.share-page__diagram-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+  margin: 0 0 16px;
+}
+
+@media (min-width: 640px) {
+  .share-page__meta-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

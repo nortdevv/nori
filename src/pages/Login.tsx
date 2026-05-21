@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, MessageSquare, FileText, FolderOpen } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { getErrorMessage } from "../lib/utils";
@@ -8,10 +8,16 @@ import "./Login.css";
 export default function Login() {
   const { login, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo =
+    typeof (location.state as { from?: string } | null)?.from === "string" &&
+    (location.state as { from: string }).from.startsWith("/")
+      ? (location.state as { from: string }).from
+      : "/";
 
   // Already logged in — skip straight to the app
   if (!isLoading && isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={returnTo} replace />;
   }
 
   const [email, setEmail] = useState("");
@@ -31,7 +37,7 @@ export default function Login() {
     setIsSubmitting(true);
     try {
       await login(email, password);
-      navigate("/", { replace: true });
+      navigate(returnTo, { replace: true });
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Credenciales incorrectas. Intenta de nuevo."));
     } finally {
