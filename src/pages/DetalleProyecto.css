@@ -346,15 +346,17 @@
 /* ── Bloque info proyecto: 50% del ancho (espacio reservado a la derecha) ── */
 .detalle-cards {
   display: flex;
-  width: 50%;
-  max-width: 50%;
+  gap: 16px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
   margin-bottom: 24px;
 }
 
 /* ── Card principal ── */
 .detalle-main-card {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
   width: 100%;
   background-color: #ffffff;
@@ -362,6 +364,72 @@
   border: 1px solid var(--line-border);
   box-shadow: var(--nori-shadow-card);
   padding: 28px 32px 32px;
+}
+
+.detalle-summary-card {
+  flex: 1 1 0;
+  min-width: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: var(--nori-shadow-card);
+  padding: 24px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detalle-summary-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.detalle-summary-card__title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.detalle-summary-card__status {
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+}
+
+.detalle-summary-card__content {
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  overflow-y: auto;
+}
+
+.detalle-summary-paragraph {
+  margin: 0 0 10px;
+}
+
+.detalle-summary-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.detalle-summary-card__message {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.detalle-summary-card__error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .detalle-main-card__title {
@@ -446,8 +514,13 @@
 
 @media (max-width: 900px) {
   .detalle-cards {
+    flex-direction: column;
     width: 100%;
     max-width: 100%;
+  }
+
+  .detalle-summary-card {
+    min-width: 0;
   }
 }
 

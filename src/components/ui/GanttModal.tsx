@@ -189,8 +189,7 @@ interface GanttModalProps {
  * the wire. Clones the node first so we never mutate the live DOM, and
  * adds xmlns attributes so the result parses outside the document.
  */
-// @ts-expect-error – kept for future use (DOCX SVG export)
-function _captureRenderedSvg(container: HTMLDivElement | null): string | null {
+export function captureRenderedSvg(container: HTMLDivElement | null): string | null {
   const svgEl = container?.querySelector<SVGSVGElement>("svg");
   if (!svgEl) return null;
   const clone = svgEl.cloneNode(true) as SVGSVGElement;
