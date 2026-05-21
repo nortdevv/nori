@@ -71,7 +71,7 @@
   border-radius: 50%;
   color: #334155;
   background: #ffffff;
-  border: 1.5px solid #d6dce5;
+  border: 1.5px solid var(--line-border-muted);
   text-decoration: none;
   box-shadow: var(--nori-shadow-toggle-active);
   transition: color 0.15s, border-color 0.15s, background-color 0.15s;
@@ -128,7 +128,7 @@
 .detalle-back-link {
   align-items: center;
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--line-border);
   border-radius: var(--dashboard-radius-control, 10px);
   box-shadow: var(--nori-shadow-toggle-active);
   box-sizing: border-box;
@@ -147,7 +147,7 @@
 }
 
 .detalle-back-link:hover {
-  border-color: #cbd5e1;
+  border-color: var(--line-border-muted);
   background-color: #f8fafc;
 }
 
@@ -188,12 +188,12 @@
 
 .detalle-btn--duplicate {
   color: #334155;
-  border: 1.5px solid #d6dce5;
+  border: 1.5px solid var(--line-border-muted);
 }
 
 .detalle-btn--delete {
   color: var(--nori-brand);
-  border: 1.5px solid #d6dce5;
+  border: 1.5px solid var(--line-border-muted);
 }
 
 .detalle-btn--delete:disabled {
@@ -216,7 +216,7 @@
 
 .detalle-btn--edit-cancel {
   color: #334155;
-  border: 1.5px solid #d6dce5;
+  border: 1.5px solid var(--line-border-muted);
 }
 
 .detalle-btn--edit-cancel:hover:not(:disabled) {
@@ -284,7 +284,7 @@
   font-size: 0.95rem;
   font-family: inherit;
   color: #0f172a;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--line-border);
   border-radius: 10px;
   padding: 10px 14px;
   background: #ffffff;
@@ -321,7 +321,7 @@
   font-weight: 600;
   font-family: inherit;
   color: #0f172a;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--line-border);
   border-radius: 999px;
   padding: 8px 36px 8px 14px;
   background: #ffffff;
@@ -354,7 +354,7 @@
   width: 100%;
   background-color: #ffffff;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--line-border);
   box-shadow: var(--nori-shadow-card);
   padding: 28px 32px 32px;
 }
@@ -401,7 +401,7 @@
 
 .detalle-separator {
   border: none;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--line-border);
   margin: 0 0 18px;
 }
 
@@ -436,7 +436,7 @@
 .detalle-progress-section {
   margin-top: 8px;
   padding-top: 20px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--line-border);
 }
 
 @media (max-width: 900px) {
@@ -532,7 +532,7 @@
 .detalle-docs-card {
   background-color: #ffffff;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--line-border);
   box-shadow: var(--nori-shadow-card);
   padding: 28px 32px 32px;
 }
@@ -694,7 +694,7 @@
 .detalle-doc-btn--download {
   color: #334155;
   background-color: #ffffff;
-  border: 1.5px solid #d6dce5;
+  border: 1.5px solid var(--line-border-muted);
 }
 
 .detalle-doc-btn--approve {

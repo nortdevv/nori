@@ -1,4 +1,11 @@
-import { ChevronDown, LayoutGrid, List, Search } from "lucide-react";
+import {
+  ArrowUpDown,
+  CheckSquare,
+  ChevronDown,
+  LayoutGrid,
+  List,
+  Search,
+} from "lucide-react";
 import type { LibraryViewMode, SortOption } from "../../types/project";
 
 type FilterValue = "Todos" | "in_progress" | "completed" | "draft";
@@ -12,6 +19,8 @@ type Props = {
   onSortChange: (value: SortOption) => void;
   viewMode: LibraryViewMode;
   onViewModeChange: (value: LibraryViewMode) => void;
+  selectionMode: boolean;
+  onSelectionModeToggle: () => void;
 };
 
 const filters: Array<{ label: string; value: FilterValue }> = [
@@ -30,6 +39,8 @@ function ProjectsToolbar({
   onSortChange,
   viewMode,
   onViewModeChange,
+  selectionMode,
+  onSelectionModeToggle,
 }: Props) {
   return (
     <section className="dashboard-toolbar" aria-label="Filtros de proyectos">
@@ -45,7 +56,7 @@ function ProjectsToolbar({
 
       <div className="dashboard-toolbar__controls">
         <div
-          className="dashboard-filters"
+          className="dashboard-filter-segmented"
           role="group"
           aria-label="Filtrar por estado"
         >
@@ -53,7 +64,7 @@ function ProjectsToolbar({
             <button
               key={filter.value}
               type="button"
-              className={`dashboard-filter-pill${activeFilter === filter.value ? " is-active" : ""}`}
+              className={`dashboard-filter-segment${activeFilter === filter.value ? " is-active" : ""}`}
               onClick={() => onFilterChange(filter.value)}
               aria-pressed={activeFilter === filter.value}
             >
@@ -62,42 +73,63 @@ function ProjectsToolbar({
           ))}
         </div>
 
-        <div className="dashboard-select-wrapper">
-          <select
-            value={sortBy}
-            onChange={(event) => onSortChange(event.target.value as SortOption)}
-            className="dashboard-select"
-            aria-label="Ordenar proyectos"
-          >
-            <option value="recent">Última modificación</option>
-            <option value="name">Nombre A-Z</option>
-          </select>
-          <ChevronDown size={16} strokeWidth={2.2} />
-        </div>
+        <span className="dashboard-toolbar__divider" aria-hidden />
 
-        <div
-          className="dashboard-view-toggle"
-          role="group"
-          aria-label="Vista de proyectos"
-        >
+        <div className="dashboard-toolbar-tools">
+          <div className="dashboard-select-wrapper dashboard-select-wrapper--compact">
+            <ArrowUpDown size={16} strokeWidth={2.2} aria-hidden />
+            <select
+              value={sortBy}
+              onChange={(event) => onSortChange(event.target.value as SortOption)}
+              className="dashboard-select"
+              aria-label="Ordenar proyectos"
+              title={
+                sortBy === "recent" ? "Última modificación" : "Nombre A-Z"
+              }
+            >
+              <option value="recent">Última modificación</option>
+              <option value="name">Nombre A-Z</option>
+            </select>
+            <ChevronDown size={16} strokeWidth={2.2} aria-hidden />
+          </div>
+
           <button
             type="button"
-            className={`dashboard-view-toggle__btn${viewMode === "grid" ? " is-active" : ""}`}
-            onClick={() => onViewModeChange("grid")}
-            aria-pressed={viewMode === "grid"}
-            title="Vista en cuadrícula"
+            className={`dashboard-select-mode-btn${selectionMode ? " is-active" : ""}`}
+            onClick={onSelectionModeToggle}
+            aria-pressed={selectionMode}
+            aria-label={
+              selectionMode ? "Cancelar selección" : "Seleccionar proyectos"
+            }
+            title={selectionMode ? "Cancelar selección" : "Seleccionar proyectos"}
           >
-            <LayoutGrid size={18} strokeWidth={2.2} aria-hidden />
+            <CheckSquare size={18} strokeWidth={2.2} aria-hidden />
           </button>
-          <button
-            type="button"
-            className={`dashboard-view-toggle__btn${viewMode === "list" ? " is-active" : ""}`}
-            onClick={() => onViewModeChange("list")}
-            aria-pressed={viewMode === "list"}
-            title="Vista en lista"
+
+          <div
+            className="dashboard-view-toggle"
+            role="group"
+            aria-label="Vista de proyectos"
           >
-            <List size={18} strokeWidth={2.2} aria-hidden />
-          </button>
+            <button
+              type="button"
+              className={`dashboard-view-toggle__btn${viewMode === "grid" ? " is-active" : ""}`}
+              onClick={() => onViewModeChange("grid")}
+              aria-pressed={viewMode === "grid"}
+              title="Vista en cuadrícula"
+            >
+              <LayoutGrid size={18} strokeWidth={2.2} aria-hidden />
+            </button>
+            <button
+              type="button"
+              className={`dashboard-view-toggle__btn${viewMode === "list" ? " is-active" : ""}`}
+              onClick={() => onViewModeChange("list")}
+              aria-pressed={viewMode === "list"}
+              title="Vista en lista"
+            >
+              <List size={18} strokeWidth={2.2} aria-hidden />
+            </button>
+          </div>
         </div>
       </div>
     </section>

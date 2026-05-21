@@ -27,7 +27,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 24px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--line-border-muted);
   flex-shrink: 0;
 }
 
@@ -43,7 +43,7 @@
   width: 30px;
   height: 30px;
   border-radius: 6px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   background: #fff;
   display: flex;
   align-items: center;
@@ -99,7 +99,7 @@
 
 .send-email-modal__input,
 .send-email-modal__textarea {
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 14px;
@@ -182,13 +182,13 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 16px 24px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid var(--line-border-muted);
   flex-shrink: 0;
 }
 
 .send-email-modal__cancel-btn {
   padding: 9px 18px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--line-border-muted);
   border-radius: 8px;
   background: #fff;
   font-size: 14px;

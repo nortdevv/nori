@@ -1,5 +1,6 @@
 import { CalendarDays, ChevronLeft, ChevronRight, FileText, GitBranch, RefreshCw, Send } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BreadcrumbProjects from '../components/ui/BreadcrumbProjects';
 import ChatBubble, { type Message as ChatBubbleMessage } from '../components/ui/ChatBubble';
@@ -11,6 +12,8 @@ import Navbar from '../components/ui/Navbar';
 import SendEmailModal from '../components/ui/SendEmailModal';
 import { chatApi, documentApi } from '../services/api';
 import { calculateDocumentProgress } from '../utils/documentProgress';
+import type { DocumentSection } from '../types/project';
+import { getErrorMessage } from '../lib/utils';
 import './Chat.css';
 
 const INITIAL_SECTIONS = [
@@ -26,6 +29,108 @@ const INITIAL_SECTIONS = [
   { id: 9, title: '9. Supuestos' },
   { id: 10, title: '10. Restricciones' },
 ];
+
+const CHAT_INPUT_MAX_HEIGHT_PX = 200;
+
+function randomRange(lo: number, hi: number): number {
+  return lo + Math.random() * (hi - lo);
+}
+
+function randomInt(lo: number, hi: number): number {
+  return Math.floor(lo + Math.random() * (hi - lo + 1));
+}
+
+/**
+ * Larger “instant” jumps that try not to chop common Latin words awkwardly mid-token.
+ */
+function burstTargetIndex(fullText: string, pos: number): number {
+  const len = fullText.length;
+  const remainder = len - pos;
+  if (remainder <= 1) return len;
+
+  const hiLeap = Math.min(72, remainder);
+  const minLeap =
+    remainder <= Math.min(10, hiLeap)
+      ? remainder
+      : randomInt(Math.min(10, hiLeap), hiLeap);
+
+  let end = Math.min(len, pos + minLeap);
+
+  if (end < len && /[\w\u00c0-\u024f]/i.test(fullText[end])) {
+    let cut = fullText.lastIndexOf(' ', end - 1);
+    if (cut <= pos + 6) cut = fullText.lastIndexOf('\n', end - 1);
+    if (cut > pos + 8) end = cut + 1;
+  }
+
+  return Math.min(len, Math.max(pos + 1, end));
+}
+
+/**
+ * Reveal assistant reply in uneven bursts (small dribbles vs larger instant chunks + random gaps).
+ */
+function revealNoriReply(
+  aiMessageId: number,
+  fullText: string,
+  setMessages: Dispatch<SetStateAction<ChatBubbleMessage[]>>,
+  revealToken: number,
+  revealRunRef: { current: number },
+  onDone: () => void,
+): void {
+  const doneIfValid = (): void => {
+    if (revealRunRef.current === revealToken) onDone();
+  };
+
+  const len = fullText.length;
+  if (len === 0 || revealRunRef.current !== revealToken) {
+    doneIfValid();
+    return;
+  }
+
+  let pos = 0;
+
+  const step = (): void => {
+    if (revealRunRef.current !== revealToken) return;
+    const left = len - pos;
+    if (left <= 0) {
+      doneIfValid();
+      return;
+    }
+
+    let add: number;
+    const r = Math.random();
+
+    if (left <= 4) add = left;
+    else if (r < 0.12) add = burstTargetIndex(fullText, pos) - pos;
+    else if (r < 0.35) add = Math.min(left, randomInt(5, 18));
+    else add = Math.min(left, randomInt(1, 6));
+
+    add = Math.max(1, Math.min(add, left));
+    pos += add;
+
+    setMessages((prev) =>
+      prev.map((m) => (m.id === aiMessageId ? { ...m, text: fullText.slice(0, pos) } : m)),
+    );
+
+    if (pos >= len) {
+      doneIfValid();
+      return;
+    }
+
+    const baseMs =
+      add >= 28 ? randomRange(6, 24) :
+      add >= 10 ? randomRange(4, 18) :
+      randomRange(2, 12);
+
+    const microPauseRoll = Math.random();
+    const extraPause = microPauseRoll < 0.08 ? randomRange(42, 95) :
+      microPauseRoll < 0.18 ? randomRange(16, 36) :
+      0;
+
+    window.setTimeout(step, baseMs + extraPause);
+  };
+
+  window.setTimeout(step, randomRange(8, 32));
+}
 
 function getProgressColor(progress: number) {
   if (progress === 100) return '#16a34a';
@@ -45,6 +150,7 @@ function ChatPanel({
   onSend,
   progress,
   isSending,
+  showTypingLine,
 }: {
   messages: ChatBubbleMessage[];
   inputValue: string;
@@ -52,27 +158,55 @@ function ChatPanel({
   onSend: () => void;
   progress: number;
   isSending: boolean;
+  showTypingLine: boolean;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const [messagesScrollable, setMessagesScrollable] = useState(false);
+  const [inputScrollable, setInputScrollable] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = messagesRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setMessagesScrollable(el.scrollHeight > el.clientHeight);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [messages, isSending]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, showTypingLine]);
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
+  useLayoutEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+
+    const syncHeight = () => {
+      ta.style.height = 'auto';
+      const full = ta.scrollHeight;
+      ta.style.height = `${Math.min(full, CHAT_INPUT_MAX_HEIGHT_PX)}px`;
+      setInputScrollable(full > CHAT_INPUT_MAX_HEIGHT_PX);
+    };
+
+    syncHeight();
+    const ro = new ResizeObserver(syncHeight);
+    ro.observe(ta);
+    return () => ro.disconnect();
   }, [inputValue]);
 
   return (
     <div className="chat-panel">
       <div className="chat-panel__header">
-        <div>
-          <div className="chat-panel__title">Asistente Conversacional</div>
-          <div className="chat-panel__subtitle">Responde las preguntas de Nori</div>
+        <div className="chat-panel__title-row">
+          <span className="chat-panel__title-icon" aria-hidden />
+          <div className="chat-panel__title">Nori - Asistente Conversacional</div>
         </div>
         <div className="chat-panel__progress">
           <span className="chat-panel__progress-label">Progreso</span>
@@ -91,28 +225,25 @@ function ChatPanel({
         </div>
       </div>
 
-      <div className="chat-panel__messages">
+      <div
+        ref={messagesRef}
+        className={`chat-panel__messages${messagesScrollable ? ' chat-panel__messages--scrollable' : ''}`}
+      >
         {messages.map((msg, idx) => (
           <ChatBubble key={`${msg.from}-${idx}`} message={msg} />
         ))}
-        {isSending && (
-          <div style={{ padding: '1rem', color: '#64748b', fontSize: '0.875rem' }}>Nori está escribiendo...</div>
+        {showTypingLine && (
+          <div className="chat-panel__thinking" aria-busy="true" aria-live="polite">
+            <span className="chat-panel__thinking-label">Nori está pensando…</span>
+          </div>
         )}
         <div ref={bottomRef} />
-      </div>
-
-      <div className="chat-panel__quick-actions">
-        {['Continuar', 'Agregar más detalles'].map((label) => (
-          <button key={label} className="chat-panel__quick-btn" onClick={() => onInputChange(label)}>
-            {label}
-          </button>
-        ))}
       </div>
 
       <div className="chat-panel__input-row">
         <textarea
           ref={textareaRef}
-          className="chat-panel__input"
+          className={`chat-panel__input${inputScrollable ? ' chat-panel__input--scrollable' : ''}`}
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={(e) => {
@@ -125,8 +256,14 @@ function ChatPanel({
           disabled={isSending}
           rows={1}
         />
-        <button className="chat-panel__send-btn" onClick={onSend} disabled={isSending}>
-          <Send size={16} color="#fff" />
+        <button
+          className="chat-panel__send-btn"
+          type="button"
+          onClick={onSend}
+          disabled={isSending}
+          aria-label="Enviar mensaje"
+        >
+          <Send size={22} strokeWidth={2} aria-hidden />
         </button>
       </div>
     </div>
@@ -171,29 +308,30 @@ function DocumentPanel({
           <FileText size={18} color="#1A1A1A" />
           <span>Documento de Requerimientos</span>
         </div>
-        <RefreshCw size={18} color="#EC0029" className="doc-panel__refresh" />
+        <div className="doc-panel__header-right">
+          <div className="doc-panel__pagination">
+            <button className="doc-panel__page-btn" onClick={() => setPage((p) => p - 1)} disabled={page === 0}>
+              <ChevronLeft size={16} />
+            </button>
+            <span className="doc-panel__page-label">
+              {page + 1} / {totalPages}
+            </span>
+            <button
+              className="doc-panel__page-btn"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page === totalPages - 1}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+          <RefreshCw size={18} color="#EC0029" className="doc-panel__refresh" />
+        </div>
       </div>
 
       <div className="doc-panel__sections">
         {visible.map((section) => (
           <DocSectionItem key={section.id} section={section} projectId={projectId} onToggle={onToggle} />
         ))}
-      </div>
-
-      <div className="doc-panel__pagination">
-        <button className="doc-panel__page-btn" onClick={() => setPage((p) => p - 1)} disabled={page === 0}>
-          <ChevronLeft size={16} />
-        </button>
-        <span className="doc-panel__page-label">
-          {page + 1} / {totalPages}
-        </span>
-        <button
-          className="doc-panel__page-btn"
-          onClick={() => setPage((p) => p + 1)}
-          disabled={page === totalPages - 1}
-        >
-          <ChevronRight size={16} />
-        </button>
       </div>
 
       <div className="doc-panel__footer">
@@ -267,6 +405,13 @@ function Chat() {
   const [isGeneratingGantt, setIsGeneratingGantt] = useState(false);
   const [ganttError, setGanttError] = useState<string | null>(null);
   const [hasSavedGantt, setHasSavedGantt] = useState(false);
+  const revealRunRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      revealRunRef.current += 1;
+    };
+  }, []);
 
   const handleGenerate = async () => {
     if (!id) return;
@@ -280,16 +425,16 @@ function Chat() {
     try {
       const blob = await documentApi.generateDocument(id);
       setPreviewBlob(blob);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error al generar el documento:', err);
-      setDocError(err.message || 'Error al generar el documento');
+      setDocError(getErrorMessage(err, 'Error al generar el documento'));
     } finally {
       setIsGeneratingDoc(false);
     }
 
     try {
       await documentApi.createVersion(id);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error al guardar versión:', err);
     }
   };
@@ -325,9 +470,9 @@ function Chat() {
       const result = await chatApi.generateDiagram(id);
       setDiagramSource(result.source);
       setHasSavedDiagram(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error generating diagram:', err);
-      setDiagramError(err.message || 'Error al generar el diagrama');
+      setDiagramError(getErrorMessage(err, 'Error al generar el diagrama'));
     } finally {
       setIsGeneratingDiagram(false);
     }
@@ -422,7 +567,7 @@ function Chat() {
 
         // Merge backend sections with INITIAL_SECTIONS
         const mergedSections = INITIAL_SECTIONS.map((initialSection) => {
-          const backendSection = backendSections.find((bs: any) => bs.section_no === initialSection.id);
+          const backendSection = backendSections.find((bs: DocumentSection) => bs.section_no === initialSection.id);
 
           return {
             ...initialSection,
@@ -435,7 +580,7 @@ function Chat() {
         setSections(mergedSections);
 
         // Check if a saved diagram exists
-        const completedCount = mergedSections.filter((s: any) => s.completed).length;
+        const completedCount = mergedSections.filter((s) => s.completed).length;
         if (completedCount === mergedSections.length) {
           try {
             const diagram = await chatApi.getDiagram(id);
@@ -460,8 +605,8 @@ function Chat() {
         console.error('Error loading document sections:', sectionErr);
         // Keep default sections if loading fails
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to load chat history');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to load chat history'));
       console.error('Error loading history:', err);
     } finally {
       setIsLoading(false);
@@ -483,19 +628,24 @@ function Chat() {
     };
     setMessages((prev) => [...prev, userMessage]);
 
+    revealRunRef.current += 1;
+    const revealToken = revealRunRef.current;
+
     try {
       const response = await chatApi.sendMessage({
         projectId: id,
         message: messageText,
       });
 
-      // Add AI response
-      const aiMessage: ChatBubbleMessage = {
-        id: messages.length + 2,
-        from: 'nori',
-        text: response.reply,
+      let aiMessageId = 0;
+      setMessages((prev) => {
+        aiMessageId = prev.reduce((max, x) => Math.max(max, x.id), 0) + 1;
+        return [...prev, { id: aiMessageId, from: 'nori', text: '' }];
+      });
+
+      const finishSending = (): void => {
+        if (revealRunRef.current === revealToken) setIsSending(false);
       };
-      setMessages((prev) => [...prev, aiMessage]);
 
       // If a document section was updated, reload all sections to get latest content
       if (response.documentSectionUpdated !== null) {
@@ -504,7 +654,7 @@ function Chat() {
 
           setSections((prev) =>
             prev.map((section) => {
-              const backendSection = backendSections.find((bs: any) => bs.section_no === section.id);
+              const backendSection = backendSections.find((bs: DocumentSection) => bs.section_no === section.id);
 
               return {
                 ...section,
@@ -521,12 +671,21 @@ function Chat() {
           );
         }
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to send message');
+
+      revealNoriReply(
+        aiMessageId,
+        response.reply,
+        setMessages,
+        revealToken,
+        revealRunRef,
+        finishSending,
+      );
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to send message'));
       console.error('Error sending message:', err);
+      revealRunRef.current += 1;
       // Remove optimistic message on error
       setMessages((prev) => prev.slice(0, -1));
-    } finally {
       setIsSending(false);
     }
   };
@@ -546,6 +705,14 @@ function Chat() {
   }
 
   const progress = calculateProgress(sections);
+
+  const lastMsg = messages.length > 0 ? messages[messages.length - 1] : undefined;
+  const showTypingLine =
+    isSending &&
+    (messages.length === 0 ||
+      !lastMsg ||
+      lastMsg.from === 'user' ||
+      (lastMsg.from === 'nori' && lastMsg.text === ''));
 
   return (
     <div className="chat-page">
@@ -575,6 +742,7 @@ function Chat() {
           onSend={handleSend}
           progress={progress}
           isSending={isSending}
+          showTypingLine={showTypingLine}
         />
         <DocumentPanel
           sections={sections}

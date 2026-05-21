@@ -1,16 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import HomeHeader from "../components/ui/HomeHeader";
 import ProjectCard from "../components/ui/ProjectCard";
 import ProjectListRow from "../components/ui/ProjectListRow";
 import ProjectsToolbar from "../components/ui/ProjectsToolbar";
 import { chatApi } from "../services/api";
-import type { LibraryViewMode, ProjectDisplay, SortOption } from "../types/project";
+import type { LibraryViewMode, Project, ProjectDisplay, SortOption } from "../types/project";
 import { toProjectDisplay } from "../types/project";
+import { getErrorMessage } from "../lib/utils";
 
 type FilterValue = "Todos" | "in_progress" | "completed" | "draft";
+
+function truncateEnd(str: string, maxLen: number): string {
+  if (str.length <= maxLen) return str;
+  return `${str.slice(0, Math.max(0, maxLen - 1))}…`;
+}
+
+/** Short list of selected project titles for the selection bar. */
+function formatSelectionNamePreview(names: string[]): string {
+  if (names.length === 0) return "";
+  const t = (s: string) => truncateEnd(s, 40);
+  if (names.length === 1) return t(names[0]);
+  if (names.length === 2) return `${t(names[0])} · ${t(names[1])}`;
+  return `${t(names[0])} · ${t(names[1])} y ${names.length - 2} más`;
+}
 
 function Proyectos() {
   const { user } = useAuth();
@@ -22,30 +37,34 @@ function Proyectos() {
   const [activeFilter, setActiveFilter] = useState<FilterValue>("Todos");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [viewMode, setViewMode] = useState<LibraryViewMode>("grid");
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkActionError, setBulkActionError] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Proyectos — Nori";
-    loadProjects();
+    loadProjects(true);
   }, []);
 
-  const loadProjects = async () => {
+  const loadProjects = async (showLoadingIndicator = false) => {
     try {
-      setIsLoading(true);
+      if (showLoadingIndicator) setIsLoading(true);
       setError(null);
       const { conversations } = await chatApi.getConversations();
       const seen = new Set<string>();
-      const unique = conversations.filter((p: any) => {
+      const unique = conversations.filter((p: Project) => {
         if (seen.has(p.project_id)) return false;
         seen.add(p.project_id);
         return true;
       });
       const displayProjects = unique.map(toProjectDisplay);
       setProjects(displayProjects);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load projects');
-      console.error('Error loading projects:', err);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to load projects"));
+      console.error("Error loading projects:", err);
     } finally {
-      setIsLoading(false);
+      if (showLoadingIndicator) setIsLoading(false);
     }
   };
 
@@ -71,6 +90,96 @@ function Proyectos() {
         return new Date(second.last_updated).getTime() - new Date(first.last_updated).getTime();
       });
   }, [activeFilter, searchTerm, sortBy, projects]);
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+    setBulkActionError(null);
+  };
+
+  const toggleProjectSelected = (projectId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(projectId)) next.delete(projectId);
+      else next.add(projectId);
+      return next;
+    });
+  };
+
+  const allVisibleSelected =
+    visibleProjects.length > 0 &&
+    visibleProjects.every((p) => selectedIds.has(p.project_id));
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        visibleProjects.forEach((p) => next.delete(p.project_id));
+      } else {
+        visibleProjects.forEach((p) => next.add(p.project_id));
+      }
+      return next;
+    });
+  };
+
+  const selectedCount = selectedIds.size;
+
+  const selectedProjectNames = useMemo(() => {
+    return projects
+      .filter((p) => selectedIds.has(p.project_id))
+      .map((p) => p.name)
+      .sort((a, b) => a.localeCompare(b, "es"));
+  }, [projects, selectedIds]);
+
+  const selectionBarSummary = useMemo(() => {
+    const visible = visibleProjects.length;
+    const total = projects.length;
+    if (selectedCount > 0) {
+      const preview = formatSelectionNamePreview(selectedProjectNames);
+      const count =
+        selectedCount === 1
+          ? "1 proyecto seleccionado"
+          : `${selectedCount} proyectos seleccionados`;
+      return preview ? `${count}: ${preview}` : count;
+    }
+    if (visible === 0) {
+      return "No hay proyectos en esta vista. Prueba otros filtros o búsqueda.";
+    }
+    if (visible === total) {
+      return `Toca tarjetas o filas para marcar proyectos (${total} en tu biblioteca).`;
+    }
+    return `Toca tarjetas o filas para marcar proyectos (${visible} de ${total} con esta búsqueda y filtros).`;
+  }, [
+    selectedCount,
+    selectedProjectNames,
+    visibleProjects.length,
+    projects.length,
+  ]);
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0 || bulkDeleting) return;
+    if (
+      !window.confirm(
+        `¿Eliminar ${ids.length === 1 ? "este proyecto" : `estos ${ids.length} proyectos`}? Se borrarán la conversación, el documento en borrador y los archivos asociados. Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+    setBulkDeleting(true);
+    setBulkActionError(null);
+    try {
+      for (const pid of ids) {
+        await chatApi.deleteConversation(pid);
+      }
+      exitSelectionMode();
+      await loadProjects(false);
+    } catch (err: unknown) {
+      setBulkActionError(getErrorMessage(err, "No se pudieron eliminar todos los proyectos"));
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -105,7 +214,7 @@ function Proyectos() {
             <button
               type="button"
               className="dashboard-create-button"
-              onClick={loadProjects}
+              onClick={() => loadProjects(true)}
             >
               Reintentar
             </button>
@@ -143,20 +252,81 @@ function Proyectos() {
           onSortChange={setSortBy}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          selectionMode={selectionMode}
+          onSelectionModeToggle={() =>
+            selectionMode ? exitSelectionMode() : setSelectionMode(true)
+          }
         />
+
+        {bulkActionError && (
+          <div className="dashboard-bulk-error" role="alert">
+            {bulkActionError}
+          </div>
+        )}
+
+        {(selectionMode || selectedCount > 0) && projects.length > 0 ? (
+          <div
+            className="dashboard-selection-bar"
+            role="region"
+            aria-label="Acciones de selección"
+          >
+            <div className="dashboard-selection-bar__text">
+              <p className="dashboard-selection-bar__summary">{selectionBarSummary}</p>
+            </div>
+            <div className="dashboard-selection-bar__actions">
+              {selectedCount > 0 ? (
+                <button
+                  type="button"
+                  className="dashboard-selection-bar__btn dashboard-selection-bar__btn--danger"
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                >
+                  <Trash2 size={16} strokeWidth={2.2} aria-hidden />
+                  {bulkDeleting ? "Eliminando…" : "Eliminar"}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="dashboard-selection-bar__btn dashboard-selection-bar__btn--muted"
+                onClick={exitSelectionMode}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {viewMode === "grid" ? (
           <section className="dashboard-grid" aria-label="Proyectos en cuadrícula">
             {visibleProjects.map((project) => (
-              <ProjectCard key={project.project_id} project={project} />
+              <ProjectCard
+                key={project.project_id}
+                project={project}
+                selectionMode={selectionMode}
+                selected={selectedIds.has(project.project_id)}
+                onToggleSelected={() => toggleProjectSelected(project.project_id)}
+              />
             ))}
           </section>
         ) : visibleProjects.length > 0 ? (
           <section className="dashboard-projects-list" aria-label="Proyectos en lista">
             <div className="dashboard-projects-table-wrap">
-              <table className="projects-table">
+              <table
+                className={`projects-table${selectionMode ? " projects-table--selecting" : ""}`}
+              >
                 <thead>
                   <tr>
+                    {selectionMode ? (
+                      <th scope="col" className="projects-table__th-select">
+                        <input
+                          type="checkbox"
+                          className="project-select-checkbox project-select-checkbox--circle"
+                          checked={allVisibleSelected}
+                          onChange={toggleSelectAllVisible}
+                          aria-label="Seleccionar todos los proyectos visibles"
+                        />
+                      </th>
+                    ) : null}
                     <th scope="col">Proyecto</th>
                     <th scope="col">Categorías</th>
                     <th scope="col">Progreso</th>
@@ -165,7 +335,13 @@ function Proyectos() {
                 </thead>
                 <tbody>
                   {visibleProjects.map((project) => (
-                    <ProjectListRow key={project.project_id} project={project} />
+                    <ProjectListRow
+                      key={project.project_id}
+                      project={project}
+                      selectionMode={selectionMode}
+                      selected={selectedIds.has(project.project_id)}
+                      onToggleSelected={() => toggleProjectSelected(project.project_id)}
+                    />
                   ))}
                 </tbody>
               </table>
