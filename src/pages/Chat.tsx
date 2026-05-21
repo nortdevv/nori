@@ -1,10 +1,11 @@
+import { CalendarDays, ChevronLeft, ChevronRight, FileText, GitBranch, RefreshCw, Send } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
-import { ChevronLeft, ChevronRight, FileText, GitBranch, RefreshCw, Send } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BreadcrumbProjects from '../components/ui/BreadcrumbProjects';
 import ChatBubble, { type Message as ChatBubbleMessage } from '../components/ui/ChatBubble';
 import DiagramModal from '../components/ui/DiagramModal';
+import GanttModal from '../components/ui/GanttModal';
 import DocPreviewModal from '../components/ui/DocPreviewModal';
 import DocSectionItem, { type DocSection } from '../components/ui/DocSectionItem';
 import Navbar from '../components/ui/Navbar';
@@ -279,6 +280,9 @@ function DocumentPanel({
   onGenerateDiagram,
   onViewDiagram,
   hasSavedDiagram,
+  onGenerateGantt,
+  onViewGantt,
+  hasSavedGantt,
   progress,
 }: {
   sections: DocSection[];
@@ -288,6 +292,9 @@ function DocumentPanel({
   onGenerateDiagram: () => void;
   onViewDiagram: () => void;
   hasSavedDiagram: boolean;
+  onGenerateGantt: () => void;
+  onViewGantt: () => void;
+  hasSavedGantt: boolean;
   progress: number;
 }) {
   const [page, setPage] = useState(0);
@@ -338,7 +345,20 @@ function DocumentPanel({
             {hasSavedDiagram ? 'Ver Diagrama' : 'Generar Diagrama'}
           </button>
         )}
-        <button className="doc-panel__generate-btn" onClick={onGenerate}>
+        {progress === 100 && (
+          <button
+            className="doc-panel__generate-btn"
+            style={{ backgroundColor: '#1a1a1a' }}
+            onClick={hasSavedGantt ? onViewGantt : onGenerateGantt}
+          >
+            <CalendarDays size={16} />
+            {hasSavedGantt ? 'Ver Gantt' : 'Generar Gantt'}
+          </button>
+        )}
+        <button
+          className="doc-panel__generate-btn doc-panel__generate-btn--full"
+          onClick={onGenerate}
+        >
           <FileText size={16} />
           Generar Documento
         </button>
@@ -379,6 +399,12 @@ function Chat() {
   const [diagramError, setDiagramError] = useState<string | null>(null);
   const [hasSavedDiagram, setHasSavedDiagram] = useState(false);
 
+  // Gantt state
+  const [showGantt, setShowGantt] = useState(false);
+  const [ganttSource, setGanttSource] = useState<string | null>(null);
+  const [isGeneratingGantt, setIsGeneratingGantt] = useState(false);
+  const [ganttError, setGanttError] = useState<string | null>(null);
+  const [hasSavedGantt, setHasSavedGantt] = useState(false);
   const revealRunRef = useRef(0);
 
   useEffect(() => {
@@ -466,6 +492,42 @@ function Chat() {
     }
   };
 
+  // ─── Gantt handlers ───────────────────────────────────────────
+
+  const handleGenerateGantt = async () => {
+    if (!id) return;
+
+    setGanttSource(null);
+    setGanttError(null);
+    setIsGeneratingGantt(true);
+    setShowGantt(true);
+
+    try {
+      const result = await chatApi.generateGantt(id);
+      setGanttSource(result.source);
+      setHasSavedGantt(true);
+    } catch (err: any) {
+      console.error('Error generating gantt:', err);
+      setGanttError(err.message || 'Error al generar el diagrama de Gantt');
+    } finally {
+      setIsGeneratingGantt(false);
+    }
+  };
+
+  const handleViewGantt = () => {
+    setShowGantt(true);
+  };
+
+  const handleSaveGantt = async (newSource: string) => {
+    if (!id) return;
+    setGanttSource(newSource);
+    try {
+      await chatApi.updateGantt(id, newSource);
+    } catch (err) {
+      console.error('Error saving gantt:', err);
+    }
+  };
+
   useEffect(() => {
     document.title = 'Chat — Nori';
     if (!id) {
@@ -528,6 +590,15 @@ function Chat() {
             }
           } catch {
             // No saved diagram, that's fine
+          }
+          try {
+            const gantt = await chatApi.getGantt(id);
+            if (gantt && gantt.source) {
+              setGanttSource(gantt.source);
+              setHasSavedGantt(true);
+            }
+          } catch {
+            // No saved gantt, that's fine
           }
         }
       } catch (sectionErr) {
@@ -681,6 +752,9 @@ function Chat() {
           onGenerateDiagram={handleGenerateDiagram}
           onViewDiagram={handleViewDiagram}
           hasSavedDiagram={hasSavedDiagram}
+          onGenerateGantt={handleGenerateGantt}
+          onViewGantt={handleViewGantt}
+          hasSavedGantt={hasSavedGantt}
           progress={progress}
         />
       </div>
@@ -714,6 +788,17 @@ function Chat() {
           onClose={() => setShowDiagram(false)}
           onRegenerate={handleGenerateDiagram}
           onSave={handleSaveDiagram}
+        />
+      )}
+
+      {showGantt && (
+        <GanttModal
+          source={ganttSource}
+          isGenerating={isGeneratingGantt}
+          error={ganttError}
+          onClose={() => setShowGantt(false)}
+          onRegenerate={handleGenerateGantt}
+          onSave={handleSaveGantt}
         />
       )}
     </div>
