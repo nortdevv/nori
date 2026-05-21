@@ -343,15 +343,15 @@
   display: flex;
   gap: 16px;
   align-items: stretch;
-  width: 50%;
-  max-width: 50%;
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
   margin-bottom: 24px;
 }
 
 /* ── Card principal ── */
 .detalle-main-card {
-  flex: 1 1 60%;
+  flex: 1 1 0;
   min-width: 0;
   width: 100%;
   background-color: #ffffff;
@@ -362,8 +362,8 @@
 }
 
 .detalle-summary-card {
-  flex: 1 1 40%;
-  min-width: 260px;
+  flex: 1 1 0;
+  min-width: 0;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
