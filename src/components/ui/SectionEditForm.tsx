@@ -1,4 +1,5 @@
 import React from "react";
+import type { JsonValue } from "../../types/project";
 
 const LABEL_MAP: Record<string, string> = {
   cr: "CR",
@@ -52,7 +53,7 @@ function formatLabel(key: string): string {
   return LABEL_MAP[key] ?? fallback.charAt(0).toUpperCase() + fallback.slice(1);
 }
 
-function isTableArray(value: any): value is Record<string, any>[] {
+function isTableArray(value: unknown): value is Record<string, JsonValue>[] {
   return (
     Array.isArray(value) &&
     value.length > 0 &&
@@ -67,8 +68,8 @@ function EditableTable({
   onChange,
   disabled,
 }: {
-  rows: Record<string, any>[];
-  onChange: (rows: Record<string, any>[]) => void;
+  rows: Record<string, JsonValue>[];
+  onChange: (rows: Record<string, JsonValue>[]) => void;
   disabled: boolean;
 }) {
   const columns = Object.keys(rows[0]);
@@ -132,8 +133,8 @@ function EditableField({
   disabled,
 }: {
   fieldKey: string;
-  value: any;
-  onChange: (newVal: any) => void;
+  value: JsonValue;
+  onChange: (newVal: JsonValue) => void;
   disabled: boolean;
 }) {
   if (isTableArray(value)) {
@@ -224,8 +225,8 @@ function EditableField({
 }
 
 interface SectionEditFormProps {
-  draft: any;
-  onChange: (newDraft: any) => void;
+  draft: JsonValue | null;
+  onChange: (newDraft: JsonValue | null) => void;
   disabled: boolean;
 }
 

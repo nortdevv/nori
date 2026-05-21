@@ -59,4 +59,8 @@ export default async function globalSetup(): Promise<void> {
   const dir = path.join(__dirname, ".auth");
   mkdirSync(dir, { recursive: true });
   writeFileSync(path.join(dir, "user.json"), JSON.stringify(storage, null, 2));
+  writeFileSync(
+    path.join(dir, "setup-meta.json"),
+    JSON.stringify({ emails: [email] }, null, 2),
+  );
 }

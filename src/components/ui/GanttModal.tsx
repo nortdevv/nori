@@ -31,12 +31,139 @@ import {
 } from "../../utils/ganttParser";
 import "./GanttModal.css";
 
+// Custom Mermaid Gantt theme — contrasting colors so the four task statuses
+// (Normal / Activo / Hecho / Crítico) are visually distinct at a glance.
 mermaid.initialize({
   startOnLoad: false,
-  theme: "default",
+  theme: "base",
   securityLevel: "loose",
+  themeVariables: {
+    // Normal task (no status)
+    taskBkgColor: "#94a3b8",
+    taskBorderColor: "#64748b",
+    taskTextColor: "#0f172a",
+    taskTextLightColor: "#0f172a",
+    taskTextOutsideColor: "#0f172a",
+    // Active task
+    activeTaskBkgColor: "#2563eb",
+    activeTaskBorderColor: "#1d4ed8",
+    // Done task
+    doneTaskBkgColor: "#16a34a",
+    doneTaskBorderColor: "#15803d",
+    // Critical task
+    critBkgColor: "#dc2626",
+    critBorderColor: "#991b1b",
+    // Grid & axis
+    gridColor: "#e5e7eb",
+    sectionBkgColor: "#f8fafc",
+    altSectionBkgColor: "#ffffff",
+    titleColor: "#0f172a",
+  },
   gantt: { useMaxWidth: true, fontSize: 12 },
 });
+
+// ─── Start-field helper ───────────────────────────────────────────────────
+//
+// Mermaid's task `start` accepts two forms:
+//   1. a date "YYYY-MM-DD"
+//   2. a dependency "after <taskId>"
+//
+// Free-text editing of these tokens is unfriendly — users have to memorize the
+// internal task IDs (e.g. "after dev2"). Instead we render two coupled fields:
+//   • a "mode" select: Dependencia | Fecha específica | Sin definir
+//   • the corresponding picker (task dropdown or <input type="date">)
+//
+// `task.start` keeps the Mermaid-compatible string so the parser/serializer
+// don't need any changes.
+
+function parseStart(start: string): { mode: "after" | "date" | "none"; value: string } {
+  if (!start) return { mode: "none", value: "" };
+  const trimmed = start.trim();
+  const afterMatch = trimmed.match(/^after\s+(.+)$/i);
+  if (afterMatch) return { mode: "after", value: afterMatch[1].trim() };
+  return { mode: "date", value: trimmed };
+}
+
+function renderStartField(
+  data: GanttData,
+  sectionIdx: number,
+  taskIdx: number,
+  task: GanttTask,
+  updateTask: (s: number, t: number, f: keyof GanttTask, v: string) => void
+) {
+  const { mode, value } = parseStart(task.start);
+
+  // Build the list of selectable predecessor tasks (excluding the current one
+  // and tasks without an ID, which can't be referenced).
+  const otherTasks = data.sections
+    .flatMap((s, sI) =>
+      s.tasks.map((t, tI) => ({
+        ...t,
+        _sectionIdx: sI,
+        _taskIdx: tI,
+        _sectionName: s.name,
+      }))
+    )
+    .filter(
+      (t) => t.id && !(t._sectionIdx === sectionIdx && t._taskIdx === taskIdx)
+    );
+
+  return (
+    <div className="gantt-modal__start-group" title="Cuándo empieza esta tarea">
+      <select
+        className="gantt-modal__start-mode"
+        value={mode}
+        onChange={(e) => {
+          const next = e.target.value as "after" | "date" | "none";
+          if (next === "none") {
+            updateTask(sectionIdx, taskIdx, "start", "");
+          } else if (next === "after") {
+            // Pre-select the first available predecessor so the field has a valid value.
+            const firstId = otherTasks[0]?.id ?? "";
+            updateTask(sectionIdx, taskIdx, "start", firstId ? `after ${firstId}` : "");
+          } else {
+            const today = new Date().toISOString().split("T")[0];
+            updateTask(sectionIdx, taskIdx, "start", today);
+          }
+        }}
+      >
+        <option value="none">Sin definir</option>
+        <option value="after">Después de…</option>
+        <option value="date">Fecha específica</option>
+      </select>
+
+      {mode === "after" && (
+        <select
+          className="gantt-modal__start-task"
+          value={value}
+          onChange={(e) =>
+            updateTask(sectionIdx, taskIdx, "start", `after ${e.target.value}`)
+          }
+        >
+          {otherTasks.length === 0 && (
+            <option value="">(sin otras tareas)</option>
+          )}
+          {otherTasks.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.label} · {t._sectionName}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {mode === "date" && (
+        <input
+          type="date"
+          className="gantt-modal__start-date"
+          value={value}
+          onChange={(e) =>
+            updateTask(sectionIdx, taskIdx, "start", e.target.value)
+          }
+        />
+      )}
+    </div>
+  );
+}
 
 interface GanttModalProps {
   source: string | null;
@@ -130,19 +257,17 @@ export default function GanttModal({
   );
 
   // ─── Fix SVG sizing ─────────────────────────────────────────────
+  // Ensure the SVG has a viewBox so CSS can scale it to fit the container
+  // while preserving aspect ratio. We don't set inline width/height — that's
+  // handled by `.gantt-modal__svg-container svg` rules in the stylesheet.
 
   useEffect(() => {
     if (!svgHtml || !svgContainerRef.current) return;
     const svgEl = svgContainerRef.current.querySelector("svg");
     if (!svgEl) return;
+
     const viewBox = svgEl.getAttribute("viewBox");
-    if (viewBox) {
-      svgEl.removeAttribute("width");
-      svgEl.style.width = "100%";
-      svgEl.style.height = "auto";
-      svgEl.style.maxHeight = "none";
-      svgEl.style.minHeight = "350px";
-    } else {
+    if (!viewBox) {
       const w = svgEl.getAttribute("width");
       const h = svgEl.getAttribute("height");
       if (w && h) {
@@ -150,13 +275,14 @@ export default function GanttModal({
           "viewBox",
           `0 0 ${parseFloat(w)} ${parseFloat(h)}`
         );
-        svgEl.removeAttribute("width");
-        svgEl.removeAttribute("height");
-        svgEl.style.width = "100%";
-        svgEl.style.height = "auto";
-        svgEl.style.minHeight = "350px";
       }
     }
+
+    svgEl.removeAttribute("width");
+    svgEl.removeAttribute("height");
+    svgEl.style.maxHeight = "";
+    svgEl.style.minHeight = "";
+    svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
   }, [svgHtml]);
 
   // ─── Task CRUD ──────────────────────────────────────────────────
@@ -558,6 +684,7 @@ export default function GanttModal({
                                 <div className="gantt-modal__task-meta">
                                   <select
                                     className="gantt-modal__task-select"
+                                    data-status={task.status}
                                     value={task.status}
                                     onChange={(e) =>
                                       handleUpdateTask(
@@ -569,8 +696,8 @@ export default function GanttModal({
                                     }
                                   >
                                     <option value="">Normal</option>
-                                    <option value="done">Hecho</option>
                                     <option value="active">Activo</option>
+                                    <option value="done">Hecho</option>
                                     <option value="crit">Crítico</option>
                                   </select>
                                   <input
@@ -588,21 +715,13 @@ export default function GanttModal({
                                     placeholder="10d"
                                     title="Duración"
                                   />
-                                  <input
-                                    type="text"
-                                    className="gantt-modal__task-start"
-                                    value={task.start}
-                                    onChange={(e) =>
-                                      handleUpdateTask(
-                                        sIdx,
-                                        tIdx,
-                                        "start",
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder="2025-01-01 o after id"
-                                    title="Inicio"
-                                  />
+                                  {renderStartField(
+                                    data,
+                                    sIdx,
+                                    tIdx,
+                                    task,
+                                    handleUpdateTask
+                                  )}
                                 </div>
                               </div>
                             ))}
