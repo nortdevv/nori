@@ -59,7 +59,9 @@ mermaid.initialize({
     altSectionBkgColor: "#ffffff",
     titleColor: "#0f172a",
   },
-  gantt: { useMaxWidth: true, fontSize: 12 },
+  // useMaxWidth:false disables Mermaid's inline `style="max-width: Npx"` on the
+  // SVG so our CSS (.gantt-modal__svg-container svg) can stretch it to 100%.
+  gantt: { useMaxWidth: false, fontSize: 12 },
 });
 
 // ─── Start-field helper ───────────────────────────────────────────────────
@@ -171,7 +173,33 @@ interface GanttModalProps {
   error: string | null;
   onClose: () => void;
   onRegenerate: () => void;
-  onSave: (newSource: string) => void;
+  /**
+   * Persists the (possibly edited) Mermaid source. The optional second
+   * argument is the post-processed SVG XML — captured AFTER the in-modal
+   * label-repositioning runs — so the DOCX/preview can render the chart
+   * exactly as the user sees it here, instead of going back to mermaid.ink
+   * which doesn't know about our post-processing.
+   */
+  onSave: (newSource: string, renderedSvg?: string | null) => void;
+}
+
+/**
+ * Snapshot the live SVG (post-processed labels + custom theme) as a
+ * standalone XML string suitable for embedding elsewhere or sending over
+ * the wire. Clones the node first so we never mutate the live DOM, and
+ * adds xmlns attributes so the result parses outside the document.
+ */
+function captureRenderedSvg(container: HTMLDivElement | null): string | null {
+  const svgEl = container?.querySelector<SVGSVGElement>("svg");
+  if (!svgEl) return null;
+  const clone = svgEl.cloneNode(true) as SVGSVGElement;
+  if (!clone.getAttribute("xmlns")) {
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  }
+  if (!clone.getAttribute("xmlns:xlink")) {
+    clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+  }
+  return new XMLSerializer().serializeToString(clone);
 }
 
 export default function GanttModal({
@@ -283,6 +311,147 @@ export default function GanttModal({
     svgEl.style.maxHeight = "";
     svgEl.style.minHeight = "";
     svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+    // Force every task label to render outside-right of its bar so short tasks
+    // remain readable. Strategy:
+    //   1. Identify task bars (rects with `task` class, skipping backgrounds).
+    //   2. For each task label (text with `taskText*` class), find the bar
+    //      whose vertical center (in SCREEN coords) is closest to the label's
+    //      vertical center — that's the bar this label belongs to.
+    //   3. Compute the bar's right edge in screen pixels, then convert that X
+    //      back into the text element's local coord space via getScreenCTM().
+    //   4. Strip "Inside*" classes so the CSS that paints inside-labels white
+    //      doesn't fight the new outside placement.
+    //
+    // We use Y-matching because Mermaid puts rects and texts in separate <g>
+    // groups (so rect/text don't share a parent) and DOES NOT put a numeric
+    // task ID on the rect element — only the text. Y-matching is robust to
+    // both quirks and to nested group transforms.
+    //
+    // Wrapped in requestAnimationFrame so layout is computed before we call
+    // getBoundingClientRect.
+    const svgRoot = svgEl as unknown as SVGSVGElement;
+    const rafId = requestAnimationFrame(() => {
+      const allRects = Array.from(
+        svgEl.querySelectorAll<SVGRectElement>("rect")
+      );
+      const taskBars = allRects.filter((r) => {
+        const c = r.getAttribute("class") || "";
+        if (!/\btask\b/.test(c)) return false;
+        // Skip backgrounds, grids, exclude bands, today marker, click overlays.
+        if (
+          /\b(?:section|exclude|grid|tick|today|cluster|click)\b/i.test(c)
+        )
+          return false;
+        const w = parseFloat(r.getAttribute("width") || "0");
+        return w > 0;
+      });
+      if (taskBars.length === 0) return;
+
+      // Pre-compute screen-space center Y for each bar (avoids recomputing).
+      const barScreenInfo = taskBars.map((rect) => {
+        const box = rect.getBoundingClientRect();
+        return { rect, box, centerY: (box.top + box.bottom) / 2 };
+      });
+
+      const allTexts = Array.from(
+        svgEl.querySelectorAll<SVGTextElement>("text")
+      );
+      const taskTexts = allTexts.filter((t) =>
+        /\btaskText/.test(t.getAttribute("class") || "")
+      );
+
+      const updatedTexts: SVGTextElement[] = [];
+
+      taskTexts.forEach((text) => {
+        const textBox = text.getBoundingClientRect();
+        const textCenterY = (textBox.top + textBox.bottom) / 2;
+
+        // Find the bar whose vertical center is closest to this label's.
+        let closest: (typeof barScreenInfo)[number] | null = null;
+        let minDist = Infinity;
+        for (const info of barScreenInfo) {
+          const dist = Math.abs(info.centerY - textCenterY);
+          if (dist < minDist) {
+            minDist = dist;
+            closest = info;
+          }
+        }
+        // 12px tolerance — labels and bars on the same row should be within
+        // a few pixels; anything bigger means this text isn't a task label.
+        if (!closest || minDist > 12) return;
+
+        // Convert the bar's right edge (screen px) to the text's local
+        // coord system, which is what the `x` attribute is interpreted in.
+        const ctm = (
+          text as unknown as SVGGraphicsElement
+        ).getScreenCTM();
+        if (!ctm) return;
+
+        const pt = svgRoot.createSVGPoint();
+        pt.x = closest.box.right;
+        pt.y = 0;
+        const inLocal = pt.matrixTransform(ctm.inverse());
+
+        text.setAttribute("x", String(inLocal.x + 6));
+        text.setAttribute("text-anchor", "start");
+        text.style.fill = "#0f172a";
+
+        const newClass = (text.getAttribute("class") || "")
+          .replace(/taskTextInside[A-Za-z]*/g, "")
+          .replace(/taskTextOutsideLeft/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+        text.setAttribute(
+          "class",
+          newClass.includes("taskTextOutsideRight")
+            ? newClass
+            : `${newClass} taskTextOutsideRight`.trim()
+        );
+
+        updatedTexts.push(text);
+      });
+
+      // Widen viewBox right edge so labels that extend past the original
+      // chart area aren't clipped. Measure in screen px then convert to SVG
+      // user units via the SVG root's CTM.
+      if (updatedTexts.length === 0) return;
+      const svgScreenCTM = svgRoot.getScreenCTM();
+      if (!svgScreenCTM) return;
+      const svgInv = svgScreenCTM.inverse();
+
+      let maxRightInSvgUser = 0;
+      updatedTexts.forEach((text) => {
+        try {
+          const box = text.getBoundingClientRect();
+          const pt = svgRoot.createSVGPoint();
+          pt.x = box.right;
+          pt.y = 0;
+          const inSvgUser = pt.matrixTransform(svgInv);
+          maxRightInSvgUser = Math.max(maxRightInSvgUser, inSvgUser.x);
+        } catch {
+          /* element not laid out yet — skip */
+        }
+      });
+
+      const vb = svgEl
+        .getAttribute("viewBox")
+        ?.split(/\s+/)
+        .map(Number);
+      if (
+        vb &&
+        vb.length === 4 &&
+        maxRightInSvgUser > 0 &&
+        maxRightInSvgUser + 16 > vb[2]
+      ) {
+        svgEl.setAttribute(
+          "viewBox",
+          `${vb[0]} ${vb[1]} ${maxRightInSvgUser + 16} ${vb[3]}`
+        );
+      }
+    });
+
+    return () => cancelAnimationFrame(rafId);
   }, [svgHtml]);
 
   // ─── Task CRUD ──────────────────────────────────────────────────
@@ -526,7 +695,7 @@ export default function GanttModal({
 
                 <TransformWrapper
                   ref={zoomRef}
-                  initialScale={0.85}
+                  initialScale={1}
                   minScale={0.2}
                   maxScale={4}
                   centerOnInit
