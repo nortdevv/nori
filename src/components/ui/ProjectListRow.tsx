@@ -16,9 +16,11 @@ function ProjectListRow({
   onToggleSelected,
 }: Props) {
   const navigate = useNavigate();
-  const to = `/${project.project_id}`;
 
-  const go = () => navigate(to);
+  const go = () => {
+    sessionStorage.setItem("nori_active_project_id", project.project_id);
+    navigate(`/${project.project_id}`);
+  };
 
   return (
     <tr

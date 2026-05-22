@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import Navbar from "../components/ui/Navbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
@@ -112,9 +112,11 @@ function renderSummaryMarkdown(summary: string): ReactNode[] {
 }
 
 function DetalleProyecto() {
-  const { id } = useParams<{ id: string }>();
+  const { id: paramId } = useParams<{ id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const id = paramId || location.state?.projectId || sessionStorage.getItem("nori_active_project_id") || undefined;
 
   const [project, setProject] = useState<ProjectDisplay | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -383,7 +385,7 @@ function DetalleProyecto() {
         name,
         tags,
         status: draftStatus,
-      });
+      }, user?.id);
       setProject(toProjectDisplay(updated));
       await loadProjectSummary(updated.last_updated);
       setIsEditingDetails(false);
@@ -401,7 +403,8 @@ function DetalleProyecto() {
     setIsDuplicating(true);
     setActionError(null);
     try {
-      const { projectId: newProjectId } = await chatApi.duplicateConversation(id);
+      const { projectId: newProjectId } = await chatApi.duplicateConversation(id, user?.id);
+      sessionStorage.setItem("nori_active_project_id", newProjectId);
       navigate(`/${newProjectId}`);
     } catch (err: unknown) {
       setActionError(getErrorMessage(err, "No se pudo duplicar el proyecto"));
@@ -422,7 +425,7 @@ function DetalleProyecto() {
     setIsDeleting(true);
     setActionError(null);
     try {
-      await chatApi.deleteConversation(id);
+      await chatApi.deleteConversation(id, user?.id);
       navigate("/", { replace: true });
     } catch (err: unknown) {
       setActionError(getErrorMessage(err, "No se pudo eliminar el proyecto"));
@@ -492,6 +495,9 @@ function DetalleProyecto() {
           {siblingNewerId ? (
             <Link
               to={`/${siblingNewerId}`}
+              onClick={() => {
+                sessionStorage.setItem("nori_active_project_id", siblingNewerId);
+              }}
               className="detalle-sibling-btn"
               title="Proyecto más reciente (anterior en la lista)"
               aria-label="Ir al proyecto más reciente en la lista"
@@ -523,6 +529,9 @@ function DetalleProyecto() {
             <div className="detalle-actions">
               <Link
                 to={`/chat/${project.project_id}`}
+                onClick={() => {
+                  sessionStorage.setItem("nori_active_project_id", project.project_id);
+                }}
                 className="detalle-btn detalle-btn--chat"
               >
                 <Plus size={16} strokeWidth={2.5} />
@@ -839,6 +848,9 @@ function DetalleProyecto() {
           {siblingOlderId ? (
             <Link
               to={`/${siblingOlderId}`}
+              onClick={() => {
+                sessionStorage.setItem("nori_active_project_id", siblingOlderId);
+              }}
               className="detalle-sibling-btn"
               title="Proyecto más antiguo (siguiente en la lista)"
               aria-label="Ir al siguiente proyecto en la lista"

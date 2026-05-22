@@ -15,7 +15,6 @@ function ProjectCard({
   selected = false,
   onToggleSelected,
 }: Props) {
-  const to = `/${project.project_id}`;
 
   const cardBody = (
     <article className={`project-card${selected ? " project-card--selected" : ""}`}>
@@ -92,7 +91,10 @@ function ProjectCard({
 
   return (
     <Link
-      to={to}
+      to={`/${project.project_id}`}
+      onClick={() => {
+        sessionStorage.setItem("nori_active_project_id", project.project_id);
+      }}
       style={{
         textDecoration: "none",
         color: "inherit",

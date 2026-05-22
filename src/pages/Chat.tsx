@@ -1,7 +1,8 @@
 import { CalendarDays, ChevronLeft, ChevronRight, FileText, GitBranch, RefreshCw, Send } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import BreadcrumbProjects from '../components/ui/BreadcrumbProjects';
 import ChatBubble, { type Message as ChatBubbleMessage } from '../components/ui/ChatBubble';
 import DiagramModal from '../components/ui/DiagramModal';
@@ -368,8 +369,12 @@ function DocumentPanel({
 }
 
 function Chat() {
-  const { id } = useParams<{ id: string }>();
+  const { id: paramId } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
+
+  const id = paramId || location.state?.projectId || sessionStorage.getItem("nori_active_project_id") || undefined;
 
   const [projectName, setProjectName] = useState('Proyecto');
   const [isLoading, setIsLoading] = useState(true);
@@ -555,7 +560,7 @@ function Chat() {
       setMessages(chatMessages);
 
       // Try to get project name from conversations list
-      const { conversations } = await chatApi.getConversations();
+      const { conversations } = await chatApi.getConversations(user?.id);
       const project = conversations.find((p) => p.project_id === id);
       if (project) {
         setProjectName(project.name);
@@ -635,7 +640,7 @@ function Chat() {
       const response = await chatApi.sendMessage({
         projectId: id,
         message: messageText,
-      });
+      }, user?.id);
 
       let aiMessageId = 0;
       setMessages((prev) => {

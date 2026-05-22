@@ -506,11 +506,10 @@ function DiagramModal({
                       {NODE_COLORS.map((c) => (
                         <button
                           key={c.value}
-                          className={`diagram-modal__color-option ${
-                            (nodes.find((n) => n.id === svgColorPicker.nodeId)?.color || "") === c.value
+                          className={`diagram-modal__color-option ${(nodes.find((n) => n.id === svgColorPicker.nodeId)?.color || "") === c.value
                               ? "diagram-modal__color-option--active"
                               : ""
-                          }`}
+                            }`}
                           style={{ backgroundColor: c.value || "#d1d5db" }}
                           title={c.name}
                           onClick={() => {
@@ -526,293 +525,292 @@ function DiagramModal({
 
               {/* RIGHT: Visual Editor Panel */}
               {showPanel && (
-              <div className="diagram-modal__editor-panel">
-                {/* Nodes Section */}
-                <div className="diagram-modal__section">
-                  <div className="diagram-modal__section-header">
-                    <span className="diagram-modal__section-title">
-                      Nodos ({nodes.length})
-                    </span>
-                    <button
-                      className="diagram-modal__add-btn"
-                      onClick={() => {
-                        setShowAddNode(!showAddNode);
-                        setShowAddEdge(false);
-                      }}
-                    >
-                      <Plus size={13} />
-                    </button>
-                  </div>
+                <div className="diagram-modal__editor-panel">
+                  {/* Nodes Section */}
+                  <div className="diagram-modal__section">
+                    <div className="diagram-modal__section-header">
+                      <span className="diagram-modal__section-title">
+                        Nodos ({nodes.length})
+                      </span>
+                      <button
+                        className="diagram-modal__add-btn"
+                        onClick={() => {
+                          setShowAddNode(!showAddNode);
+                          setShowAddEdge(false);
+                        }}
+                      >
+                        <Plus size={13} />
+                      </button>
+                    </div>
 
-                  {/* Add Node Form */}
-                  {showAddNode && (
-                    <div className="diagram-modal__add-form">
-                      <input
-                        type="text"
-                        className="diagram-modal__input"
-                        placeholder="Nombre del nodo"
-                        value={newNodeLabel}
-                        onChange={(e) => setNewNodeLabel(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleAddNode()}
-                        autoFocus
-                      />
-                      <div className="diagram-modal__form-row">
-                        <select
-                          className="diagram-modal__select"
-                          value={newNodeShape}
-                          onChange={(e) =>
-                            setNewNodeShape(e.target.value as NodeShape)
-                          }
-                        >
-                          {SHAPES.map((s) => (
-                            <option key={s} value={s}>
-                              {SHAPE_LABELS[s]}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          className="diagram-modal__select diagram-modal__select--color"
-                          value={newNodeColor}
-                          onChange={(e) => setNewNodeColor(e.target.value)}
-                          style={
-                            newNodeColor
-                              ? {
+                    {/* Add Node Form */}
+                    {showAddNode && (
+                      <div className="diagram-modal__add-form">
+                        <input
+                          type="text"
+                          className="diagram-modal__input"
+                          placeholder="Nombre del nodo"
+                          value={newNodeLabel}
+                          onChange={(e) => setNewNodeLabel(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleAddNode()}
+                          autoFocus
+                        />
+                        <div className="diagram-modal__form-row">
+                          <select
+                            className="diagram-modal__select"
+                            value={newNodeShape}
+                            onChange={(e) =>
+                              setNewNodeShape(e.target.value as NodeShape)
+                            }
+                          >
+                            {SHAPES.map((s) => (
+                              <option key={s} value={s}>
+                                {SHAPE_LABELS[s]}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            className="diagram-modal__select diagram-modal__select--color"
+                            value={newNodeColor}
+                            onChange={(e) => setNewNodeColor(e.target.value)}
+                            style={
+                              newNodeColor
+                                ? {
                                   borderColor: newNodeColor,
                                   backgroundColor: newNodeColor + "18",
                                 }
-                              : undefined
+                                : undefined
+                            }
+                          >
+                            {NODE_COLORS.map((c) => (
+                              <option key={c.value} value={c.value}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <button
+                          className="diagram-modal__form-submit"
+                          onClick={handleAddNode}
+                          disabled={!newNodeLabel.trim()}
+                        >
+                          Agregar nodo
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Node List */}
+                    <div className="diagram-modal__node-list">
+                      {[...nodes].sort((a, b) => a.label.localeCompare(b.label)).map((node) => (
+                        <div key={node.id} className="diagram-modal__node-card">
+                          {/* Color swatch picker */}
+                          <div className="diagram-modal__node-color-wrap">
+                            <button
+                              className="diagram-modal__color-swatch"
+                              style={{
+                                backgroundColor: node.color || "#d1d5db",
+                              }}
+                              onClick={() =>
+                                setColorPickerNodeId(
+                                  colorPickerNodeId === node.id ? null : node.id
+                                )
+                              }
+                              title="Cambiar color"
+                            />
+                            {colorPickerNodeId === node.id && (
+                              <div className="diagram-modal__color-dropdown">
+                                {NODE_COLORS.map((c) => (
+                                  <button
+                                    key={c.value}
+                                    className={`diagram-modal__color-option ${(node.color || "") === c.value
+                                        ? "diagram-modal__color-option--active"
+                                        : ""
+                                      }`}
+                                    style={{
+                                      backgroundColor: c.value || "#d1d5db",
+                                    }}
+                                    title={c.name}
+                                    onClick={() => {
+                                      handleUpdateNode(
+                                        node.id,
+                                        "color",
+                                        c.value
+                                      );
+                                      setColorPickerNodeId(null);
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Label */}
+                          <div className="diagram-modal__node-info">
+                            {editingNodeId === node.id ? (
+                              <input
+                                type="text"
+                                className="diagram-modal__node-input"
+                                value={node.label}
+                                onChange={(e) =>
+                                  handleUpdateNode(
+                                    node.id,
+                                    "label",
+                                    e.target.value
+                                  )
+                                }
+                                onBlur={handleNodeLabelBlur}
+                                onKeyDown={handleNodeLabelKeyDown}
+                                autoFocus
+                              />
+                            ) : (
+                              <span
+                                className="diagram-modal__node-label"
+                                onClick={() => setEditingNodeId(node.id)}
+                                title="Clic para editar"
+                              >
+                                {node.label}
+                              </span>
+                            )}
+                            <div className="diagram-modal__node-meta">
+                              <select
+                                className="diagram-modal__shape-select"
+                                value={node.shape}
+                                onChange={(e) =>
+                                  handleUpdateNode(
+                                    node.id,
+                                    "shape",
+                                    e.target.value
+                                  )
+                                }
+                              >
+                                {SHAPES.map((s) => (
+                                  <option key={s} value={s}>
+                                    {SHAPE_LABELS[s]}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Delete */}
+                          <button
+                            className="diagram-modal__delete-btn"
+                            onClick={() => handleDeleteNode(node.id)}
+                            title="Eliminar nodo"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Edges Section */}
+                  <div className="diagram-modal__section">
+                    <div className="diagram-modal__section-header">
+                      <span className="diagram-modal__section-title">
+                        Conexiones ({edges.length})
+                      </span>
+                      <button
+                        className="diagram-modal__add-btn"
+                        onClick={() => {
+                          setShowAddEdge(!showAddEdge);
+                          setShowAddNode(false);
+                        }}
+                        disabled={nodes.length < 2}
+                      >
+                        <Plus size={13} />
+                      </button>
+                    </div>
+
+                    {/* Add Edge Form */}
+                    {showAddEdge && (
+                      <div className="diagram-modal__add-form">
+                        <div className="diagram-modal__form-row">
+                          <select
+                            className="diagram-modal__select"
+                            value={newEdgeFrom}
+                            onChange={(e) => setNewEdgeFrom(e.target.value)}
+                          >
+                            <option value="">Origen...</option>
+                            {nodes.map((n) => (
+                              <option key={n.id} value={n.id}>
+                                {n.label}
+                              </option>
+                            ))}
+                          </select>
+                          <ArrowRight
+                            size={16}
+                            className="diagram-modal__arrow-icon"
+                          />
+                          <select
+                            className="diagram-modal__select"
+                            value={newEdgeTo}
+                            onChange={(e) => setNewEdgeTo(e.target.value)}
+                          >
+                            <option value="">Destino...</option>
+                            {nodes.map((n) => (
+                              <option key={n.id} value={n.id}>
+                                {n.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <input
+                          type="text"
+                          className="diagram-modal__input"
+                          placeholder="Etiqueta (opcional)"
+                          value={newEdgeLabel}
+                          onChange={(e) => setNewEdgeLabel(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleAddEdge()}
+                        />
+                        <button
+                          className="diagram-modal__form-submit"
+                          onClick={handleAddEdge}
+                          disabled={
+                            !newEdgeFrom || !newEdgeTo || newEdgeFrom === newEdgeTo
                           }
                         >
-                          {NODE_COLORS.map((c) => (
-                            <option key={c.value} value={c.value}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        className="diagram-modal__form-submit"
-                        onClick={handleAddNode}
-                        disabled={!newNodeLabel.trim()}
-                      >
-                        Agregar nodo
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Node List */}
-                  <div className="diagram-modal__node-list">
-                    {[...nodes].sort((a, b) => a.label.localeCompare(b.label)).map((node) => (
-                      <div key={node.id} className="diagram-modal__node-card">
-                        {/* Color swatch picker */}
-                        <div className="diagram-modal__node-color-wrap">
-                          <button
-                            className="diagram-modal__color-swatch"
-                            style={{
-                              backgroundColor: node.color || "#d1d5db",
-                            }}
-                            onClick={() =>
-                              setColorPickerNodeId(
-                                colorPickerNodeId === node.id ? null : node.id
-                              )
-                            }
-                            title="Cambiar color"
-                          />
-                          {colorPickerNodeId === node.id && (
-                            <div className="diagram-modal__color-dropdown">
-                              {NODE_COLORS.map((c) => (
-                                <button
-                                  key={c.value}
-                                  className={`diagram-modal__color-option ${
-                                    (node.color || "") === c.value
-                                      ? "diagram-modal__color-option--active"
-                                      : ""
-                                  }`}
-                                  style={{
-                                    backgroundColor: c.value || "#d1d5db",
-                                  }}
-                                  title={c.name}
-                                  onClick={() => {
-                                    handleUpdateNode(
-                                      node.id,
-                                      "color",
-                                      c.value
-                                    );
-                                    setColorPickerNodeId(null);
-                                  }}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Label */}
-                        <div className="diagram-modal__node-info">
-                          {editingNodeId === node.id ? (
-                            <input
-                              type="text"
-                              className="diagram-modal__node-input"
-                              value={node.label}
-                              onChange={(e) =>
-                                handleUpdateNode(
-                                  node.id,
-                                  "label",
-                                  e.target.value
-                                )
-                              }
-                              onBlur={handleNodeLabelBlur}
-                              onKeyDown={handleNodeLabelKeyDown}
-                              autoFocus
-                            />
-                          ) : (
-                            <span
-                              className="diagram-modal__node-label"
-                              onClick={() => setEditingNodeId(node.id)}
-                              title="Clic para editar"
-                            >
-                              {node.label}
-                            </span>
-                          )}
-                          <div className="diagram-modal__node-meta">
-                            <select
-                              className="diagram-modal__shape-select"
-                              value={node.shape}
-                              onChange={(e) =>
-                                handleUpdateNode(
-                                  node.id,
-                                  "shape",
-                                  e.target.value
-                                )
-                              }
-                            >
-                              {SHAPES.map((s) => (
-                                <option key={s} value={s}>
-                                  {SHAPE_LABELS[s]}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Delete */}
-                        <button
-                          className="diagram-modal__delete-btn"
-                          onClick={() => handleDeleteNode(node.id)}
-                          title="Eliminar nodo"
-                        >
-                          <Trash2 size={13} />
+                          Agregar conexión
                         </button>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Edges Section */}
-                <div className="diagram-modal__section">
-                  <div className="diagram-modal__section-header">
-                    <span className="diagram-modal__section-title">
-                      Conexiones ({edges.length})
-                    </span>
-                    <button
-                      className="diagram-modal__add-btn"
-                      onClick={() => {
-                        setShowAddEdge(!showAddEdge);
-                        setShowAddNode(false);
-                      }}
-                      disabled={nodes.length < 2}
-                    >
-                      <Plus size={13} />
-                    </button>
-                  </div>
-
-                  {/* Add Edge Form */}
-                  {showAddEdge && (
-                    <div className="diagram-modal__add-form">
-                      <div className="diagram-modal__form-row">
-                        <select
-                          className="diagram-modal__select"
-                          value={newEdgeFrom}
-                          onChange={(e) => setNewEdgeFrom(e.target.value)}
-                        >
-                          <option value="">Origen...</option>
-                          {nodes.map((n) => (
-                            <option key={n.id} value={n.id}>
-                              {n.label}
-                            </option>
-                          ))}
-                        </select>
-                        <ArrowRight
-                          size={16}
-                          className="diagram-modal__arrow-icon"
-                        />
-                        <select
-                          className="diagram-modal__select"
-                          value={newEdgeTo}
-                          onChange={(e) => setNewEdgeTo(e.target.value)}
-                        >
-                          <option value="">Destino...</option>
-                          {nodes.map((n) => (
-                            <option key={n.id} value={n.id}>
-                              {n.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <input
-                        type="text"
-                        className="diagram-modal__input"
-                        placeholder="Etiqueta (opcional)"
-                        value={newEdgeLabel}
-                        onChange={(e) => setNewEdgeLabel(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleAddEdge()}
-                      />
-                      <button
-                        className="diagram-modal__form-submit"
-                        onClick={handleAddEdge}
-                        disabled={
-                          !newEdgeFrom || !newEdgeTo || newEdgeFrom === newEdgeTo
-                        }
-                      >
-                        Agregar conexión
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Edge List */}
-                  <div className="diagram-modal__edge-list">
-                    {[...edges]
-                      .map((edge, i) => ({ edge, originalIndex: i }))
-                      .sort((a, b) => getNodeLabel(a.edge.from).localeCompare(getNodeLabel(b.edge.from)))
-                      .map(({ edge, originalIndex }) => (
-                      <div key={originalIndex} className="diagram-modal__edge-row">
-                        <span className="diagram-modal__edge-text">
-                          <strong>{getNodeLabel(edge.from)}</strong>
-                          {" → "}
-                          <strong>{getNodeLabel(edge.to)}</strong>
-                          {edge.label && (
-                            <span className="diagram-modal__edge-label-text">
-                              {" "}
-                              ({edge.label})
-                            </span>
-                          )}
-                        </span>
-                        <button
-                          className="diagram-modal__delete-btn"
-                          onClick={() => handleDeleteEdge(originalIndex)}
-                          title="Eliminar conexión"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    ))}
-                    {edges.length === 0 && (
-                      <p className="diagram-modal__empty-text">
-                        Sin conexiones
-                      </p>
                     )}
+
+                    {/* Edge List */}
+                    <div className="diagram-modal__edge-list">
+                      {[...edges]
+                        .map((edge, i) => ({ edge, originalIndex: i }))
+                        .sort((a, b) => getNodeLabel(a.edge.from).localeCompare(getNodeLabel(b.edge.from)))
+                        .map(({ edge, originalIndex }) => (
+                          <div key={originalIndex} className="diagram-modal__edge-row">
+                            <span className="diagram-modal__edge-text">
+                              <strong>{getNodeLabel(edge.from)}</strong>
+                              {" → "}
+                              <strong>{getNodeLabel(edge.to)}</strong>
+                              {edge.label && (
+                                <span className="diagram-modal__edge-label-text">
+                                  {" "}
+                                  ({edge.label})
+                                </span>
+                              )}
+                            </span>
+                            <button
+                              className="diagram-modal__delete-btn"
+                              onClick={() => handleDeleteEdge(originalIndex)}
+                              title="Eliminar conexión"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      {edges.length === 0 && (
+                        <p className="diagram-modal__empty-text">
+                          Sin conexiones
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
               )}
             </>
           )}
