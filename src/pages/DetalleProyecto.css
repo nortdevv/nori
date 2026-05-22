@@ -694,11 +694,19 @@
   flex-shrink: 0;
 }
 
+.detalle-doc-item__name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
 .detalle-doc-item__name {
   font-size: 0.95rem;
   font-weight: 700;
   color: #0f172a;
-  margin: 0 0 2px;
+  margin: 0;
 }
 
 .detalle-doc-item__meta {

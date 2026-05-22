@@ -127,6 +127,17 @@
   cursor: not-allowed;
 }
 
+.docview-action-btn--restore {
+  background-color: #EB0029;
+  border-color: #EB0029;
+  color: #ffffff;
+}
+
+.docview-action-btn--restore:hover:not(:disabled) {
+  background-color: #c8001f;
+  border-color: #c8001f;
+}
+
 /* ── Body layout ── */
 .docview-body {
   display: flex;
@@ -440,6 +451,132 @@
   border-radius: 50%;
   background-color: #EB0029;
   flex-shrink: 0;
+}
+
+/* ── Restore modal ── */
+.docview-restore-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 24px;
+}
+
+.docview-restore-modal {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 95vw);
+}
+
+.docview-restore-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line-border-muted);
+}
+
+.docview-restore-modal__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.docview-restore-modal__close {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--line-border-muted);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b6b6b;
+}
+
+.docview-restore-modal__close:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.docview-restore-modal__body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.docview-restore-modal__desc {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.docview-restore-modal__error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.docview-restore-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--line-border-muted);
+}
+
+.docview-restore-modal__cancel-btn {
+  padding: 9px 18px;
+  border: 1px solid var(--line-border);
+  border-radius: 8px;
+  background-color: #fff;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.docview-restore-modal__cancel-btn:hover:not(:disabled) {
+  background-color: #f8fafc;
+}
+
+.docview-restore-modal__cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.docview-restore-modal__confirm-btn {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  background-color: #EB0029;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  min-width: 100px;
+}
+
+.docview-restore-modal__confirm-btn:hover:not(:disabled) {
+  background-color: #c8001f;
+}
+
+.docview-restore-modal__confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ── Print styles ── */
