@@ -93,6 +93,7 @@ export interface DocumentVersion {
   label: string;
   generated_at: string;
   is_current: boolean;
+  section_count?: number;
 }
 
 export interface VersionSection {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Check, Pencil } from "lucide-react";
 import "../../pages/Chat.css";
 import SectionContent from "./SectionContent";
@@ -25,16 +25,18 @@ function DocSectionItem({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [localContent, setLocalContent] = useState(section.content);
-  // Custom hook to manage edit state and actions
   const { status, draft, errorMessage, setDraft, startEdit, cancelEdit, save } =
     useSectionEdit(projectId, section.id, localContent, setLocalContent);
+
+  useEffect(() => {
+    if (status !== "idle") return;
+    setLocalContent(section.content);
+  }, [section.content]);
 
   const isEditMode = status === "editing" || status === "saving";
 
   return (
-    <div
-      className="doc-section"
-    >
+    <div className="doc-section">
       <div className="doc-section__header" onClick={() => onToggle(section.id)}>
         <div className="doc-section__label-row">
           {section.expanded ? (

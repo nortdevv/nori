@@ -788,11 +788,19 @@ function DetalleProyecto() {
                           aria-hidden
                         />
                         <div>
-                          <p className="detalle-doc-item__name">
-                            Documento de requerimientos
-                          </p>
+                          <div className="detalle-doc-item__name-row">
+                            <p className="detalle-doc-item__name">
+                              {version.label}
+                            </p>
+                            {version.is_current && (
+                              <span className="detalle-doc-item__version-badge">
+                                Actual
+                              </span>
+                            )}
+                          </div>
                           <p className="detalle-doc-item__meta">
-                            Proyecto: {project.name}
+                            {new Date(version.generated_at).toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                            {version.section_count != null ? ` · ${version.section_count} secciones` : ""}
                           </p>
                         </div>
                       </div>
