@@ -13,6 +13,8 @@ import {
   ChevronDown,
   ChevronUp,
   Trash2,
+  RotateCcw,
+  X,
 } from "lucide-react";
 import "./DocumentVersionView.css";
 
@@ -52,6 +54,9 @@ function DocumentVersionView() {
   const [error, setError] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeletingVersionId, setIsDeletingVersionId] = useState<string | null>(null);
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(
     new Set()
   );
@@ -142,6 +147,19 @@ function DocumentVersionView() {
     }
   };
 
+  const handleRestore = async () => {
+    if (!projectId || !versionId) return;
+    setIsRestoring(true);
+    setRestoreError(null);
+    try {
+      await documentApi.restoreVersion(projectId, versionId);
+      navigate(`/chat/${projectId}`);
+    } catch (err: unknown) {
+      setRestoreError(getErrorMessage(err, "No se pudo restaurar la versión"));
+      setIsRestoring(false);
+    }
+  };
+
   const toggleSection = (sectionNo: number) => {
     setExpandedSections((prev) => {
       const next = new Set(prev);
@@ -213,6 +231,14 @@ function DocumentVersionView() {
           >
             <Download size={15} strokeWidth={2} />
             {isDownloading ? "Descargando…" : "Descargar .docx"}
+          </button>
+          <button
+            type="button"
+            className="docview-action-btn docview-action-btn--restore"
+            onClick={() => { setShowRestoreModal(true); setRestoreError(null); }}
+          >
+            <RotateCcw size={15} strokeWidth={2} />
+            Retomar desde esta versión
           </button>
         </div>
       </div>
@@ -392,6 +418,65 @@ function DocumentVersionView() {
           )}
         </aside>
       </div>
+
+      {showRestoreModal && (
+        <div
+          className="docview-restore-overlay"
+          onClick={() => { if (!isRestoring) setShowRestoreModal(false); }}
+        >
+          <div
+            className="docview-restore-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="restore-modal-title"
+          >
+            <div className="docview-restore-modal__header">
+              <span id="restore-modal-title" className="docview-restore-modal__title">
+                Retomar desde esta versión
+              </span>
+              <button
+                type="button"
+                className="docview-restore-modal__close"
+                onClick={() => setShowRestoreModal(false)}
+                disabled={isRestoring}
+                aria-label="Cerrar"
+              >
+                <X size={17} />
+              </button>
+            </div>
+            <div className="docview-restore-modal__body">
+              <p className="docview-restore-modal__desc">
+                Esto reemplazará el contenido actual de tu documento con el estado de esta
+                versión. Los cambios no guardados como versión se perderán.
+              </p>
+              {restoreError && (
+                <div className="docview-restore-modal__error" role="alert">
+                  {restoreError}
+                </div>
+              )}
+            </div>
+            <div className="docview-restore-modal__footer">
+              <button
+                type="button"
+                className="docview-restore-modal__cancel-btn"
+                onClick={() => setShowRestoreModal(false)}
+                disabled={isRestoring}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="docview-restore-modal__confirm-btn"
+                onClick={handleRestore}
+                disabled={isRestoring}
+              >
+                {isRestoring ? "Restaurando…" : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

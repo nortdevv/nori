@@ -537,6 +537,16 @@ export const documentApi = {
     ),
 
   /**
+   * Restore a version snapshot over the current working draft
+   */
+  restoreVersion: (projectId: string, versionId: string) =>
+    apiFetch<{ message: string }>(
+      API_CONFIG.documentService,
+      `/api/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}/restore`,
+      withAuth({ method: 'POST' }),
+    ),
+
+  /**
   * Send the project document via email with Banorte-branded template and DOCX attachment
   */
   sendDocumentEmail: (projectId: string, to: string, customMessage?: string) =>
