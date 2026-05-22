@@ -629,7 +629,9 @@
 }
 
 @keyframes diagram-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Footer ── */

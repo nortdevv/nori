@@ -106,7 +106,7 @@ export const chatApi = {
   /**
    * Get all conversations for the logged-in user (JWT)
    */
-  getConversations: () =>
+  getConversations: (_userId?: string) =>
     apiFetch<{ conversations: Project[] }>(
       API_CONFIG.chatService,
       '/api/chat/conversations',
@@ -124,7 +124,7 @@ export const chatApi = {
    * Delete a project and related rows. Uses POST (not DELETE) because many
    * proxies and hosted stacks return 404 for DELETE while POST works the same.
    */
-  deleteConversation: (projectId: string) =>
+  deleteConversation: (projectId: string, _userId?: string) =>
     apiFetch<{ success: boolean; projectId: string }>(
       API_CONFIG.chatService,
       `/api/chat/conversations/${encodeURIComponent(projectId)}/delete`,
@@ -133,6 +133,7 @@ export const chatApi = {
 
   duplicateConversation: async (
     projectId: string,
+    _userId?: string,
   ): Promise<{ projectId: string; userId: string }> => {
     const payload = JSON.stringify({ projectId });
 
@@ -160,7 +161,8 @@ export const chatApi = {
    */
   updateConversation: (
     projectId: string,
-    data: { name: string; tags: string[]; status: string }
+    data: { name: string; tags: string[]; status: string },
+    _userId?: string
   ) =>
     apiFetch<Project>(
       API_CONFIG.chatService,
@@ -174,13 +176,16 @@ export const chatApi = {
   /**
    * Create a new conversation/project
    */
-  createConversation: (data: {
-    name: string;
-    tags?: string[];
-    priority?: string;
-    sponsor?: string;
-    startDate?: string;
-  }) =>
+  createConversation: (
+    data: {
+      name: string;
+      tags?: string[];
+      priority?: string;
+      sponsor?: string;
+      startDate?: string;
+    },
+    _userId?: string
+  ) =>
     apiFetch<{ projectId: string; userId: string }>(
       API_CONFIG.chatService,
       '/api/chat/conversations',
@@ -203,7 +208,10 @@ export const chatApi = {
   /**
    * Send a message in a conversation
    */
-  sendMessage: (data: { projectId: string; message: string }) =>
+  sendMessage: (
+    data: { projectId: string; message: string },
+    _userId?: string
+  ) =>
     apiFetch<{
       projectId: string;
       reply: string;
@@ -338,6 +346,27 @@ export const chatApi = {
         method: 'PUT',
         body: JSON.stringify({ source }),
       }),
+    ),
+
+  /**
+   * Get all projects for all users under a specific admin
+   */
+  getAdminUsersProgress: (adminId: string) =>
+    apiFetch<{
+      projects: {
+        project_id: string;
+        name: string;
+        status: string;
+        progress_pct: number;
+        last_updated: string;
+        developer_id: string;
+        developer_name: string;
+        developer_email: string;
+      }[];
+    }>(
+      API_CONFIG.chatService,
+      `/api/chat/admin/users-progress?adminId=${adminId}`,
+      withAuth({ method: 'GET' })
     ),
 };
 
@@ -507,9 +536,9 @@ export const documentApi = {
       withAuth({ method: 'DELETE' }),
     ),
 
-   /**
-   * Send the project document via email with Banorte-branded template and DOCX attachment
-   */
+  /**
+  * Send the project document via email with Banorte-branded template and DOCX attachment
+  */
   sendDocumentEmail: (projectId: string, to: string, customMessage?: string) =>
     apiFetch<{ message: string; to: string; filename: string }>(
       API_CONFIG.documentService,

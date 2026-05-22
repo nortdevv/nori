@@ -34,8 +34,14 @@ function Perfil() {
   const loadProjects = async () => {
     try {
       setIsLoading(true);
-      const { conversations } = await chatApi.getConversations();
-      setProjects(conversations.map(toProjectDisplay));
+      const { conversations } = await chatApi.getConversations(user?.id);
+      const seen = new Set<string>();
+      const unique = conversations.filter((p) => {
+        if (seen.has(p.project_id)) return false;
+        seen.add(p.project_id);
+        return true;
+      });
+      setProjects(unique.map(toProjectDisplay));
     } catch (err) {
       console.error('Error loading projects:', err);
     } finally {
@@ -175,6 +181,9 @@ function Perfil() {
               <Link
                 key={project.project_id}
                 to={`/${project.project_id}`}
+                onClick={() => {
+                  sessionStorage.setItem("nori_active_project_id", project.project_id);
+                }}
                 className="profile-project-row"
               >
                 <span className="profile-project-row__name">{project.name}</span>

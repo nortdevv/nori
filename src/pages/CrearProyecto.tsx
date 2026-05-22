@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/ui/Navbar";
 import BreadcrumbProjects from "../components/ui/BreadcrumbProjects";
 import { chatApi } from "../services/api";
@@ -18,6 +19,7 @@ const PRIORITY_OPTIONS = ["Alta", "Media", "Baja"] as const;
 
 function CrearProyecto() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [name, setName] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -75,8 +77,9 @@ function CrearProyecto() {
         priority: priority || undefined,
         sponsor: sponsor.trim() || undefined,
         startDate: startDate || undefined,
-      });
+      }, user?.id);
 
+      sessionStorage.setItem("nori_active_project_id", projectId);
       navigate(`/chat/${projectId}`);
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to create project"));

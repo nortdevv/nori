@@ -30,14 +30,26 @@ function BreadcrumbProjects() {
   const { user } = useAuth();
   const location = useLocation();
   const raw = location.pathname.split('/').filter(Boolean);
-  const pathSegments = raw[0] === 'chat' && raw[1] ? [raw[1], raw[0]] : raw;
+  const activeProjectId = location.state?.projectId || sessionStorage.getItem("nori_active_project_id");
+
+  let pathSegments = raw;
+  if (raw[0] === 'chat' && raw[1]) {
+    pathSegments = [raw[1], 'chat'];
+  } else if (raw[0] === 'chat') {
+    pathSegments = activeProjectId ? [activeProjectId, 'chat'] : ['chat'];
+  } else if (raw[0] === 'proyecto') {
+    pathSegments = activeProjectId ? [activeProjectId] : ['proyecto'];
+  } else if (raw.length === 1 && raw[0] !== 'perfil' && raw[0] !== 'crear') {
+    pathSegments = [raw[0]];
+  }
+
   const [projects, setProjects] = useState<ProjectDisplay[]>([]);
 
   useEffect(() => {
     if (!user?.id) return;
     const loadProjects = async () => {
       try {
-        const { conversations } = await chatApi.getConversations();
+        const { conversations } = await chatApi.getConversations(user?.id);
         const displayProjects = conversations.map(toProjectDisplay);
         setProjects(displayProjects);
       } catch (err) {
@@ -72,9 +84,19 @@ function BreadcrumbProjects() {
 
           {/* Segmentos dinámicos en el path de Breadcrumb*/}
           {pathSegments.map((segment, index) => {
-            const path = '/' + pathSegments.slice(0, index + 1).join('/');
             const isLast = index === pathSegments.length - 1;
             const name = getSegmentName(segment);
+
+            let path = '/';
+            if (segment === 'chat') {
+              path = `/chat/${pathSegments[0]}`;
+            } else if (segment === 'crear') {
+              path = '/crear';
+            } else if (segment === 'perfil') {
+              path = '/perfil';
+            } else {
+              path = `/${segment}`;
+            }
 
             return (
               <React.Fragment key={path}>

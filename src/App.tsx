@@ -38,6 +38,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/:id"
             element={
