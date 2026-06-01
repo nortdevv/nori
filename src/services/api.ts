@@ -300,16 +300,18 @@ export const chatApi = {
     ),
 
   /**
-   * Generate a Gantt chart for a project
+   * Generate a dependency diagram for a project
    */
-  generateGantt: (projectId: string) =>
+  generateDependencies: (projectId: string) =>
     apiFetch<{
       projectId: string;
       diagramId: string;
       source: string;
+      imageUrl: string;
+      svgUrl: string;
     }>(
       API_CONFIG.chatService,
-      '/api/chat/generate-gantt',
+      '/api/chat/generate-dependencies',
       withAuth({
         method: 'POST',
         body: JSON.stringify({ projectId }),
@@ -317,31 +319,33 @@ export const chatApi = {
     ),
 
   /**
-   * Get existing Gantt chart for a project
+   * Get existing dependency diagram for a project
    */
-  getGantt: (projectId: string) =>
+  getDependencies: (projectId: string) =>
     apiFetch<{
       projectId: string;
       diagramId: string;
       source: string;
+      imageUrl: string;
+      svgUrl: string;
       lastUpdated: string;
     }>(
       API_CONFIG.chatService,
-      `/api/chat/gantt/${projectId}`,
+      `/api/chat/dependencies/${projectId}`,
       withAuth({ method: 'GET' }),
     ),
 
   /**
-   * Update an existing Gantt chart's source code
+   * Update an existing dependency diagram's source code
    */
-  updateGantt: (projectId: string, source: string) =>
+  updateDependencies: (projectId: string, source: string) =>
     apiFetch<{
       projectId: string;
       diagramId: string;
       source: string;
     }>(
       API_CONFIG.chatService,
-      `/api/chat/gantt/${projectId}`,
+      `/api/chat/dependencies/${projectId}`,
       withAuth({
         method: 'PUT',
         body: JSON.stringify({ source }),
