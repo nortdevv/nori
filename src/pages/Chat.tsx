@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, ChevronRight, FileText, GitBranch, RefreshCw, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, GitBranch, Network, RefreshCw, Send } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import BreadcrumbProjects from '../components/ui/BreadcrumbProjects';
 import ChatBubble, { type Message as ChatBubbleMessage } from '../components/ui/ChatBubble';
 import DiagramModal from '../components/ui/DiagramModal';
-import GanttModal from '../components/ui/GanttModal';
+import DependencyModal from '../components/ui/DependencyModal';
 import DocPreviewModal from '../components/ui/DocPreviewModal';
 import DocSectionItem, { type DocSection } from '../components/ui/DocSectionItem';
 import Navbar from '../components/ui/Navbar';
@@ -281,9 +281,9 @@ function DocumentPanel({
   onGenerateDiagram,
   onViewDiagram,
   hasSavedDiagram,
-  onGenerateGantt,
-  onViewGantt,
-  hasSavedGantt,
+  onGenerateDependencies,
+  onViewDependencies,
+  hasSavedDependencies,
   progress,
 }: {
   sections: DocSection[];
@@ -293,9 +293,9 @@ function DocumentPanel({
   onGenerateDiagram: () => void;
   onViewDiagram: () => void;
   hasSavedDiagram: boolean;
-  onGenerateGantt: () => void;
-  onViewGantt: () => void;
-  hasSavedGantt: boolean;
+  onGenerateDependencies: () => void;
+  onViewDependencies: () => void;
+  hasSavedDependencies: boolean;
   progress: number;
 }) {
   const [page, setPage] = useState(0);
@@ -350,10 +350,10 @@ function DocumentPanel({
           <button
             className="doc-panel__generate-btn"
             style={{ backgroundColor: '#1a1a1a' }}
-            onClick={hasSavedGantt ? onViewGantt : onGenerateGantt}
+            onClick={hasSavedDependencies ? onViewDependencies : onGenerateDependencies}
           >
-            <CalendarDays size={16} />
-            {hasSavedGantt ? 'Ver Gantt' : 'Generar Gantt'}
+            <Network size={16} />
+            {hasSavedDependencies ? 'Ver Dependencias' : 'Generar Dependencias'}
           </button>
         )}
         <button
@@ -404,12 +404,12 @@ function Chat() {
   const [diagramError, setDiagramError] = useState<string | null>(null);
   const [hasSavedDiagram, setHasSavedDiagram] = useState(false);
 
-  // Gantt state
-  const [showGantt, setShowGantt] = useState(false);
-  const [ganttSource, setGanttSource] = useState<string | null>(null);
-  const [isGeneratingGantt, setIsGeneratingGantt] = useState(false);
-  const [ganttError, setGanttError] = useState<string | null>(null);
-  const [hasSavedGantt, setHasSavedGantt] = useState(false);
+  // Dependency diagram state
+  const [showDependencies, setShowDependencies] = useState(false);
+  const [dependencySource, setDependencySource] = useState<string | null>(null);
+  const [isGeneratingDependencies, setIsGeneratingDependencies] = useState(false);
+  const [dependencyError, setDependencyError] = useState<string | null>(null);
+  const [hasSavedDependencies, setHasSavedDependencies] = useState(false);
   const revealRunRef = useRef(0);
 
   useEffect(() => {
@@ -497,39 +497,39 @@ function Chat() {
     }
   };
 
-  // ─── Gantt handlers ───────────────────────────────────────────
+  // ─── Dependency diagram handlers ──────────────────────────────
 
-  const handleGenerateGantt = async () => {
+  const handleGenerateDependencies = async () => {
     if (!id) return;
 
-    setGanttSource(null);
-    setGanttError(null);
-    setIsGeneratingGantt(true);
-    setShowGantt(true);
+    setDependencySource(null);
+    setDependencyError(null);
+    setIsGeneratingDependencies(true);
+    setShowDependencies(true);
 
     try {
-      const result = await chatApi.generateGantt(id);
-      setGanttSource(result.source);
-      setHasSavedGantt(true);
-    } catch (err: any) {
-      console.error('Error generating gantt:', err);
-      setGanttError(err.message || 'Error al generar el diagrama de Gantt');
+      const result = await chatApi.generateDependencies(id);
+      setDependencySource(result.source);
+      setHasSavedDependencies(true);
+    } catch (err: unknown) {
+      console.error('Error generating dependencies:', err);
+      setDependencyError(getErrorMessage(err, 'Error al generar el diagrama de dependencias'));
     } finally {
-      setIsGeneratingGantt(false);
+      setIsGeneratingDependencies(false);
     }
   };
 
-  const handleViewGantt = () => {
-    setShowGantt(true);
+  const handleViewDependencies = () => {
+    setShowDependencies(true);
   };
 
-  const handleSaveGantt = async (newSource: string) => {
+  const handleSaveDependencies = async (newSource: string) => {
     if (!id) return;
-    setGanttSource(newSource);
+    setDependencySource(newSource);
     try {
-      await chatApi.updateGantt(id, newSource);
+      await chatApi.updateDependencies(id, newSource);
     } catch (err) {
-      console.error('Error saving gantt:', err);
+      console.error('Error saving dependencies:', err);
     }
   };
 
@@ -597,13 +597,13 @@ function Chat() {
             // No saved diagram, that's fine
           }
           try {
-            const gantt = await chatApi.getGantt(id);
-            if (gantt && gantt.source) {
-              setGanttSource(gantt.source);
-              setHasSavedGantt(true);
+            const dependencies = await chatApi.getDependencies(id);
+            if (dependencies && dependencies.source) {
+              setDependencySource(dependencies.source);
+              setHasSavedDependencies(true);
             }
           } catch {
-            // No saved gantt, that's fine
+            // No saved dependency diagram, that's fine
           }
         }
       } catch (sectionErr) {
@@ -757,9 +757,9 @@ function Chat() {
           onGenerateDiagram={handleGenerateDiagram}
           onViewDiagram={handleViewDiagram}
           hasSavedDiagram={hasSavedDiagram}
-          onGenerateGantt={handleGenerateGantt}
-          onViewGantt={handleViewGantt}
-          hasSavedGantt={hasSavedGantt}
+          onGenerateDependencies={handleGenerateDependencies}
+          onViewDependencies={handleViewDependencies}
+          hasSavedDependencies={hasSavedDependencies}
           progress={progress}
         />
       </div>
@@ -796,14 +796,14 @@ function Chat() {
         />
       )}
 
-      {showGantt && (
-        <GanttModal
-          source={ganttSource}
-          isGenerating={isGeneratingGantt}
-          error={ganttError}
-          onClose={() => setShowGantt(false)}
-          onRegenerate={handleGenerateGantt}
-          onSave={handleSaveGantt}
+      {showDependencies && (
+        <DependencyModal
+          source={dependencySource}
+          isGenerating={isGeneratingDependencies}
+          error={dependencyError}
+          onClose={() => setShowDependencies(false)}
+          onRegenerate={handleGenerateDependencies}
+          onSave={handleSaveDependencies}
         />
       )}
     </div>
