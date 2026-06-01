@@ -544,7 +544,7 @@
   gap: 8px;
 }
 
-/* Last button (Generar Documento) spans the full width below the diagram/gantt pair */
+/* Last button (Generar Documento) spans the full width below the diagram/dependencies pair */
 .doc-panel__footer > .doc-panel__generate-btn--full {
   grid-column: 1 / -1;
 }
