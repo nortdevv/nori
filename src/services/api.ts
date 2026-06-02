@@ -96,6 +96,19 @@ export const authApi = {
       '/api/auth/login',
       { method: 'POST', body: JSON.stringify({ email, password }) }
     ),
+
+  /**
+   * Validates the stored JWT with auth-service.
+   */
+  verify: (token: string) =>
+    apiFetch<{ valid: boolean; user?: { userId: string; email: string; role: 'user' | 'admin' } }>(
+      API_CONFIG.authService,
+      '/api/auth/verify',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    ),
 };
 
 // ============================================================================
@@ -353,9 +366,9 @@ export const chatApi = {
     ),
 
   /**
-   * Get all projects for all users under a specific admin
+   * Team projects for the authenticated admin (adminId from JWT).
    */
-  getAdminUsersProgress: (adminId: string) =>
+  getAdminUsersProgress: () =>
     apiFetch<{
       projects: {
         project_id: string;
@@ -369,7 +382,7 @@ export const chatApi = {
       }[];
     }>(
       API_CONFIG.chatService,
-      `/api/chat/admin/users-progress?adminId=${adminId}`,
+      '/api/chat/admin/users-progress',
       withAuth({ method: 'GET' })
     ),
 };
