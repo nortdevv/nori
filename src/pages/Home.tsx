@@ -80,7 +80,7 @@ function Proyectos() {
   const loadAdminProjects = async () => {
     if (!user?.id) return;
     try {
-      const data = await chatApi.getAdminUsersProgress(user.id);
+      const data = await chatApi.getAdminUsersProgress();
       setAdminProjects(data.projects);
     } catch (err) {
       console.error("Error cargando proyectos del equipo:", err);
@@ -201,17 +201,32 @@ function Proyectos() {
     }
   };
 
+  const welcomeHero = (
+    <div className="dashboard-hero">
+      <div>
+        <h1 className="dashboard-title">Bienvenido, {welcomeName}</h1>
+        <p className="dashboard-subtitle">
+          Gestiona y genera la documentación de tus proyectos de software.
+        </p>
+      </div>
+      <Link to="/crear" className="dashboard-create-button">
+        <Plus size={18} strokeWidth={2.5} />
+        <span>Crear Nuevo Proyecto</span>
+      </Link>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="dashboard-page">
         <HomeHeader />
         <main className="dashboard-content">
+          {welcomeHero}
           <div
             className="dashboard-loading-skeleton"
             aria-busy="true"
             aria-label="Cargando proyectos"
           >
-            <div className="dashboard-loading-skeleton__hero" />
             <div className="dashboard-loading-skeleton__toolbar" />
             <div className="dashboard-loading-skeleton__grid">
               <div className="dashboard-loading-skeleton__card" />
@@ -249,19 +264,7 @@ function Proyectos() {
       <HomeHeader />
 
       <main className="dashboard-content">
-        {/* Bienvenido Hero Section */}
-        <div className="dashboard-hero">
-          <div>
-            <h1 className="dashboard-title">Bienvenido, {welcomeName}</h1>
-            <p className="dashboard-subtitle">
-              Gestiona y genera la documentación de tus proyectos de software.
-            </p>
-          </div>
-          <Link to="/crear" className="dashboard-create-button">
-            <Plus size={18} strokeWidth={2.5} />
-            <span>Crear Nuevo Proyecto</span>
-          </Link>
-        </div>
+        {welcomeHero}
 
         {/* Panel Analítico Completo de Equipo para Administradores */}
         {user?.role === "admin" && adminProjects.length > 0 && (
