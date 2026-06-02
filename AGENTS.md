@@ -1,22 +1,27 @@
 # AGENTS.md
 
-Guidance for AI coding agents and contributors working in this repo (`nori/` frontend).
+Guidance for AI coding agents and contributors working in **`nori/`** (frontend).
+
+Backend: sibling **`nori-demo/`** — see [nori-demo/AGENTS.md](../nori-demo/AGENTS.md) and [SETUP.md](../nori-demo/SETUP.md).
 
 ## Commands
 
 ```bash
-npm run dev            # Vite dev server (default http://localhost:5173)
-npm run build          # TypeScript project references + production bundle
-npm run lint           # ESLint
-npm run preview        # Serve the production build locally
-npm run test:e2e       # Playwright (starts Vite via playwright.config)
-npm run test:e2e:install   # Install Playwright Chromium browser
-npm run test:e2e:ui        # Playwright UI mode
+npm run dev              # Vite (default http://localhost:5173)
+npm run build            # tsc + production bundle
+npm run lint             # ESLint
+npm run preview          # Serve production build
+
+npm run test:e2e         # Playwright (starts Vite via playwright.config)
+npm run test:e2e:install # Chromium (first time)
+npm run test:e2e:ui      # Playwright UI mode
 ```
+
+**E2E** needs auth service for `e2e/global-setup.ts`. Optional: `NORI_E2E_EMAIL`, `NORI_E2E_PASSWORD`. Catalog: [docs/planes/plan-pruebas-40.md](../docs/planes/plan-pruebas-40.md).
 
 ## Environment
 
-Create `.env.local` as needed (all keys have localhost defaults in `src/config/api.ts`):
+`.env.local` (defaults in `src/config/api.ts`):
 
 ```
 VITE_AUTH_SERVICE_URL=http://localhost:3003
@@ -26,59 +31,45 @@ VITE_DOCUMENT_SERVICE_URL=http://localhost:3004
 
 ## Authentication
 
-- **Login UI**: `src/pages/Login.tsx` → `AuthProvider` (`src/context/AuthContext.tsx`) calls `authApi.login`. JWT is stored in `localStorage` under `nori_token`; user JSON under `nori_user`; `nori_auth` flag gates `ProtectedRoute`.
-- **API calls**: `src/services/api.ts` does **not** yet attach `Authorization: Bearer …` on `chatApi` / `documentApi` / blob downloads. Backend may still accept requests with a hardcoded `STATIC_USER_ID` in bodies or query params; when services enforce JWT, extend the shared fetch layer to inject the token and handle `401`.
-- **Static user id**: `STATIC_USER_ID` in `src/config/api.ts` is still sent on chat/conversation endpoints where the API expects `userId`.
+- **Login:** `Login.tsx` → `AuthProvider` → `authApi.login`. Token in `localStorage` (`nori_token`), user in `nori_user`.
+- **Routes:** `ProtectedRoute` checks `nori_auth`; saves `from` for post-login redirect.
+- **API:** `apiFetch` sends `Authorization: Bearer` when `nori_token` exists (`src/services/api.ts`).
 
 ## Routing
 
-Defined in `src/App.tsx`. Public: `/login`, `/logout`. All others are wrapped in `ProtectedRoute`.
+`src/App.tsx`. Public: `/login`, `/logout`.
 
 | Path | Page | Purpose |
 |------|------|---------|
 | `/` | `Home` | Project list |
 | `/perfil` | `Perfil` | User profile |
-| `/crear` | `CrearProyecto` | New project wizard |
-| `/:id` | `DetalleProyecto` | Project detail (metadata, versions, export, email) |
-| `/chat/:id` | `Chat` | Chat + document sections panel |
-| `/doc/:projectId/:versionId` | `DocumentVersionView` | Read-only snapshot of a saved version |
-| `/detalle/proyecto` | `Home` | Legacy alias → same as `/` |
-| `*` | — | Redirect to `/` |
+| `/crear` | `CrearProyecto` | New project |
+| `/:id` | `DetalleProyecto` | Detail, versions, export, share modal |
+| `/chat/:id` | `Chat` | Chat + document panel |
+| `/share/:shareId` | `ShareProjectPage` | Preview / copy shared project |
+| `/doc/:projectId/:versionId` | `DocumentVersionView` | Read-only version |
+| `/detalle/proyecto` | `Home` | Legacy alias |
+| `*` | — | Redirect `/` |
 
-## Key architecture patterns
+## Key patterns
 
-### Chat page (`src/pages/Chat.tsx`)
+### Chat (`src/pages/Chat.tsx`)
 
-Left: conversational AI. Right: **DocumentPanel** with 11 proposal sections (0–10), paginated 5 at a time. After each AI reply, if `documentSectionUpdated !== null`, sections are re-fetched via `chatApi.getDocumentSections` to stay in sync.
+Left: chat. Right: **DocumentPanel** (sections 0–10, 5 per page). After each reply, if `documentSectionUpdated !== null`, refetch via `chatApi.getDocumentSections`. Progress = sections 1–10; 100% unlocks diagram generation.
 
-Progress uses sections **1–10** only (section 0 is general requester info). At 100%, **Generar Diagrama** unlocks.
+### Sections
 
-### Document section rendering
+`DocSectionItem` → `SectionContent` / `SectionEditForm` + `useSectionEdit`. **`LABEL_MAP`** must stay in sync in both content and edit components.
 
-Section payloads are JSONB-shaped (object, array, or string). Flow:
+### API clients (`src/services/api.ts`)
 
-1. `DocSectionItem` — expand/collapse; uses `useSectionEdit`
-2. `SectionContent` — read-only rendering by shape (key-value, tables, lists, paragraph)
-3. `SectionEditForm` — editable mirror of the same shapes
+- **`authApi`** — login
+- **`chatApi`** — conversations, history, send, sections, diagrams
+- **`documentApi`** — DOCX blob, HTML preview URL, patch section, versions, email
+- **`shareApi`** — create/list/revoke shares, preview, copy
 
-`LABEL_MAP` exists in both `SectionContent` and `SectionEditForm` (Spanish labels for snake_case keys). **Keep them in sync** when adding fields.
+`documentApi.generateDocument` uses raw `fetch` for blob download.
 
-### `useSectionEdit` (`src/hooks/useSectionEdit.ts`)
+### Document preview (`DetalleProyecto`)
 
-Lifecycle: `idle → editing → saving → saved → idle`. Persists with `documentApi.patchSection`. `saved` resets to `idle` after ~2s.
-
-### API client (`src/services/api.ts`)
-
-- **`authApi`** — login (`/api/auth/login`).
-- **`chatApi`** — conversations (list, create, update, delete), history, send message, document sections, diagram generate/get/update.
-- **`documentApi`** — DOCX generate (blob), HTML `previewUrl` for iframes, project fetch, `patchSection`, version list/detail/create/delete, send document email.
-
-Helpers: `joinServiceUrl` + `apiFetch` for JSON. **`documentApi.generateDocument`** uses `fetch` directly and returns a `Blob` (not `apiFetch`). Network failures are mapped to Spanish user messages in a few places.
-
-### Document preview (project detail)
-
-**Generar Documento** sets the iframe `src` to `documentApi.previewUrl` immediately, then loads the DOCX blob in parallel; download stays disabled until the blob is ready.
-
-## Backend
-
-The multi-service API this UI targets lives in the sibling **`nori-demo`** repo (auth, chat, document, RAG services). Align `VITE_*` URLs with however those ports are run locally or deployed.
+Iframe `src` = `documentApi.previewUrl` immediately; DOCX blob loads in parallel for download.
