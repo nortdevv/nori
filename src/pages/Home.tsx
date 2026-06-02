@@ -80,7 +80,7 @@ function Proyectos() {
   const loadAdminProjects = async () => {
     if (!user?.id) return;
     try {
-      const data = await chatApi.getAdminUsersProgress(user.id);
+      const data = await chatApi.getAdminUsersProgress();
       setAdminProjects(data.projects);
     } catch (err) {
       console.error("Error cargando proyectos del equipo:", err);
