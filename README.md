@@ -74,8 +74,7 @@ Una **aplicación web interna** para Banorte que:
 - 🏢 Integración con **base de conocimiento RAG**: departamentos, tecnologías actuales y planeadas, estándares internos.
 - 📝 **Editor de documento** con sugerencias de mejora generadas por IA y edición sección por sección.
 - 📦 Exportación a **.docx** siguiendo el formato `NombreCortoIniciativaYYYY-MM-DD.docx` sin pop-ups.
-- 🔐 **Login** JWT (auth-service); rutas protegidas; API con `Authorization: Bearer` cuando hay sesión.
-- 🔗 **Compartir proyectos** — enlaces con snapshot de chat/documento; copia a biblioteca del receptor (`/share/:shareId`).
+- 🔐 **Login** contra el servicio de auth (JWT); rutas principales protegidas. _(La capa HTTP del cliente aún puede evolucionar para enviar el Bearer en todas las llamadas cuando el backend lo exija de forma uniforme; ver [AGENTS.md](./AGENTS.md).)_
 
 ---
 
@@ -127,15 +126,9 @@ VITE_CHAT_SERVICE_URL=http://localhost:3001
 VITE_DOCUMENT_SERVICE_URL=http://localhost:3004
 ```
 
-Backend y base de datos: **[nori-demo/SETUP.md](../nori-demo/SETUP.md)**.
-
 ---
 
-## 🧪 Pruebas
-
-Catálogo completo (40 pruebas): **[docs/planes/plan-pruebas-40.md](../docs/planes/plan-pruebas-40.md)**.
-
-### E2E (Playwright)
+## 🧪 Pruebas E2E (Playwright)
 
 Las pruebas viven en `e2e/`. El comando `test:e2e` puede levantar Vite automáticamente (`webServer` en `playwright.config.ts`).
 
@@ -163,22 +156,13 @@ Vuelve a ejecutar `npm run test:e2e:install` si Playwright se actualizó o falta
 
 **Opcional:** `npm run test:e2e:ui` abre la UI interactiva de Playwright.
 
-Las pruebas de humo que solo cargan login **no requieren** levantar todo `nori-demo`. Flujos E01–E08 necesitan auth, chat y document en marcha. El setup de Playwright usa credenciales por defecto del seed o `NORI_E2E_EMAIL` / `NORI_E2E_PASSWORD`.
-
-### Backend (Jest, desde `nori-demo/`)
-
-```bash
-cd nori-demo && npm test && npm run test:integration
-```
-
-Ver [nori-demo/SETUP.md § Testing](../nori-demo/SETUP.md#testing).
+Las pruebas de humo que solo cargan login **no requieren** levantar todo `nori-demo`. Escenarios que llamen a auth, chat u otros APIs necesitan los servicios en marcha y las `VITE_*` acordes.
 
 ---
 
 ## 📚 Documentación para contribuidores
 
-- **[AGENTS.md](./AGENTS.md)** — rutas, API (`authApi`, `chatApi`, `documentApi`, `shareApi`), patrones de UI.
-- **[nori-demo/AGENTS.md](../nori-demo/AGENTS.md)** — microservicios, arquitectura dual-response, pruebas backend.
+- **[AGENTS.md](./AGENTS.md)** — rutas, clientes API (`authApi`, `chatApi`, `documentApi`), flujo de documento/chat, notas de autenticación y patrones de UI.
 
 ---
 
