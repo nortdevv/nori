@@ -129,7 +129,7 @@ function DocPreviewModal({
               disabled={!docxBlob || isGenerating}
               title="Enviar documento por correo"
             >
-              <Mail size={15} style={{ marginRight: 6 }} />
+              <Mail size={15} />
               Enviar por Correo
             </button>
           )}

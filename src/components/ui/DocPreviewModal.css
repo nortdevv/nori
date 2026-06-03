@@ -175,6 +175,10 @@
   font-weight: 500;
   color: #4a4a4a;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
   transition: border-color 0.15s, color 0.15s;
 }
 
