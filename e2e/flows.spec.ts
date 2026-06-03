@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { gotoDashboardReady } from "./helpers/dashboard";
 import {
   createProjectViaUi,
   deleteTestProject,
@@ -18,10 +17,10 @@ test.describe("E01 E04–E08 (autenticado)", () => {
   test("E01: login vía storage — dashboard muestra bienvenida", async ({
     page,
   }) => {
-    await gotoDashboardReady(page);
+    await page.goto("/");
     await expect(
       page.getByRole("heading", { name: /Bienvenido/i }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 30_000 });
   });
 
   test("E05: crear proyecto y llegar al chat", async ({ page }) => {
@@ -49,7 +48,10 @@ test.describe("E01 E04–E08 (autenticado)", () => {
       projectId = await createProjectViaUi(page, name);
       await expect(page).toHaveURL(/\/chat\//);
 
-      await gotoDashboardReady(page);
+      await page.goto("/");
+      await expect(
+        page.getByRole("heading", { name: /Bienvenido/i }),
+      ).toBeVisible({ timeout: 30_000 });
 
       await page.getByRole("article").filter({ hasText: name }).click();
       await expect(page).not.toHaveURL(/\/login/);
@@ -67,7 +69,10 @@ test.describe("E01 E04–E08 (autenticado)", () => {
   test("E07: búsqueda sin resultados muestra estado vacío de filtros", async ({
     page,
   }) => {
-    await gotoDashboardReady(page);
+    await page.goto("/");
+    await expect(
+      page.getByRole("heading", { name: /Bienvenido/i }),
+    ).toBeVisible({ timeout: 30_000 });
     await page
       .getByPlaceholder("Buscar proyectos...")
       .fill("__no_match_xyz_123__");

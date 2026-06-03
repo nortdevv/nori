@@ -31,11 +31,9 @@ VITE_DOCUMENT_SERVICE_URL=http://localhost:3004
 
 ## Authentication
 
-- **Login:** `src/pages/Login.tsx` → `AuthProvider` (`src/context/AuthContext.tsx`) → `authApi.login`. Token in `localStorage` (`nori_token`), user in `nori_user`; `nori_auth` gates `ProtectedRoute`.
-- **Session restore:** On mount, `AuthProvider` calls `authApi.verify`; invalid/expired tokens clear storage and log out.
+- **Login:** `Login.tsx` → `AuthProvider` → `authApi.login`. Token in `localStorage` (`nori_token`), user in `nori_user`.
 - **Routes:** `ProtectedRoute` checks `nori_auth`; saves `from` for post-login redirect.
-- **API:** `src/services/api.ts` attaches `Authorization: Bearer` via `withAuth()` on `chatApi`, `documentApi`, and `shareApi`.
-- **E2E only:** `STATIC_USER_ID` in `src/config/api.ts` — runtime APIs use the JWT user.
+- **API:** `apiFetch` sends `Authorization: Bearer` when `nori_token` exists (`src/services/api.ts`).
 
 ## Routing
 

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { authApi } from "../services/api";
 
 interface AuthUser {
@@ -27,66 +27,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
 
-  const logout = useCallback(() => {
-    [AUTH_KEY, TOKEN_KEY, USER_KEY].forEach((k) => localStorage.removeItem(k));
-    document.title = "Nori";
-    setIsAuthenticated(false);
-    setUser(null);
-  }, []);
-
-  // Restore session and validate JWT with auth-service
+  // On mount, restore session from localStorage
   useEffect(() => {
-    let cancelled = false;
-
-    async function restoreSession() {
-      const token = localStorage.getItem(TOKEN_KEY);
-      const storedUser = localStorage.getItem(USER_KEY);
-
-      if (!token || localStorage.getItem(AUTH_KEY) !== "true") {
-        if (!cancelled) setIsLoading(false);
-        return;
-      }
-
-      try {
-        const { valid, user: payload } = await authApi.verify(token);
-        if (!valid || !payload?.userId) {
-          logout();
-          if (!cancelled) setIsLoading(false);
-          return;
-        }
-
-        const restored: AuthUser = storedUser
-          ? JSON.parse(storedUser)
-          : {
-              id: payload.userId,
-              email: payload.email,
-              name: null,
-              role: payload.role === 'admin' ? 'admin' : 'user',
-            };
-
-        if (payload.role && restored.role !== payload.role) {
-          restored.role = payload.role === 'admin' ? 'admin' : 'user';
-        }
-        if (payload.userId) restored.id = payload.userId;
-        if (payload.email) restored.email = payload.email;
-
-        localStorage.setItem(USER_KEY, JSON.stringify(restored));
-        if (!cancelled) {
-          setUser(restored);
-          setIsAuthenticated(true);
-        }
-      } catch {
-        logout();
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
+    const stored = localStorage.getItem(AUTH_KEY);
+    const storedUser = localStorage.getItem(USER_KEY);
+    if (stored === "true") {
+      setIsAuthenticated(true);
+      if (storedUser) setUser(JSON.parse(storedUser));
     }
-
-    restoreSession();
-    return () => {
-      cancelled = true;
-    };
-  }, [logout]);
+    setIsLoading(false);
+  }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
     const { token, user: apiUser } = await authApi.login(email, password);
@@ -95,6 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(USER_KEY,  JSON.stringify(apiUser));
     setIsAuthenticated(true);
     setUser(apiUser);
+  };
+
+  const logout = () => {
+    [AUTH_KEY, TOKEN_KEY, USER_KEY].forEach((k) => localStorage.removeItem(k));
+    document.title = "Nori";
+    setIsAuthenticated(false);
+    setUser(null);
   };
 
   return (
